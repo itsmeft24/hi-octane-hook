@@ -27,6 +27,7 @@ bool InlineHook32Impl(char* src, char* dst, const DWORD len)
     memcpy(trampoline + 4 + 5, src, len); // Write overwritten instruction.
 
     WriteJMPImpl((char*)src, trampoline);
+    memset(src + 5, 0x90, len - 5); // Make sure the overwritten data is padded with NOPs.
 
     memset(trampoline, 0x60, 1); // PUSHAD
     memset(trampoline + 1, 0x9C, 1); // PUSHFD
@@ -36,7 +37,7 @@ bool InlineHook32Impl(char* src, char* dst, const DWORD len)
     memset(trampoline + 2 + 5, 0x9D, 1); // POPFD
     memset(trampoline + 3 + 5, 0x61, 1); // POPAD
 
-    WriteJMPImpl(trampoline + len + 2 + 5, (char*)src + len);
+    WriteJMPImpl(trampoline + len + 4 + 5, (char*)src + len);
 
     return true;
 }
@@ -48,3 +49,7 @@ bool InlineHook32Impl(char* src, char* dst, const DWORD len)
 #define InlineHook32(src, len, dst) InlineHook32Impl((char*)src, (char*)dst, len)
 
 #define AllocateCode(size) (char*)VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+#define DECL_CARSHOOK __declspec(naked)
+
+#define RETURN __asm ret
