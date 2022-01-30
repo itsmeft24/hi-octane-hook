@@ -28,6 +28,7 @@ __declspec(naked) void GetInlineContext()
 		mov ctx.EBP, ebp
 		mov ctx.ESP, esp
 		// mov ctx.EIP, eip
+		ret
 	}
 }
 
@@ -44,5 +45,6 @@ __declspec(naked) void SetInlineContext()
 		mov ebp, ctx.EBP
 		mov esp, ctx.ESP
 		// mov eip, ctx.EIP
+		ret
 	}
 }
