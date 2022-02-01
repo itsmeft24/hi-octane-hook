@@ -42,13 +42,31 @@ bool InlineHook32Impl(char* src, char* dst, const DWORD len)
     return true;
 }
 
+bool RemoveInlineHook32Impl(char* src, char* dst, const DWORD len)
+{
+    if (len < 5) return false;
+
+    DWORD oldProtect;
+    VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &oldProtect);
+
+    DWORD* trampoline_addr = (DWORD*)src + 1 + (DWORD)src + 5;
+
+    memcpy(src, trampoline_addr + 4 + 5, len);
+
+    return (bool)VirtualFree(trampoline_addr, 0, MEM_RELEASE);
+}
+
 #define WriteJMP(src, dst) WriteJMPImpl((char*)src, (char*)dst)
 
 #define WriteCALL(src, dst) WriteCALLImpl((char*)src, (char*)dst)
 
 #define InlineHook32(src, len, dst) InlineHook32Impl((char*)src, (char*)dst, len)
 
+#define RemoveInlineHook32(src, len, dst) RemoveInlineHook32Impl((char*)src, (char*)dst, len)
+
 #define AllocateCode(size) (char*)VirtualAlloc(NULL, size, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
+
+#define FreeCode(ptr) (bool)VirtualFree(ptr, 0, MEM_RELEASE);
 
 #define DECL_CARSHOOK __declspec(naked)
 

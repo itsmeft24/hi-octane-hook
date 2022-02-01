@@ -15,7 +15,7 @@
 
 constexpr auto WindowTitle = "Cars: Hi-Octane Helper Plugin";
 
-__declspec(naked) void ParameterBlockOpenFileHook() {
+void DECL_CARSHOOK ParameterBlockOpenFileHook() {
 
     GetInlineContext();
 
@@ -43,10 +43,30 @@ __declspec(naked) void ParameterBlockOpenFileHook() {
     RETURN;
 }
 
-void FileDiscovery() {
-    // Will be used for adding native mod loading support.
-}
+void DECL_CARSHOOK DataAccess_FOpenHook() {
 
+	GetInlineContext();
+
+	__asm
+	{
+		push ebp
+		mov ebp, esp
+	}
+
+	char* FileName;
+	FileName = (char*)ctx.EBP;
+
+	printf("[Logging::DataAccess::FOpen] Opened file: %s\n", FileName);
+
+	__asm
+	{
+		mov esp, ebp
+		pop ebp
+	}
+
+	RETURN;
+
+}
 
 DWORD WINAPI main(HMODULE hModule)
 {
@@ -56,7 +76,7 @@ DWORD WINAPI main(HMODULE hModule)
     freopen_s(&f, "CONOUT$", "w", stdout);
     SetConsoleTitleA(WindowTitle);
 
-    InlineHook32(ParameterBlock_OpenFile + 0x34, 5, &ParameterBlockOpenFileHook); // Some simple hooks will be installed in our main thread like so.
+    InlineHook32(DataAccess_FOPEN + 0xB, 8, &DataAccess_FOpenHook); // Some simple hooks will be installed in our main thread like so.
     
     // CarsActivityUI_RequestDialogueHook::install(); // Others will be held in their own namespace, and their code will be in Hooks.h.
 
@@ -70,11 +90,12 @@ DWORD WINAPI main(HMODULE hModule)
         }
     }
 
-    // Unhook our hooks. (UNIMPLEMENTED!)
-    
-    fclose(f);
-    FreeConsole();
-    FreeLibraryAndExitThread(hModule, 0);
+    RemoveInlineHook32(DataAccess_FOPEN + 0xB, 8, &DataAccess_FOpenHook); // Be sure to remove the inline hook before exiting!
+	// To-Do: Make removing hooks actually work
+	
+	fclose(f);
+	FreeConsole();
+	FreeLibraryAndExitThread(hModule, 0);
     return 0;
 
 }

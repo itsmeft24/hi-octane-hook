@@ -1,5 +1,6 @@
 #pragma once
-namespace CarsActivityUI_RequestDialogueHook {
+
+namespace CarsActivityUI_RequestDialogueHook { // im aware that this is very overcomplicated lol, i will rewrite eventually
 
     char* AllocatedStringTable;
     char* AllocatedCode;
@@ -40,20 +41,10 @@ namespace CarsActivityUI_RequestDialogueHook {
         InlineHook32(CarsActivityUI_RequestDialogue + 0x105, 5, AllocatedCode);
     }
 
-};
-
-namespace NumberOfCarsPatcher {
-
-    int getNumberOfCars() {
-        std::ifstream dialogue_txt("DataPC\\C\\Audio\\Dialogue\\dialogue.txt", std::ios::in);
-        std::string line;
-        while (std::getline(dialogue_txt, line)) {
-            if (line.find("NumberOfCars") != -1) {
-                dialogue_txt.close();
-                return std::stoi(line.substr(12));
-            }
-        }
-        dialogue_txt.close();
-        return 0x50; // Default Value
+    void uninstall() {
+        RemoveInlineHook32(CarsActivityUI_RequestDialogue + 0x105, 5, AllocatedCode);
+        FreeCode(AllocatedCode);
+        delete[] AllocatedStringTable;
     }
+
 };
