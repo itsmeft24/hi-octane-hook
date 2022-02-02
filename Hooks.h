@@ -33,7 +33,6 @@ namespace CarsActivityUI_RequestDialogue_Hook
     void CollectCharactersToPatch() {
         std::ifstream file("DataPC\\C\\Global\\Chars\\DialogueList.ini", std::ios::in);
         std::string line;
-        int size = 0;
         while (std::getline(file, line)) {
             dialogue_list_append.push_back(line);
         }
