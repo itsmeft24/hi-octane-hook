@@ -6,69 +6,25 @@
 #include <vector>
 #include <fstream>
 #include <Windows.h>
+#include <shlwapi.h>
+
+static std::string CURRENT_DIRECTORY;
 
 #include "InlineHook32.h"
 #include "InlineContext.h"
-#include "offsets.h"
+#include "Offsets.h"
+#include "Logging.h"
 #include "Hooks.h"
 #include "ParameterBlockClass.h"
 
+extern "C" __declspec(dllexport) const char* VERSION = "0.1.0"; // Will be used for updating 
+extern "C" __declspec(dllexport) const char* REQUIRE_HI_OCTANE_VERSION = "1.9.2.3"; // Will be used for updating 
+
 constexpr auto WindowTitle = "Cars: Hi-Octane Helper Plugin";
 
-void DECL_CARSHOOK ParameterBlockOpenFileHook() {
+constexpr auto DATA_DIR = "DataPC"; // Can be swapped out with an alternate string. (unimplemented lol)
 
-    GetInlineContext();
-
-    __asm
-    {
-        push ebp
-        mov ebp, esp
-    }
-    // Create stack frame.
-
-    char* FileName;
-    FileName = (char*)ctx.EBP;
-    // Create variable and assign it to the EBP value retreived from GetInlineContext.
-    // This has to take 2 lines due to the way naked functions are compiled.
-
-    printf("[Logging::ParameterBlock::OpenFile] Opened file: %s\n", FileName);
-
-    __asm
-    {
-        mov esp, ebp
-        pop ebp
-    }
-    // Destroy stack frame.
-
-    RETURN;
-}
-
-void DECL_CARSHOOK DataAccess_FOpenHook() {
-
-	GetInlineContext();
-
-	__asm
-	{
-		push ebp
-		mov ebp, esp
-	}
-
-	char* FileName;
-	FileName = (char*)ctx.EBP;
-
-	printf("[Logging::DataAccess::FOpen] Opened file: %s\n", FileName);
-
-	__asm
-	{
-		mov esp, ebp
-		pop ebp
-	}
-
-	RETURN;
-
-}
-
-DWORD WINAPI main(HMODULE hModule)
+DWORD WINAPI HiOctaneMain(HMODULE hModule)
 {
     // Create Console
     AllocConsole();
@@ -76,9 +32,17 @@ DWORD WINAPI main(HMODULE hModule)
     freopen_s(&f, "CONOUT$", "w", stdout);
     SetConsoleTitleA(WindowTitle);
 
-    InlineHook32(DataAccess_FOPEN + 0xB, 8, &DataAccess_FOpenHook); // Some simple hooks will be installed in our main thread like so.
-    
-    // CarsActivityUI_RequestDialogueHook::install(); // Others will be held in their own namespace, and their code will be in Hooks.h.
+    char CURR_DIR_BUF[260];
+    GetModuleFileNameA(NULL, CURR_DIR_BUF, 260);
+    PathRemoveFileSpecA(CURR_DIR_BUF);
+    CURRENT_DIRECTORY = CURR_DIR_BUF;
+    // Get current directory and store it in a global variable. (Used for File IO stuff.)
+
+    Logging::Init();
+
+    DataAccessLogging::install();
+
+    CarsActivityUI_RequestDialogueHook::install(); // Others will be held in their own namespace, and their code will be in Hooks.h.
 
     while (true)
     {
@@ -89,10 +53,13 @@ DWORD WINAPI main(HMODULE hModule)
             break;
         }
     }
+    
+    Logging::Deinit();
 
-    RemoveInlineHook32(DataAccess_FOPEN + 0xB, 8, &DataAccess_FOpenHook); // Be sure to remove the inline hook before exiting!
-	// To-Do: Make removing hooks actually work
-	
+    CarsActivityUI_RequestDialogueHook::uninstall();
+
+    DataAccessLogging::uninstall();
+
 	fclose(f);
 	FreeConsole();
 	FreeLibraryAndExitThread(hModule, 0);
@@ -105,7 +72,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
     switch (reason)
     {
     case DLL_PROCESS_ATTACH:
-        CloseHandle(CreateThread(nullptr, 4096, (LPTHREAD_START_ROUTINE)main, hModule, 0, nullptr));
+        CloseHandle(CreateThread(nullptr, 4096, (LPTHREAD_START_ROUTINE)HiOctaneMain, hModule, 0, nullptr));
     case DLL_THREAD_ATTACH:
     case DLL_THREAD_DETACH:
     case DLL_PROCESS_DETACH:

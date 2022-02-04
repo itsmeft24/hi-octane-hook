@@ -49,7 +49,7 @@ bool RemoveInlineHook32Impl(char* src, char* dst, const DWORD len)
     DWORD oldProtect;
     VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &oldProtect);
 
-    DWORD* trampoline_addr = (DWORD*)src + 1 + (DWORD)src + 5;
+    DWORD* trampoline_addr = *(DWORD*)(src + 1) + (DWORD*)src + 5;
 
     memcpy(src, trampoline_addr + 4 + 5, len);
 

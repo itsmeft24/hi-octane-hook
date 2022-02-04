@@ -11,3 +11,5 @@ DWORD* DataAccess_FCLOSE = (DWORD*)0x005A9AF0;
 DWORD* DataAccess_FOPEN = (DWORD*)0x005D34F0;
 DWORD* DataAccess_FREAD = (DWORD*)0x005C0E90;
 
+#define DECL_FUNCTION(ret_type, call_conv, name, offset, ...) auto name = (ret_type(call_conv*)(##__VA_ARGS__))(offset)
+
