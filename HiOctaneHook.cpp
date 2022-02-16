@@ -6,6 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <Windows.h>
+#include <shlwapi.h>
 
 static std::string CURRENT_DIRECTORY;
 

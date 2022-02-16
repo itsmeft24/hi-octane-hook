@@ -54,9 +54,22 @@ namespace CarsActivityUI_RequestDialogueHook { // Not currently working, will fi
     }
 
     bool CollectCharactersToPatch() {
-        std::ifstream file(CURRENT_DIRECTORY + "\\DataPC\\C\\Global\\Chars\\DialogueList.ini", std::ios::in);
+        std::string DialogueListFilePath = "c\\global\\chars\\dialoguelist.ini";
+
+        if (ModSupport::MAP.find(DialogueListFilePath) != ModSupport::MAP.end()) {
+            DialogueListFilePath = CURRENT_DIRECTORY + "\\mods\\" + ModSupport::MAP.at(DialogueListFilePath) + DialogueListFilePath;
+        }
+        else {
+            if (std::filesystem::exists(CURRENT_DIRECTORY + "\\DataPC\\C\\Global\\Chars\\DialogueList.ini"))
+                DialogueListFilePath = CURRENT_DIRECTORY + "\\DataPC\\C\\Global\\Chars\\DialogueList.ini";
+            else
+                return false;
+        }
+
+        std::ifstream file(DialogueListFilePath, std::ios::in);
         if (!file)
             return false;
+        
         std::string line;
         while (std::getline(file, line)) {
             dialogue_list_append.push_back(line);
@@ -120,36 +133,42 @@ namespace ModSupport {
 
     DECL_FUNCTION(FILE*, __cdecl, __fsopen, 0x0063fbfb, char*, char*, int); // VS2005 CRT function
 
-    void FileDiscovery() {
+    bool FileDiscovery() {
         std::filesystem::path mods_dir(CURRENT_DIRECTORY+"\\mods\\");
-        for (const auto mod : std::filesystem::directory_iterator(mods_dir)) {
-            if (mod.is_directory()) {
-                for (const auto& entry : std::filesystem::recursive_directory_iterator(mod)) {
-                    if (entry.is_regular_file()) {
+        if (std::filesystem::exists(mods_dir)) {
+            for (const auto mod : std::filesystem::directory_iterator(mods_dir)) {
+                if (mod.is_directory()) {
+                    for (const auto& entry : std::filesystem::recursive_directory_iterator(mod)) {
+                        if (entry.is_regular_file()) {
 
-                        if (entry.path().filename().string() == "mod.info" || entry.path().extension().string() == ".dll")
-                            continue;
+                            if (entry.path().filename().string() == "mod.info" || entry.path().extension().string() == ".dll")
+                                continue;
 
-                        if (entry.path().extension().string() == ".ogg") { // the stream file open function doesnt pass a filepath with an extension to ssnprintf, it instead concatenates the extension after. dont ask why, i dont know.
+                            if (entry.path().extension().string() == ".ogg") { // the stream file open function doesnt pass a filepath with an extension to ssnprintf, it instead concatenates the extension after. dont ask why, i dont know.
 
-                            auto stripped_filename = entry.path().parent_path().string() + "\\" + entry.path().stem().string();
+                                auto stripped_filename = entry.path().parent_path().string() + "\\" + entry.path().stem().string();
 
-                            auto base_filename = stripped_filename.substr(mod.path().string().size() + 1);
+                                auto base_filename = stripped_filename.substr(mod.path().string().size() + 1);
+                                make_lowercase(base_filename);
+                                MAP.insert({ base_filename, mod.path().filename().string() });
+                            }
+
+                            auto base_filename = entry.path().string().substr(mod.path().string().size() + 1);
                             make_lowercase(base_filename);
+                            Logging::Log("[ModSupport::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
                             MAP.insert({ base_filename, mod.path().filename().string() });
                         }
-
-                        auto base_filename = entry.path().string().substr(mod.path().string().size() + 1);
-                        make_lowercase(base_filename);
-                        Logging::Log("[ModSupport::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
-                        MAP.insert({ base_filename, mod.path().filename().string() });
                     }
                 }
             }
+            return !MAP.empty();
+        }
+        else {
+            return false;
         }
     }
 
-    int __cdecl SSNPRINTF_DETOUR(char* buf, int len, char* format ...) // reimplemented ssnprintf for single-call inside another function
+    int __cdecl SsnprintfHook(char* buf, int len, char* format ...) // reimplemented ssnprintf for single-call inside another function
     {
         if (len == 0)
             return 0;
@@ -187,7 +206,7 @@ namespace ModSupport {
 
             base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
 
-            make_lowercase(base_filepath);// force lowercase
+            make_lowercase(base_filepath); // force lowercase
 
             if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
                 auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
@@ -217,7 +236,7 @@ namespace ModSupport {
 
             base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
 
-            make_lowercase(base_filepath);// force lowercase
+            make_lowercase(base_filepath); // force lowercase
 
             if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
                 auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
@@ -239,7 +258,7 @@ namespace ModSupport {
         return ret;
     }
 
-    FILE* __cdecl _FOPEN_DETOUR(char* _Filename, char* _Mode) // modified _fopen from VS2005
+    FILE* __cdecl _fopenHook(char* _Filename, char* _Mode) // modified _fopen from VS2005
     {
 
         if (_strnicmp(_Filename, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) == 0) { // is a DataPC file
@@ -248,7 +267,7 @@ namespace ModSupport {
 
             base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
 
-            make_lowercase(base_filepath);// force lowercase
+            make_lowercase(base_filepath); // force lowercase
 
             if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
                 auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
@@ -261,20 +280,19 @@ namespace ModSupport {
         return __fsopen((char*)_Filename, _Mode, 0x40); // return expected result
     }
 
-    void install() {
-        FileDiscovery();
+    bool install() {
+        if (FileDiscovery()) {
+            DWORD oldProtect;
+            VirtualProtect((LPVOID)0x0040FA62, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
+            WriteCALL(0x0040FA62, &_fopenHook); // undocumented file io function
 
-        DWORD oldProtect;
-        VirtualProtect((LPVOID)0x0040FA62, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
-        WriteCALL(0x0040FA62, &_FOPEN_DETOUR); // undocumented file io function
-
-        VirtualProtect((LPVOID)0x00417B2D, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
-        WriteCALL(0x00417B2D, &SSNPRINTF_DETOUR); // bink opening thing
-        
-        InstallReplacementHook((char*)GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), (char*)&BASS_SampleLoadHook, 6, "BASS_SampleLoad");
-        
-        InstallReplacementHook((char*)GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), (char*)&BASS_StreamCreateFileHook, 9, "BASS_StreamCreateFile");
-
+            VirtualProtect((LPVOID)0x00417B2D, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
+            WriteCALL(0x00417B2D, &SsnprintfHook); // bink opening thing
+            
+            InstallReplacementHook((char*)GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), (char*)&BASS_SampleLoadHook, 6, "BASS_SampleLoad");
+            
+            InstallReplacementHook((char*)GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), (char*)&BASS_StreamCreateFileHook, 9, "BASS_StreamCreateFile");
+        }
     }
 
     void uninstall() {

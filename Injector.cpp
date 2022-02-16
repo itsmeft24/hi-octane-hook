@@ -55,7 +55,7 @@ int main(int argc, char*argv[]) {
 	WaitForSingleObject(pInfo.hThread, INFINITE); // Wait for game's main thread to finish before executing cleanup.
 	CloseHandle(pInfo.hThread);
 
-	HANDLE ho_exit_thread_handle = CreateRemoteThread(pInfo.hProcess, 0, 0, (LPTHREAD_START_ROUTINE)entry_point, nullptr, 0, 0); // Call HiOctaneEntry
+	HANDLE ho_exit_thread_handle = CreateRemoteThread(pInfo.hProcess, 0, 0, (LPTHREAD_START_ROUTINE)exit_point, nullptr, 0, 0); // Call HiOctaneExit
 	WaitForSingleObject(ho_exit_thread_handle, INFINITE);
 	CloseHandle(ho_exit_thread_handle);
 	// Call exit thread and wait for it to finish before closing the handle.
