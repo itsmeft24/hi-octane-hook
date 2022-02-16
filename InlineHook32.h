@@ -20,7 +20,8 @@ bool InlineHook32Impl(char* src, char* dst, const DWORD len)
     if (len < 5) return false;
 
     DWORD oldProtect;
-    VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &oldProtect);
+    if (!VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &oldProtect))
+        return false;
 
     char* trampoline = (char*)VirtualAlloc(NULL, len + 10 + 2, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
 
@@ -68,6 +69,6 @@ bool RemoveInlineHook32Impl(char* src, char* dst, const DWORD len)
 
 #define FreeCode(ptr) (bool)VirtualFree(ptr, 0, MEM_RELEASE);
 
-#define DECL_CARSHOOK __declspec(naked)
+#define DECL_CARSINLINEHOOK __declspec(naked)
 
 #define RETURN __asm ret

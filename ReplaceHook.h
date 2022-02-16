@@ -1,41 +1,67 @@
 #pragma once
-#include "InlineHook32.h"
 #include <Windows.h>
 #include <unordered_map>
 
-std::unordered_map<std::string, DWORD*> BackedUpFunctions;
+struct HookedFunctionInfo {
+    DWORD* source_address;
+    DWORD* detour_address;
+    DWORD* backed_up_data;
+    DWORD size_of_backed_up_data;
 
-bool InstallReplacementHook(char* src, char* dst, const DWORD src_function_size, const std::string& func_sym)
+    void RestoreOriginalFunction() {
+        memcpy(source_address, backed_up_data, size_of_backed_up_data);
+    }
+
+    void ReinstallReplacementHook() {
+        WriteJMPImpl((char*)source_address, (char*)detour_address);
+    }
+};
+
+std::unordered_map<std::string, HookedFunctionInfo> HookedFunctions;
+
+bool InstallReplacementHook(char* src, char* dst, const DWORD instruction_size, const std::string& func_sym)
 {
+    if (instruction_size < 5) return false;
 
     DWORD oldProtect;
-    VirtualProtect(src, src_function_size, PAGE_EXECUTE_READWRITE, &oldProtect);
+    VirtualProtect(src, instruction_size, PAGE_EXECUTE_READWRITE, &oldProtect);
 
-    char* copied_func = AllocateCode(src_function_size);
+    char* backed_up_instr = AllocateCode(instruction_size);
 
-    memcpy(copied_func, src, src_function_size);
+    memcpy(backed_up_instr, src, instruction_size);
 
-    BackedUpFunctions.insert({func_sym, (DWORD*)copied_func});
+    HookedFunctionInfo info{ (DWORD*)src, (DWORD*)dst, (DWORD*)backed_up_instr, instruction_size };
+
+    HookedFunctions.insert({func_sym, info});
 
     WriteJMPImpl((char*)src, dst);
+
+    memset(src + 5, 0x90, instruction_size - 5);
 
     return true;
 }
 
-void* GetBackedUpFunction(std::string sym)
+HookedFunctionInfo& GetFunctionInfo(std::string sym)
 {
-    return BackedUpFunctions[sym];
+    return HookedFunctions[sym];
 }
 
-bool UninstallReplacementHook(char* src, const std::string& func_sym)
+bool UninstallReplacementHook(const std::string& func_sym)
 {
-    DWORD* backed_up_func = (DWORD*)GetBackedUpFunction(func_sym);
+    auto& info = GetFunctionInfo(func_sym);
     
-    memcpy(src, backed_up_func, 5);
+    info.RestoreOriginalFunction();
 
-    FreeCode(backed_up_func);
+    FreeCode(info.backed_up_data);
 
-    BackedUpFunctions.erase(func_sym);
+    HookedFunctions.erase(func_sym);
+
+    return true;
 }
 
-#define CallBackedUpFunction(ret_type, call_conv, sym, ...) (ret_type(call_conv*)(##__VA_ARGS__))(GetBackedUpFunction(sym))()
+// To call original function:
+// Yeah, I know its not that intuitive, but it works.
+// 
+// GetFunctionInfo("PreviouslyDeclaredFunctionPointer").RestoreOriginalFunction();
+// auto return_value = PreviouslyDeclaredFunctionPointer(arg1, arg2);
+// GetFunctionInfo("PreviouslyDeclaredFunctionPointer").ReinstallReplacementHook();
