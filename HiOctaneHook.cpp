@@ -6,7 +6,7 @@
 #include <vector>
 #include <fstream>
 #include <Windows.h>
-#include <shlwapi.h>
+#include <Shlwapi.h>
 
 static std::string CURRENT_DIRECTORY;
 
@@ -51,11 +51,15 @@ extern "C" __declspec(dllexport) void HiOctaneEntry()
     CarsActivityUI_RequestDialogueHook::install();
 
     ModSupport::install();
+
+    DataAccessLogging::install();
 }
 
 extern "C" __declspec(dllexport) void HiOctaneExit() {
 
     Logging::Log("[HiOctaneExit] Exiting...\n");
+    
+    DataAccessLogging::uninstall();
     
     ModSupport::uninstall();
 

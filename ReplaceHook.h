@@ -19,7 +19,7 @@ struct HookedFunctionInfo {
 
 std::unordered_map<std::string, HookedFunctionInfo> HookedFunctions;
 
-bool InstallReplacementHook(char* src, char* dst, const DWORD instruction_size, const std::string& func_sym)
+bool InstallReplacementHookImpl(char* src, char* dst, const DWORD instruction_size, const std::string& func_sym)
 {
     if (instruction_size < 5) return false;
 
@@ -41,7 +41,7 @@ bool InstallReplacementHook(char* src, char* dst, const DWORD instruction_size, 
     return true;
 }
 
-HookedFunctionInfo& GetFunctionInfo(std::string sym)
+HookedFunctionInfo& GetFunctionInfo(const std::string& sym)
 {
     return HookedFunctions[sym];
 }
@@ -58,6 +58,8 @@ bool UninstallReplacementHook(const std::string& func_sym)
 
     return true;
 }
+
+#define InstallReplacementHook(src, dst, instruction_size, func_sym) InstallReplacementHookImpl((char*)src, (char*)dst, instruction_size, func_sym)
 
 // To call original function:
 // Yeah, I know its not that intuitive, but it works.

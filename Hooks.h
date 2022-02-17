@@ -3,138 +3,21 @@
 #include <algorithm>
 #include <Windows.h>
 #include <winternl.h>
-#include "Utils.h"
-
-namespace CarsActivityUI_RequestDialogueHook { // Not currently working, will fix later
-
-    std::vector<std::string> dialogue_list_append;
-
-    DECL_FUNCTION(void, __thiscall, AddNameToDialogueList, CarsActivity_AddNameToDialogueList, void*, const char*);
-
-    void __fastcall RequestDialogue(DWORD* this_ptr) {
-
-        int iVar1 = *(int*)(this_ptr + 0x504);
-
-        if (iVar1 == 0) {
-            AddNameToDialogueList(this_ptr, "mcq");
-            AddNameToDialogueList(this_ptr, "mat");
-            AddNameToDialogueList(this_ptr, "hud");
-            AddNameToDialogueList(this_ptr, "ram");
-            AddNameToDialogueList(this_ptr, (const char*)0x00686574);
-            AddNameToDialogueList(this_ptr, "sar");
-            AddNameToDialogueList(this_ptr, "fil");
-            AddNameToDialogueList(this_ptr, (const char*)0x0068EDC0);
-            AddNameToDialogueList(this_ptr, "sven");
-            AddNameToDialogueList(this_ptr, "otto");
-            AddNameToDialogueList(this_ptr, "hiro");
-            AddNameToDialogueList(this_ptr, "gio");
-            AddNameToDialogueList(this_ptr, "emma");
-            AddNameToDialogueList(this_ptr, "mcqm");
-            AddNameToDialogueList(this_ptr, "matm");
-            AddNameToDialogueList(this_ptr, "sulm");
-            AddNameToDialogueList(this_ptr, "mike");
-
-            for (int x = 0; x < dialogue_list_append.size(); x++) {
-                AddNameToDialogueList(this_ptr, dialogue_list_append[x].c_str());
-                Logging::Log("[Patches::CarsActivityUI::RequestDialogue] Added %s to the Dialogue List!\n", dialogue_list_append[x].c_str());
-            }
-        }
-        else {
-            if (iVar1 == 1) {
-                AddNameToDialogueList(this_ptr, "mcq");
-                return;
-            }
-            if (iVar1 == 2) {
-                AddNameToDialogueList(this_ptr, "mcq");
-                AddNameToDialogueList(this_ptr, "mcqm");
-                return;
-            }
-        }
-
-    }
-
-    bool CollectCharactersToPatch() {
-        std::string DialogueListFilePath = "c\\global\\chars\\dialoguelist.ini";
-
-        if (ModSupport::MAP.find(DialogueListFilePath) != ModSupport::MAP.end()) {
-            DialogueListFilePath = CURRENT_DIRECTORY + "\\mods\\" + ModSupport::MAP.at(DialogueListFilePath) + DialogueListFilePath;
-        }
-        else {
-            if (std::filesystem::exists(CURRENT_DIRECTORY + "\\DataPC\\C\\Global\\Chars\\DialogueList.ini"))
-                DialogueListFilePath = CURRENT_DIRECTORY + "\\DataPC\\C\\Global\\Chars\\DialogueList.ini";
-            else
-                return false;
-        }
-
-        std::ifstream file(DialogueListFilePath, std::ios::in);
-        if (!file)
-            return false;
-        
-        std::string line;
-        while (std::getline(file, line)) {
-            dialogue_list_append.push_back(line);
-        }
-        file.close();
-        return true;
-    }
-
-    void install() {
-        if (CollectCharactersToPatch())
-            InstallReplacementHook((char*)CarsActivityUI_RequestDialogue, (char*)&RequestDialogue, 0x110, "CarsActivityUI::RequestDialogue");
-    };
-
-    void uninstall() {
-
-    };
-};
-
-namespace NumberOfCarsPatcher { // will require a lot more reversing to actually implement, so consider this dead code
-
-    int getNumberOfCars() {
-        std::ifstream dialogue_txt(CURRENT_DIRECTORY + "DataPC\\C\\Audio\\Dialogue\\dialogue.txt", std::ios::in);
-        std::string line;
-        while (std::getline(dialogue_txt, line)) {
-            if (line.find("NumberOfCars") != -1) {
-                dialogue_txt.close();
-                return std::stoi(line.substr(12));
-            }
-        }
-        dialogue_txt.close();
-        return 0x50; // Default Value
-    }
-    /*
-    int getNumberOfCars()
-    {
-        ParameterBlock pBlock;
-        pBlock.OpenFile("C\\Audio\\Dialogue\\dialogue.txt"); // allows the user to replace this file if they want to
-        int NumberOfCars;
-        pBlock.GetParameter("NumberOfCars", 0x50, &NumberOfCars);
-        return NumberOfCars;
-    }
-    */
-    void install() {
-        BYTE num = getNumberOfCars();
-        
-        *(BYTE*)(CarsDialogue_Constructor + 0x3F) = num;
-        *(BYTE*)(CarsDialogue_Destructor + 0x7D) = num;
-        *(BYTE*)(CarsDialogue_Create + 0x5BE) = num;
-    
-    }
-
-};
 
 namespace ModSupport {
 
     std::unordered_map<std::string, std::string> MAP;
 
-    DECL_FUNCTION(DWORD, __stdcall, BASS_SampleLoad, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), BOOL, char*, DWORD, DWORD, DWORD, DWORD); // i made this name up
-    
-    DECL_FUNCTION(DWORD, __stdcall, BASS_StreamCreateFile, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), BOOL, char*, DWORD, DWORD, DWORD); // i made this name up
+    DECL_FUNCTION(DWORD*, __stdcall, BinkOpen, GetProcAddress(GetModuleHandleA("binkw32.dll"), "_BinkOpen@8"), char*, DWORD);
+
+    DECL_FUNCTION(DWORD, __stdcall, BASS_SampleLoad, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), BOOL, char*, DWORD, DWORD, DWORD, DWORD);
+
+    DECL_FUNCTION(DWORD, __stdcall, BASS_StreamCreateFile, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), BOOL, char*, DWORD, DWORD, DWORD);
 
     DECL_FUNCTION(FILE*, __cdecl, __fsopen, 0x0063fbfb, char*, char*, int); // VS2005 CRT function
 
     bool FileDiscovery() {
-        std::filesystem::path mods_dir(CURRENT_DIRECTORY+"\\mods\\");
+        std::filesystem::path mods_dir(CURRENT_DIRECTORY + "\\mods\\");
         if (std::filesystem::exists(mods_dir)) {
             for (const auto mod : std::filesystem::directory_iterator(mods_dir)) {
                 if (mod.is_directory()) {
@@ -150,13 +33,27 @@ namespace ModSupport {
 
                                 auto base_filename = stripped_filename.substr(mod.path().string().size() + 1);
                                 make_lowercase(base_filename);
-                                MAP.insert({ base_filename, mod.path().filename().string() });
+
+                                if (MAP.find(base_filename) != MAP.end()) {
+                                    MAP.insert_or_assign(base_filename, mod.path().filename().string());
+                                }
+                                else {
+                                    MAP.insert_or_assign(base_filename, mod.path().filename().string());
+                                }
                             }
 
                             auto base_filename = entry.path().string().substr(mod.path().string().size() + 1);
                             make_lowercase(base_filename);
-                            Logging::Log("[ModSupport::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
-                            MAP.insert({ base_filename, mod.path().filename().string() });
+
+                            if (MAP.find(base_filename) != MAP.end()) {
+                                Logging::Log("[ModSupport::FileDiscovery] File: %s in mod: %s overwrites existing mod file in: %s\n", base_filename.c_str(), mod.path().filename().string().c_str(), MAP.at(base_filename).c_str());
+                                MAP.insert_or_assign(base_filename, mod.path().filename().string());
+                            }
+                            else {
+                                Logging::Log("[ModSupport::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
+                                MAP.insert_or_assign(base_filename, mod.path().filename().string());
+                            }
+
                         }
                     }
                 }
@@ -168,34 +65,34 @@ namespace ModSupport {
         }
     }
 
-    int __cdecl SsnprintfHook(char* buf, int len, char* format ...) // reimplemented ssnprintf for single-call inside another function
-    {
-        if (len == 0)
-            return 0;
+    DWORD* __stdcall BinkOpenHook(char* file, DWORD flags) {
 
-        va_list arg;
-        va_start(arg, format);
+        if (_strnicmp(file, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) == 0) { // is a DataPC file
 
-        std::string path = *(char**)(arg+4); // va_arg stuff
+            std::string base_filepath = file;
 
-        make_lowercase(path);
+            base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
 
-        if (MAP.find(path) != MAP.end()) {
-            auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(path) + "\\" + path;
+            make_lowercase(base_filepath); // force lowercase
 
-            strcpy(buf, out_path.c_str());
+            if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
+                auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
 
-            Logging::Log("[ModSupport::Ssnprintf] Loading file: %s from mod: %s...\n", path.c_str(), MAP.at(path).c_str());
+                Logging::Log("[ModSupport::BinkW32::BinkOpen] Loading Bink file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
 
-            return out_path.size();
+                // return expected result
+                GetFunctionInfo("_BinkOpen@8").RestoreOriginalFunction();
+                auto* ret = BinkOpen((char*)out_path.c_str(), flags);
+                GetFunctionInfo("_BinkOpen@8").ReinstallReplacementHook();
+                return ret;
+            }
         }
 
-        else {
-            int ret = vsnprintf(buf, len, format, arg);
-            va_end(arg);
-            return ret;
-        }
-
+        // return expected result
+        GetFunctionInfo("_BinkOpen@8").RestoreOriginalFunction();
+        auto* ret = BinkOpen(file, flags);
+        GetFunctionInfo("_BinkOpen@8").ReinstallReplacementHook();
+        return ret;
     }
 
     DWORD __stdcall BASS_SampleLoadHook(BOOL mem, char* file, DWORD offset, DWORD length, DWORD max, DWORD flags) {
@@ -242,7 +139,7 @@ namespace ModSupport {
                 auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
 
                 Logging::Log("[ModSupport::BASS::StreamCreateFile] Loading stream file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
-                
+
                 // return expected result
                 GetFunctionInfo("BASS_StreamCreateFile").RestoreOriginalFunction();
                 auto ret = BASS_StreamCreateFile(mem, (char*)out_path.c_str(), offset, length, flags);
@@ -277,30 +174,144 @@ namespace ModSupport {
                 return __fsopen((char*)out_path.c_str(), _Mode, 0x40); // return expected result
             }
         }
-        return __fsopen((char*)_Filename, _Mode, 0x40); // return expected result
+        return __fsopen(_Filename, _Mode, 0x40); // return expected result
     }
 
     bool install() {
         if (FileDiscovery()) {
             DWORD oldProtect;
             VirtualProtect((LPVOID)0x0040FA62, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
-            WriteCALL(0x0040FA62, &_fopenHook); // undocumented file io function
+            WriteCALL(0x0040FA62, &_fopenHook); // undocumented file io function, does not have a name yet
+            // here, the call to _fopen is intercepted manually because we do not want to interfere with
+            // calls to _fopen outside the games' file opener.
 
-            VirtualProtect((LPVOID)0x00417B2D, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
-            WriteCALL(0x00417B2D, &SsnprintfHook); // bink opening thing
-            
-            InstallReplacementHook((char*)GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), (char*)&BASS_SampleLoadHook, 6, "BASS_SampleLoad");
-            
-            InstallReplacementHook((char*)GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), (char*)&BASS_StreamCreateFileHook, 9, "BASS_StreamCreateFile");
+            InstallReplacementHook(GetProcAddress(GetModuleHandleA("binkw32.dll"), "_BinkOpen@8"), &BinkOpenHook, 6, "_BinkOpen@8");
+
+            InstallReplacementHook(GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), &BASS_SampleLoadHook, 6, "BASS_SampleLoad");
+
+            InstallReplacementHook(GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), &BASS_StreamCreateFileHook, 9, "BASS_StreamCreateFile");
+
+            return true;
         }
+        return false;
     }
 
     void uninstall() {
 
-        //...
+        WriteCALL(0x0040FA62, _fopen);
 
+        UninstallReplacementHook("_BinkOpen@8");
         UninstallReplacementHook("BASS_SampleLoad");
         UninstallReplacementHook("BASS_StreamCreateFile");
+    }
+
+};
+
+namespace CarsActivityUI_RequestDialogueHook { // Not currently working, will fix later
+
+    std::vector<std::string> dialogue_list = {
+    "mcq",
+    "mat",
+    "hud",
+    "ram",
+    "flo", // Added from MN Wii
+    "sar",
+    "fil",
+    "lui", // Added from MN Wii
+    "sven",
+    "otto",
+    "hiro",
+    "gio",
+    "emma",
+    "mcqm",
+    "matm",
+    "sulm",
+    "mike"
+    };
+
+    bool is_installed = false;
+
+    DECL_FUNCTION(void, __thiscall, AddNameToDialogueList, CarsActivity_AddNameToDialogueList_Address, void*, const char*);
+
+    void __fastcall RequestDialogue(void* this_ptr) {
+        for (int x = 0; x < dialogue_list.size(); x++) {
+            AddNameToDialogueList(this_ptr, dialogue_list[x].c_str());
+            Logging::Log("[CarsActivityUI::RequestDialogue] Added %s to the Dialogue List!\n", dialogue_list[x].c_str());
+        }
+    }
+
+    bool CollectCharactersToPatch() {
+        std::string DialogueListFilePath = "c\\global\\chars\\dialoguelist.ini";
+
+        if (ModSupport::MAP.find(DialogueListFilePath) != ModSupport::MAP.end()) {
+            DialogueListFilePath = CURRENT_DIRECTORY + "\\mods\\" + ModSupport::MAP.at(DialogueListFilePath) + DialogueListFilePath;
+        }
+        else {
+            if (std::filesystem::exists(CURRENT_DIRECTORY + "\\DataPC\\" + DialogueListFilePath))
+                DialogueListFilePath = CURRENT_DIRECTORY + "\\DataPC\\" + DialogueListFilePath;
+            else
+                return false;
+        }
+
+        std::ifstream file(DialogueListFilePath, std::ios::in);
+        if (!file)
+            return false;
+
+        std::string line;
+        while (std::getline(file, line)) {
+            dialogue_list.push_back(line);
+        }
+        file.close();
+        return true;
+    }
+
+    bool install() {
+        is_installed = CollectCharactersToPatch();
+        if (is_installed)
+            InstallReplacementHook(CarsActivityUI_RequestDialogue_Address, &RequestDialogue, 0x110, "CarsActivityUI::RequestDialogue");
+        return is_installed;
+    };
+
+    void uninstall() {
+        if (is_installed) {
+            UninstallReplacementHook("CarsActivityUI::RequestDialogue");
+            is_installed = false;
+        }
+    };
+};
+
+namespace NumberOfCarsPatcher { // will require a lot more reversing to actually implement, so consider this dead code
+
+    int getNumberOfCars() {
+        std::ifstream dialogue_txt(CURRENT_DIRECTORY + "DataPC\\C\\Audio\\Dialogue\\dialogue.txt", std::ios::in);
+        std::string line;
+        while (std::getline(dialogue_txt, line)) {
+            if (line.find("NumberOfCars") != -1) {
+                dialogue_txt.close();
+                return std::stoi(line.substr(12));
+            }
+        }
+        dialogue_txt.close();
+        return 0x50; // Default Value
+    }
+    /*
+    int getNumberOfCars()
+    {
+        ParameterBlock pBlock;
+        pBlock.OpenFile("C\\Audio\\Dialogue\\dialogue.txt"); // allows the user to replace this file if they want to
+        int NumberOfCars;
+        pBlock.GetParameter("NumberOfCars", 0x50, &NumberOfCars);
+        return NumberOfCars;
+    }
+    */
+    bool install() {
+        BYTE num = getNumberOfCars();
+        
+        *(BYTE*)(CarsDialogue_Constructor_Address + 0x3F) = num;
+        *(BYTE*)(CarsDialogue_Destructor_Address + 0x7D) = num;
+        *(BYTE*)(CarsDialogue_Create_Address + 0x5BE) = num;
+        
+        return true;
     }
 
 };
@@ -335,10 +346,10 @@ namespace DataAccessLogging {
     }
 
     void install() {
-        InlineHook32(DataAccess_FOPEN + 0xB, 8, &DataAccess_FOpenHook);
+        InlineHook32(DataAccess_FOPEN_Address + 0xB, 8, &DataAccess_FOpenHook);
     }
 
     void uninstall() {
-        RemoveInlineHook32(DataAccess_FOPEN + 0xB, 8, &DataAccess_FOpenHook);
+        RemoveInlineHook32(DataAccess_FOPEN_Address + 0xB, 8, &DataAccess_FOpenHook);
     }
 };
