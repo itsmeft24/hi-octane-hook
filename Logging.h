@@ -5,8 +5,13 @@
 namespace Logging {
 	FILE* logfile;
 	bool is_init;
+	FILE* CONBUF;
 
 	bool Init() {
+		AllocConsole();
+		freopen_s(&CONBUF, "CONOUT$", "w", stdout);
+		SetConsoleTitleA(WindowTitle);
+		
 		auto logfilepath = CURRENT_DIRECTORY + "\\hi-octane.log";
 		logfile = fopen(logfilepath.c_str(), "w");
 		if (!logfile)
@@ -27,6 +32,7 @@ namespace Logging {
 		}
 	}
 	void Deinit() {
-		fclose(logfile);
+		if (is_init)
+			fclose(logfile);
 	}
 }
