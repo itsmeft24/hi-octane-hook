@@ -59,9 +59,7 @@ extern "C" __declspec(dllexport) void HiOctaneExit() {
     CarsActivityUI_RequestDialogueHook::uninstall();
 
     Logging::Deinit();
-
-    fclose(CONBUF);
-    FreeConsole();
+    
     FreeLibraryAndExitThread(GetModuleHandleA(NULL), 0);
 }
 
