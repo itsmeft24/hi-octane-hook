@@ -1,26 +1,33 @@
 
-void WriteJMPImpl(char* src, char* dst)
+CARSHOOK_API bool SetExecuteReadWritePermission(void* ptr, size_t sz) {
+    DWORD oldProtect;
+    return (bool)VirtualProtect(ptr, sz, PAGE_EXECUTE_READWRITE, &oldProtect);
+}
+
+CARSHOOK_API void WriteJMPImpl(char* src, char* dst)
 {
     DWORD relativeAddress = (DWORD)(dst - (DWORD)src) - 5;
 
+    SetExecuteReadWritePermission(src, 5);
     *src = 0xE9;
     *(DWORD*)((DWORD)src + 1) = relativeAddress;
 }
 
-void WriteCALLImpl(char* src, char* dst)
+CARSHOOK_API void WriteCALLImpl(char* src, char* dst)
 {
     DWORD relativeAddress = (DWORD)(dst - (DWORD)src) - 5;
 
+    SetExecuteReadWritePermission(src, 5);
     *src = 0xE8;
     *(DWORD*)((DWORD)src + 1) = relativeAddress;
 }
 
-bool InlineHook32Impl(char* src, char* dst, const DWORD len)
+CARSHOOK_API bool InlineHook32Impl(char* src, char* dst, const DWORD len)
 {
     if (len < 5) return false;
 
     DWORD oldProtect;
-    if (!VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &oldProtect))
+    if (!SetExecuteReadWritePermission(src, len))
         return false;
 
     char* trampoline = (char*)VirtualAlloc(NULL, len + 10 + 2, MEM_COMMIT | MEM_RESERVE, PAGE_EXECUTE_READWRITE);
@@ -43,12 +50,11 @@ bool InlineHook32Impl(char* src, char* dst, const DWORD len)
     return true;
 }
 
-bool RemoveInlineHook32Impl(char* src, char* dst, const DWORD len)
+CARSHOOK_API bool RemoveInlineHook32Impl(char* src, char* dst, const DWORD len)
 {
     if (len < 5) return false;
 
-    DWORD oldProtect;
-    VirtualProtect(src, len, PAGE_EXECUTE_READWRITE, &oldProtect);
+    SetExecuteReadWritePermission(src, len);
 
     DWORD* trampoline_addr = *(DWORD*)(src + 1) + (DWORD*)src + 5;
 

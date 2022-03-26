@@ -16,18 +16,22 @@ constexpr auto WindowTitle = "Cars: Hi-Octane Helper Plugin";
 
 constexpr auto DATA_DIR = "datapc"; // Can be swapped out with an alternate string. (unimplemented lol)
 
+extern "C" __declspec(dllexport) const char* VERSION = "0.1.0"; // Will be used for updating 
+
+extern "C" __declspec(dllexport) const char* REQUIRE_HI_OCTANE_VERSION = "1.9.2.3"; // Will be used for updating 
+
 #include "Utils.h"
 #include "InlineHook32.h"
 #include "ReplaceHook.h"
 #include "InlineContext.h"
 #include "Offsets.h"
 #include "Logging.h"
+#include "PluginManager.h"
+#include "FileSystem.h"
 #include "Hooks.h"
 
-extern "C" __declspec(dllexport) const char* VERSION = "0.1.0"; // Will be used for updating 
-extern "C" __declspec(dllexport) const char* REQUIRE_HI_OCTANE_VERSION = "1.9.2.3"; // Will be used for updating 
 
-extern "C" __declspec(dllexport) void HiOctaneEntry()
+CARSHOOK_API void HiOctaneEntry()
 {
     char CURR_DIR_BUF[260];
     GetModuleFileNameA(NULL, CURR_DIR_BUF, 260);
@@ -41,25 +45,38 @@ extern "C" __declspec(dllexport) void HiOctaneEntry()
 
     Logging::Log("[HiOctaneEntry] Installing hooks...\n");
 
+    FileSystem::Init();
+
+    PluginManager::StartAllPlugins();
+
     CarsActivityUI_RequestDialogueHook::install();
 
-    ModSupport::install();
-
     DataAccessLogging::install();
+
+    RemoveMipMapping::install();
+
+    LargeVehiclePatch::install();
+
 }
 
-extern "C" __declspec(dllexport) void HiOctaneExit() {
-
+CARSHOOK_API void HiOctaneExit() {
+    
     Logging::Log("[HiOctaneExit] Exiting...\n");
-    
+
+    // RemoveMipMapping::uninstall();
+
     DataAccessLogging::uninstall();
-    
-    ModSupport::uninstall();
+
+    // ...
 
     CarsActivityUI_RequestDialogueHook::uninstall();
+    
+    PluginManager::ExitAllPlugins();
+
+    FileSystem::Deinit();
 
     Logging::Deinit();
-    
+
     FreeLibraryAndExitThread(GetModuleHandleA(NULL), 0);
 }
 

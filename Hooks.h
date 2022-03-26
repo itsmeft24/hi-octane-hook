@@ -1,213 +1,9 @@
 #pragma once
 #include <unordered_map>
-#include <algorithm>
 #include <Windows.h>
-#include <winternl.h>
+#include <random>
 
-namespace ModSupport {
-
-    std::unordered_map<std::string, std::string> MAP;
-
-    DECL_FUNCTION(DWORD*, __stdcall, BinkOpen, GetProcAddress(GetModuleHandleA("binkw32.dll"), "_BinkOpen@8"), char*, DWORD);
-
-    DECL_FUNCTION(DWORD, __stdcall, BASS_SampleLoad, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), BOOL, char*, DWORD, DWORD, DWORD, DWORD);
-
-    DECL_FUNCTION(DWORD, __stdcall, BASS_StreamCreateFile, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), BOOL, char*, DWORD, DWORD, DWORD);
-
-    DECL_FUNCTION(FILE*, __cdecl, __fsopen, 0x0063fbfb, char*, char*, int); // VS2005 CRT function
-
-    bool FileDiscovery() {
-        std::filesystem::path mods_dir(CURRENT_DIRECTORY + "\\mods\\");
-        if (std::filesystem::exists(mods_dir)) {
-            for (const auto mod : std::filesystem::directory_iterator(mods_dir)) {
-                if (mod.is_directory()) {
-                    for (const auto& entry : std::filesystem::recursive_directory_iterator(mod)) {
-                        if (entry.is_regular_file()) {
-
-                            if (entry.path().filename().string() == "mod.info" || entry.path().extension().string() == ".dll")
-                                continue;
-
-                            if (entry.path().extension().string() == ".ogg") { // the stream file open function doesnt pass a filepath with an extension to ssnprintf, it instead concatenates the extension after. dont ask why, i dont know.
-
-                                auto stripped_filename = entry.path().parent_path().string() + "\\" + entry.path().stem().string();
-
-                                auto base_filename = stripped_filename.substr(mod.path().string().size() + 1);
-                                make_lowercase(base_filename);
-
-                                if (MAP.find(base_filename) != MAP.end()) {
-                                    MAP.insert_or_assign(base_filename, mod.path().filename().string());
-                                }
-                                else {
-                                    MAP.insert_or_assign(base_filename, mod.path().filename().string());
-                                }
-                            }
-
-                            auto base_filename = entry.path().string().substr(mod.path().string().size() + 1);
-                            make_lowercase(base_filename);
-
-                            if (MAP.find(base_filename) != MAP.end()) {
-                                Logging::Log("[ModSupport::FileDiscovery] File: %s in mod: %s overwrites existing mod file in: %s\n", base_filename.c_str(), mod.path().filename().string().c_str(), MAP.at(base_filename).c_str());
-                                MAP.insert_or_assign(base_filename, mod.path().filename().string());
-                            }
-                            else {
-                                Logging::Log("[ModSupport::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
-                                MAP.insert_or_assign(base_filename, mod.path().filename().string());
-                            }
-
-                        }
-                    }
-                }
-            }
-            return !MAP.empty();
-        }
-        else {
-            return false;
-        }
-    }
-
-    DWORD* __stdcall BinkOpenHook(char* file, DWORD flags) {
-
-        if (_strnicmp(file, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) == 0) { // is a DataPC file
-
-            std::string base_filepath = file;
-
-            base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
-
-            make_lowercase(base_filepath); // force lowercase
-
-            if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
-                auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
-
-                Logging::Log("[ModSupport::BinkW32::BinkOpen] Loading Bink file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
-
-                // return expected result
-                GetFunctionInfo("_BinkOpen@8").RestoreOriginalFunction();
-                auto* ret = BinkOpen((char*)out_path.c_str(), flags);
-                GetFunctionInfo("_BinkOpen@8").ReinstallReplacementHook();
-                return ret;
-            }
-        }
-
-        // return expected result
-        GetFunctionInfo("_BinkOpen@8").RestoreOriginalFunction();
-        auto* ret = BinkOpen(file, flags);
-        GetFunctionInfo("_BinkOpen@8").ReinstallReplacementHook();
-        return ret;
-    }
-
-    DWORD __stdcall BASS_SampleLoadHook(BOOL mem, char* file, DWORD offset, DWORD length, DWORD max, DWORD flags) {
-
-        if (!mem && _strnicmp(file, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) == 0) { // is a DataPC file
-
-            std::string base_filepath = file;
-
-            base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
-
-            make_lowercase(base_filepath); // force lowercase
-
-            if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
-                auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
-
-                Logging::Log("[ModSupport::BASS::SampleLoad] Loading stream file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
-
-                // return expected result
-                GetFunctionInfo("BASS_SampleLoad").RestoreOriginalFunction();
-                auto ret = BASS_SampleLoad(mem, (char*)out_path.c_str(), offset, length, max, flags);
-                GetFunctionInfo("BASS_SampleLoad").ReinstallReplacementHook();
-                return ret;
-            }
-        }
-
-        // return expected result
-        GetFunctionInfo("BASS_SampleLoad").RestoreOriginalFunction();
-        auto ret = BASS_SampleLoad(mem, file, offset, length, max, flags);
-        GetFunctionInfo("BASS_SampleLoad").ReinstallReplacementHook();
-        return ret;
-    }
-
-    DWORD __stdcall BASS_StreamCreateFileHook(BOOL mem, char* file, DWORD offset, DWORD length, DWORD flags) {
-
-        if (!mem && _strnicmp(file, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) == 0) { // is a DataPC file
-
-            std::string base_filepath = file;
-
-            base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
-
-            make_lowercase(base_filepath); // force lowercase
-
-            if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
-                auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
-
-                Logging::Log("[ModSupport::BASS::StreamCreateFile] Loading stream file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
-
-                // return expected result
-                GetFunctionInfo("BASS_StreamCreateFile").RestoreOriginalFunction();
-                auto ret = BASS_StreamCreateFile(mem, (char*)out_path.c_str(), offset, length, flags);
-                GetFunctionInfo("BASS_StreamCreateFile").ReinstallReplacementHook();
-                return ret;
-            }
-        }
-
-        // return expected result
-        GetFunctionInfo("BASS_StreamCreateFile").RestoreOriginalFunction();
-        auto ret = BASS_StreamCreateFile(mem, file, offset, length, flags);
-        GetFunctionInfo("BASS_StreamCreateFile").ReinstallReplacementHook();
-        return ret;
-    }
-
-    FILE* __cdecl _fopenHook(char* _Filename, char* _Mode) // modified _fopen from VS2005
-    {
-
-        if (_strnicmp(_Filename, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) == 0) { // is a DataPC file
-
-            std::string base_filepath = _Filename;
-
-            base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
-
-            make_lowercase(base_filepath); // force lowercase
-
-            if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
-                auto out_path = CURRENT_DIRECTORY + "\\mods\\" + MAP.at(base_filepath) + "\\" + base_filepath;
-
-                Logging::Log("[ModSupport::FOpen] Loading file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
-
-                return __fsopen((char*)out_path.c_str(), _Mode, 0x40); // return expected result
-            }
-        }
-        return __fsopen(_Filename, _Mode, 0x40); // return expected result
-    }
-
-    bool install() {
-        if (FileDiscovery()) {
-            DWORD oldProtect;
-            VirtualProtect((LPVOID)0x0040FA62, 5, PAGE_EXECUTE_READWRITE, &oldProtect);
-            WriteCALL(0x0040FA62, &_fopenHook); // undocumented file io function, does not have a name yet
-            // here, the call to _fopen is intercepted manually because we do not want to interfere with
-            // calls to _fopen outside the games' file opener.
-
-            InstallReplacementHook(GetProcAddress(GetModuleHandleA("binkw32.dll"), "_BinkOpen@8"), &BinkOpenHook, 6, "_BinkOpen@8");
-
-            InstallReplacementHook(GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), &BASS_SampleLoadHook, 6, "BASS_SampleLoad");
-
-            InstallReplacementHook(GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), &BASS_StreamCreateFileHook, 9, "BASS_StreamCreateFile");
-
-            return true;
-        }
-        return false;
-    }
-
-    void uninstall() {
-
-        WriteCALL(0x0040FA62, _fopen);
-
-        UninstallReplacementHook("_BinkOpen@8");
-        UninstallReplacementHook("BASS_SampleLoad");
-        UninstallReplacementHook("BASS_StreamCreateFile");
-    }
-
-};
-
-namespace CarsActivityUI_RequestDialogueHook { // Not currently working, will fix later
+namespace CarsActivityUI_RequestDialogueHook {
 
     std::vector<std::string> dialogue_list = {
     "mcq",
@@ -241,19 +37,7 @@ namespace CarsActivityUI_RequestDialogueHook { // Not currently working, will fi
     }
 
     bool CollectCharactersToPatch() {
-        std::string DialogueListFilePath = "c\\global\\chars\\dialoguelist.ini";
-
-        if (ModSupport::MAP.find(DialogueListFilePath) != ModSupport::MAP.end()) {
-            DialogueListFilePath = CURRENT_DIRECTORY + "\\mods\\" + ModSupport::MAP.at(DialogueListFilePath) + DialogueListFilePath;
-        }
-        else {
-            if (std::filesystem::exists(CURRENT_DIRECTORY + "\\DataPC\\" + DialogueListFilePath))
-                DialogueListFilePath = CURRENT_DIRECTORY + "\\DataPC\\" + DialogueListFilePath;
-            else
-                return false;
-        }
-
-        std::ifstream file(DialogueListFilePath, std::ios::in);
+        std::ifstream file(FileSystem::GetPathForFile("c\\global\\chars\\dialoguelist.ini"), std::ios::in);
         if (!file)
             return false;
 
@@ -280,76 +64,97 @@ namespace CarsActivityUI_RequestDialogueHook { // Not currently working, will fi
     };
 };
 
-namespace NumberOfCarsPatcher { // will require a lot more reversing to actually implement, so consider this dead code
-
-    int getNumberOfCars() {
-        std::ifstream dialogue_txt(CURRENT_DIRECTORY + "DataPC\\C\\Audio\\Dialogue\\dialogue.txt", std::ios::in);
-        std::string line;
-        while (std::getline(dialogue_txt, line)) {
-            if (line.find("NumberOfCars") != -1) {
-                dialogue_txt.close();
-                return std::stoi(line.substr(12));
-            }
-        }
-        dialogue_txt.close();
-        return 0x50; // Default Value
-    }
-    /*
-    int getNumberOfCars()
-    {
-        ParameterBlock pBlock;
-        pBlock.OpenFile("C\\Audio\\Dialogue\\dialogue.txt"); // allows the user to replace this file if they want to
-        int NumberOfCars;
-        pBlock.GetParameter("NumberOfCars", 0x50, &NumberOfCars);
-        return NumberOfCars;
-    }
-    */
-    bool install() {
-        BYTE num = getNumberOfCars();
-        
-        *(BYTE*)(CarsDialogue_Constructor_Address + 0x3F) = num;
-        *(BYTE*)(CarsDialogue_Destructor_Address + 0x7D) = num;
-        *(BYTE*)(CarsDialogue_Create_Address + 0x5BE) = num;
-        
-        return true;
-    }
-
-};
-
 namespace DataAccessLogging {
 
-    // Will do more interesting things in the future right now this is all it does
+    DECL_FUNCTION(int, __thiscall, DataAccess_FOpen, DataAccess_FOPEN_Address, void*, char*, char*);
 
-    void DECL_CARSINLINEHOOK DataAccess_FOpenHook() {
+    DECL_FUNCTION(int, __thiscall, DataAccess_LoadResourceFile, 0x005D2FC0, void*, char*, int, int, int, int, int, int, int, int, int);
 
-        GetInlineContext();
+    DECL_FUNCTION(int, __thiscall, DataAccess_FindVirtualFile, 0x00580FD0, void*, char*);
 
-        __asm
-        {
-            push ebp
-            mov ebp, esp
-        }
+    int __fastcall DataAccess_FOpenHook(void* this_ptr, void* DUMMY, char* FileName, char* Access) {
 
-        char* FileName;
-        FileName = (char*)ctx.EBP;
+        if (DataAccess_FindVirtualFile(this_ptr, FileName) == -1)
+            Logging::Log("[DataAccess::FOpen] Attempting to open file from disk: %s...\n", FileName);
+        else
+            Logging::Log("[DataAccess::FOpen] Attempting to open virtual file: %s...\n", FileName);
 
-        Logging::Log("[Logging::DataAccess::FOpen] Opened file: %s\n", FileName);
+        GetFunctionInfo("DataAccess::FOpen").RestoreOriginalFunction();
+        auto ret = DataAccess_FOpen(this_ptr, FileName, Access);
+        GetFunctionInfo("DataAccess::FOpen").ReinstallReplacementHook();
 
-        __asm
-        {
-            mov esp, ebp
-            pop ebp
-        }
+        return ret;
+    }
 
-        RETURN;
+    int __fastcall DataAccess_LoadResourceFileHook(void* this_ptr, void* DUMMY, char* filename, int encryptedOnly, int userDataType, int userData, int userDataBufferSizeInBytes, int bytesOfUserDataRead, int forceLoad, int forceRead, int param_10, int param_11) {
 
+        Logging::Log("[DataAccess::LoadResourceFile] Attempting to load ResourceFile: %s\n...", filename);
+
+        GetFunctionInfo("DataAccess::LoadResourceFile").RestoreOriginalFunction();
+        auto ret = DataAccess_LoadResourceFile(this_ptr, filename, encryptedOnly, userDataType, userData, userDataBufferSizeInBytes, bytesOfUserDataRead, forceLoad, forceRead, param_10, param_11);
+        GetFunctionInfo("DataAccess::LoadResourceFile").ReinstallReplacementHook();
+
+        return ret;
     }
 
     void install() {
-        InlineHook32(DataAccess_FOPEN_Address + 0xB, 8, &DataAccess_FOpenHook);
+        InstallReplacementHook(DataAccess_FOPEN_Address, &DataAccess_FOpenHook, 6, "DataAccess::FOpen");
+        InstallReplacementHook(0x005D2FC0, &DataAccess_LoadResourceFileHook, 5, "DataAccess::LoadResourceFile");
     }
 
     void uninstall() {
-        RemoveInlineHook32(DataAccess_FOPEN_Address + 0xB, 8, &DataAccess_FOpenHook);
+        UninstallReplacementHook("DataAccess::FOpen");
+        UninstallReplacementHook("DataAccess::LoadResourceFile");
     }
 };
+
+namespace RemoveMipMapping {
+    DECL_FUNCTION(HRESULT, __stdcall, D3DXCreateTextureFromFileInMemoryEx, GetProcAddress(GetModuleHandleA("d3dx9_34.dll"), "D3DXCreateTextureFromFileInMemoryEx"), void*, LPCVOID, UINT, UINT, UINT, UINT, DWORD, UINT, UINT, DWORD, DWORD, DWORD, void*, PALETTEENTRY*, void*);
+    
+    DECL_FUNCTION(HRESULT, __stdcall, D3DXCreateCubeTextureFromFileInMemoryEx, GetProcAddress(GetModuleHandleA("d3dx9_34.dll"), "D3DXCreateCubeTextureFromFileInMemoryEx"), void*, LPCVOID, UINT, UINT, UINT, DWORD, UINT, UINT, DWORD, DWORD, DWORD, void*, PALETTEENTRY*, void*);
+
+    HRESULT __stdcall D3DXCreateTextureFromFileInMemoryExHook(void* pDevice, LPCVOID pSrcData, UINT SrcDataSize, UINT Width, UINT Height, UINT MipLevels, DWORD Usage, UINT Format, UINT Pool, DWORD Filter, DWORD MipFilter, DWORD ColorKey, void* pSrcInfo, PALETTEENTRY* pPalette, void* ppTexture) {
+        GetFunctionInfo("D3DXCreateTextureFromFileInMemoryEx").RestoreOriginalFunction();
+        auto ret = D3DXCreateTextureFromFileInMemoryEx(pDevice, pSrcData, SrcDataSize, Width, Height, 1, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppTexture);
+        GetFunctionInfo("D3DXCreateTextureFromFileInMemoryEx").ReinstallReplacementHook();
+        return ret;
+    }
+
+    HRESULT __stdcall D3DXCreateCubeTextureFromFileInMemoryExHook(void* pDevice, LPCVOID pSrcData, UINT SrcDataSize, UINT Size, UINT MipLevels, DWORD Usage, UINT Format, UINT Pool, DWORD Filter, DWORD MipFilter, DWORD ColorKey, void* pSrcInfo, PALETTEENTRY* pPalette, void* ppCubeTexture) {
+        GetFunctionInfo("D3DXCreateCubeTextureFromFileInMemoryEx").RestoreOriginalFunction();
+        auto ret = D3DXCreateCubeTextureFromFileInMemoryEx(pDevice, pSrcData, SrcDataSize, Size, 1, Usage, Format, Pool, Filter, MipFilter, ColorKey, pSrcInfo, pPalette, ppCubeTexture);
+        GetFunctionInfo("D3DXCreateCubeTextureFromFileInMemoryEx").ReinstallReplacementHook();
+        return ret;
+    }
+
+    void install() {
+        InstallReplacementHook(GetProcAddress(GetModuleHandleA("d3dx9_34.dll"), "D3DXCreateTextureFromFileInMemoryEx"), &D3DXCreateTextureFromFileInMemoryExHook, 6, "D3DXCreateTextureFromFileInMemoryEx");
+        InstallReplacementHook(GetProcAddress(GetModuleHandleA("d3dx9_34.dll"), "D3DXCreateCubeTextureFromFileInMemoryEx"), &D3DXCreateCubeTextureFromFileInMemoryExHook, 6, "D3DXCreateCubeTextureFromFileInMemoryEx");
+    }
+
+    void uninstall() {
+        UninstallReplacementHook("D3DXCreateTextureFromFileInMemoryEx");
+        UninstallReplacementHook("D3DXCreateCubeTextureFromFileInMemoryEx");
+    }
+}
+
+namespace LargeVehiclePatch {
+    // Allows the user to specify which characters should use the Monster Truck CSS Camera animation instead of the default one.
+
+    /*
+    BOOL __stdcall IsNotLargeVehicle(char* character) {
+        return (strcmp(character, "mcqm") != 0 && strcmp(character, "matm") != 0 && strcmp(character, "sulm") != 0);
+    }*/
+
+    BOOL __stdcall IsNotLargeVehicle(char* character) {
+        return 0;
+    }
+
+    void install() {
+        SetExecuteReadWritePermission((void*)0x0050FB1F, 78);
+        WriteCALL(0x0050FB1F, &IsNotLargeVehicle); // Here, we artificially offload the large vehicle detection to its own function.
+        memset((char*)0x0050FB24, 0x90, 0x36); // NOP out the original code to complete the process.
+    }
+};
+
+

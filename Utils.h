@@ -8,3 +8,5 @@ const inline void make_lowercase(std::string& str) {
 const inline void make_uppercase(std::string& str) {
 	std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::toupper(c); });
 }
+
+#define CARSHOOK_API extern "C" __declspec(dllexport)

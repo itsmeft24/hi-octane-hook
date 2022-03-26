@@ -34,8 +34,8 @@ namespace Logging {
 	void Deinit() {
 		if (is_init)
 			fclose(logfile);
-		
+
 		fclose(CONBUF);
-    	FreeConsole();
+		FreeConsole();
 	}
 }

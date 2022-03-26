@@ -59,6 +59,19 @@ bool UninstallReplacementHook(const std::string& func_sym)
     return true;
 }
 
+CARSHOOK_API HookedFunctionInfo* _API_GetFunctionInfo(const char* sym)
+{
+    return &HookedFunctions[sym];
+}
+
+CARSHOOK_API bool _API_InstallReplacementHook(char* src, char* dst, const DWORD instruction_size, const char* func_sym) {
+    return InstallReplacementHookImpl(src, dst, instruction_size, func_sym);
+}
+
+CARSHOOK_API bool _API_UninstallReplacementHook(const char* func_sym) {
+    return UninstallReplacementHook(func_sym);
+}
+
 #define InstallReplacementHook(src, dst, instruction_size, func_sym) InstallReplacementHookImpl((char*)src, (char*)dst, instruction_size, func_sym)
 
 // To call original function:

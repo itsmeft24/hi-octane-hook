@@ -13,9 +13,9 @@ struct InlineContext // Inspired by skyline. Although not necessary to get infor
 	// DWORD EIP;
 };
 
-InlineContext ctx{}; // Initialize global inline context.
+CARSHOOK_API InlineContext ctx{}; // Initialize global inline context.
 
-__declspec(naked) void GetInlineContext()
+CARSHOOK_API __declspec(naked) void GetInlineContext()
 {
 	__asm
 	{
@@ -32,7 +32,7 @@ __declspec(naked) void GetInlineContext()
 	}
 }
 
-__declspec(naked) void SetInlineContext()
+CARSHOOK_API __declspec(naked) void SetInlineContext()
 {
 	__asm
 	{
