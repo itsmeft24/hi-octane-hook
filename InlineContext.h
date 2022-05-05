@@ -1,6 +1,6 @@
 #pragma once
 
-struct InlineContext // Inspired by skyline. Although not necessary to get information from the registers, it is useful for restoring things. It also looks a little cleaner!
+struct InlineContext // Inspired by skyline. This is the interface for which inline detour hooks may interact with/modify the registers with.
 {
 	DWORD EAX;
 	DWORD EBX;
@@ -10,41 +10,4 @@ struct InlineContext // Inspired by skyline. Although not necessary to get infor
 	DWORD EDI;
 	DWORD EBP;
 	DWORD ESP;
-	// DWORD EIP;
 };
-
-CARSHOOK_API InlineContext ctx{}; // Initialize global inline context.
-
-CARSHOOK_API __declspec(naked) void GetInlineContext()
-{
-	__asm
-	{
-		mov ctx.EAX, eax
-		mov ctx.EBX, ebx
-		mov ctx.ECX, ecx
-		mov ctx.EDX, edx
-		mov ctx.ESI, esi
-		mov ctx.EDI, edi
-		mov ctx.EBP, ebp
-		mov ctx.ESP, esp
-		// mov ctx.EIP, eip
-		ret
-	}
-}
-
-CARSHOOK_API __declspec(naked) void SetInlineContext()
-{
-	__asm
-	{
-		mov eax, ctx.EAX
-		mov ebx, ctx.EBX
-		mov ecx, ctx.ECX
-		mov edx, ctx.EDX
-		mov esi, ctx.ESI
-		mov edi, ctx.EDI
-		mov ebp, ctx.EBP
-		mov esp, ctx.ESP
-		// mov eip, ctx.EIP
-		ret
-	}
-}

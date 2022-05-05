@@ -4,31 +4,51 @@
 #include <unordered_map>
 #include <filesystem>
 
-struct Plugin {
-	std::string Name;
-	HMODULE ModuleHandle;
-
-    void ExecuteEntryPoint() {
-        auto EntryPoint = (void(__stdcall*)())(GetProcAddress(ModuleHandle, "HiOctaneEntry"));
-        EntryPoint();
-    }
-
-    void ExecuteExitPoint() {
-        auto EntryPoint = (void(__stdcall*)())(GetProcAddress(ModuleHandle, "HiOctaneExit"));
-        EntryPoint();
-    }
-};
-
 namespace PluginManager {
+
+	struct Plugin {
+		std::string Name;
+		HMODULE ModuleHandle;
+
+		void ExecuteEntryPoint() {
+			auto pEntryPoint = GetProcAddress(ModuleHandle, "Plugin_HiOctaneEntry");
+			if (pEntryPoint != nullptr) {
+				auto EntryPoint = (void(__stdcall*)())(pEntryPoint);
+				EntryPoint();
+			}
+		}
+
+		void ExecuteExitPoint() {
+			auto pExitPoint = GetProcAddress(ModuleHandle, "Plugin_HiOctaneExit");
+			if (pExitPoint != nullptr) {
+				auto ExitPoint = (void(__stdcall*)())(pExitPoint);
+				ExitPoint();
+			}
+		}
+	};
 
 	std::vector<Plugin> loaded_plugins;
 
-    void LoadPluginForMod(std::string mod) {
+    void LoadAllPlugins() {
 
-        std::string libpath = CURRENT_DIRECTORY + '\\' + mod + "\\Plugin.dll";
-        loaded_plugins.push_back(Plugin{ mod, LoadLibraryA(libpath.c_str()) });
-        Logging::Log("[PluginManager::LoadPluginForMod] Loading plugin DLL from mod: %s...", mod.c_str());
-    }
+        std::filesystem::path c_modules = DATA_DIR_PATH + "\\C\\Modules";
+		
+		for (const auto& entry : std::filesystem::directory_iterator(c_modules)) {
+			if (entry.is_regular_file()) {
+				
+				auto base_name = entry.path().filename().string();
+				make_lowercase(base_name);
+				
+				if (base_name == "cars-hi-octane.dll")
+					continue;
+
+				if (entry.path().extension().string() == ".dll") {
+					loaded_plugins.push_back(Plugin{ base_name, LoadLibraryA(entry.path().string().c_str()) });
+					Logging::Log("[PluginManager::LoadAllPlugins] Loading plugin: %s...", base_name.c_str());
+				}
+			}
+		}
+	}
 
     void StartAllPlugins() {
     
