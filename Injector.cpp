@@ -24,13 +24,12 @@ int main(int argc, char*argv[]) {
 	STARTUPINFOA sInfoA{};
 	sInfoA.cb = sizeof(STARTUPINFOA);
 	PROCESS_INFORMATION pInfo{};
-	/*
+	
 	if (argc > 1)
 		CreateProcessA("cars_mater.exe", "cars_mater.exe -windowed", nullptr, nullptr, TRUE, CREATE_SUSPENDED, nullptr, nullptr, &sInfoA, &pInfo);
 	else
 		CreateProcessA("cars_mater.exe", "cars_mater.exe", nullptr, nullptr, TRUE, CREATE_SUSPENDED, nullptr, nullptr, &sInfoA, &pInfo);
-	*/
-	CreateProcessA("cars_mater.exe", "cars_mater.exe -windowed", nullptr, nullptr, TRUE, CREATE_SUSPENDED, nullptr, nullptr, &sInfoA, &pInfo);
+	
 	// Allocate memory in the game for the name of our dll.
 	void* allocated_str = VirtualAllocEx(pInfo.hProcess, 0, MAX_PATH, MEM_COMMIT | MEM_RESERVE, PAGE_READWRITE);
 	WriteProcessMemory(pInfo.hProcess, allocated_str, DLL_PATH, MAX_PATH, 0);

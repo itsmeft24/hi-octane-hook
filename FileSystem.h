@@ -121,7 +121,6 @@ namespace FileSystem {
     bool FileDiscovery() {
         std::filesystem::path mods_dir(CURRENT_DIRECTORY + "\\mods\\");
         if (std::filesystem::is_directory(mods_dir)) {
-            Logging::Log("made it here");
             for (const auto mod : std::filesystem::directory_iterator(mods_dir)) {
                 if (mod.is_directory() && mod.path().filename().string()[0] != '.') {
                     for (const auto& entry : std::filesystem::recursive_directory_iterator(mod)) {
@@ -129,17 +128,20 @@ namespace FileSystem {
                             if (entry.path().extension().string() == ".dll") // do NOT load any modules stored in mod folders.
                                 continue;
 
+                            auto fname = entry.path().filename().string();
+
                             if (std::find(BlackListedModFiles.begin(), BlackListedModFiles.end(), entry.path().filename().string()) != BlackListedModFiles.end()) {
                                 continue;
                             }
 
-                            if (entry.path().filename().string() == "mark_as_deleted.txt") {
+                            if (fname == "mark_as_deleted.txt") {
                                 std::ifstream file(entry.path(), std::ios::in);
                                 if (!file)
                                     return false;
 
                                 std::string line;
                                 while (std::getline(file, line)) {
+                                    make_lowercase(line);
                                     if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(), line) == MARK_AS_DELETED.end()) {
                                         MARK_AS_DELETED.push_back(line);
                                         Logging::Log("[ModSupport::FileDiscovery] Added %s to the deletion queue.\n", line.c_str());
