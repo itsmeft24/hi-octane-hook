@@ -8,7 +8,7 @@ namespace ConfigManager {
 
 	void ReadConfigFile() {
 
-		std::ifstream conf_file("hi-octane\\config.ini", std::ios::in);
+		std::ifstream conf_file(DATA_DIR_PATH + "\\config.ini", std::ios::in);
 		std::string line;
 		while (std::getline(conf_file, line)) {
 			if (line.find("EnableWidescreen") != -1) {

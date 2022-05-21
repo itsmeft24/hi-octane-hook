@@ -5,7 +5,9 @@
 
 #include <rapidjson/document.h>
 
-namespace CarsActivityUI_RequestDialogueHook {
+namespace DialogueListEx {
+
+    HookedFunctionInfo request_dialogue_finfo;
 
     std::vector<std::string> dialogue_list = {
     "mcq",
@@ -27,14 +29,10 @@ namespace CarsActivityUI_RequestDialogueHook {
     "mike"
     };
 
-    bool is_installed = false;
-
-    DeclareFunction(void, __thiscall, CarsActivity_AddNameToDialogueList, CarsActivity_AddNameToDialogueList_Address, void*, const char*);
-
     void __fastcall RequestDialogue(void* this_ptr) {
         for (int x = 0; x < dialogue_list.size(); x++) {
             CarsActivity_AddNameToDialogueList(this_ptr, dialogue_list[x].c_str());
-            Logging::Log("[CarsActivityUI::RequestDialogue] Added %s to the Dialogue List!\n", dialogue_list[x].c_str());
+            Logging::Log("[DialogueListEx::CarsActivityUI::RequestDialogue] Added %s to the Dialogue List!\n", dialogue_list[x].c_str());
         }
     }
 
@@ -52,33 +50,30 @@ namespace CarsActivityUI_RequestDialogueHook {
         return true;
     }
 
-    HIOCTANE_API void RequestDialogueListAddition(const char* character) {
-        if (std::find(dialogue_list.begin(), dialogue_list.end(), character) == dialogue_list.end())
+    HIOCTANE_API bool RegisterDialogueListAddition(const char* character) {
+        if (std::find(dialogue_list.begin(), dialogue_list.end(), character) == dialogue_list.end()) {
             dialogue_list.push_back(character);
+            return true;
+        }
+        return false;
     }
 
-    bool install() {
-        is_installed = CollectCharactersToPatch();
-        if (is_installed)
-            HookFunction(CarsActivityUI_RequestDialogue_Address, &RequestDialogue, 0x110, FunctionHookType::EntireReplacement);
-        return is_installed;
+    void Install() {
+        request_dialogue_finfo = HookFunction((void*&)CarsActivityUI_RequestDialogue, &RequestDialogue, 0x110, FunctionHookType::EntireReplacement);
+        if (request_dialogue_finfo.type != FunctionHookType::Invalid)
+            Logging::Log("[DialogueListEx::Install] Successfully installed patch!\n");
+        CollectCharactersToPatch();
     };
 
-    void uninstall() {
-        if (is_installed) {
-            UninstallFunctionHook(CarsActivityUI_RequestDialogue_Address);
-            is_installed = false;
-        }
+    void Uninstall() {
+        UninstallFunctionHook(request_dialogue_finfo);
     };
 };
 
 namespace DataAccessLogging {
 
-    DeclareFunction(int, __thiscall, DataAccess_FOpen, DataAccess_FOpen_Address, void*, const char*, const char*);
-
-    DeclareFunction(int, __thiscall, DataAccess_LoadResourceFile, DataAccess_LoadResourceFile_Address, void*, char*, int, int, int, int, int, int, int, int, int);
-
-    DeclareFunction(int, __thiscall, DataAccess_FindVirtualFile, DataAccess_FindVirtualFile_Address, void*, char*);
+    HookedFunctionInfo fopen_finfo;
+    HookedFunctionInfo loadresourcefile_finfo;
 
     // Prevent compiler from removing the in_EDX arguments.
 #pragma optimize( "", off )
@@ -100,58 +95,25 @@ namespace DataAccessLogging {
     }
 #pragma optimize( "", on )
 
-    void install() {
-        // HookFunction(DataAccess_FOpen_Address, &DataAccess_FOpenHook, 6, FunctionHookType::EntireReplacement);
-        {
-            WriteCALL(0x00410d0b, &DataAccess_FOpenHook);
-            WriteCALL(0x00415ca2, &DataAccess_FOpenHook);
-            WriteCALL(0x00415f22, &DataAccess_FOpenHook);
-            WriteCALL(0x005d39b9, &DataAccess_FOpenHook);
-            WriteCALL(0x005d5023, &DataAccess_FOpenHook);
-            WriteCALL(0x005d5234, &DataAccess_FOpenHook);
-            WriteCALL(0x005d57da, &DataAccess_FOpenHook);
-            WriteCALL(0x005d64bb, &DataAccess_FOpenHook);
-            WriteCALL(0x005d6ae5, &DataAccess_FOpenHook);
-            WriteCALL(0x005d6d58, &DataAccess_FOpenHook);
-            WriteCALL(0x005d8841, &DataAccess_FOpenHook);
-            WriteCALL(0x005d88f4, &DataAccess_FOpenHook);
-            WriteCALL(0x005e1567, &DataAccess_FOpenHook);
-            WriteCALL(0x005e37d8, &DataAccess_FOpenHook);
-            WriteCALL(0x005e3b2f, &DataAccess_FOpenHook);
-            WriteCALL(0x005e3e1f, &DataAccess_FOpenHook);
-            WriteCALL(0x005e40af, &DataAccess_FOpenHook);
-            WriteCALL(0x005e4482, &DataAccess_FOpenHook);
-            WriteCALL(0x005ebdc7, &DataAccess_FOpenHook);
-            WriteCALL(0x005f25b4, &DataAccess_FOpenHook);
-            WriteCALL(0x005f2fdd, &DataAccess_FOpenHook);
-            WriteCALL(0x005f46e9, &DataAccess_FOpenHook);
-            WriteCALL(0x00607561, &DataAccess_FOpenHook);
-            WriteCALL(0x0060789e, &DataAccess_FOpenHook);
-            WriteCALL(0x0060a31d, &DataAccess_FOpenHook);
-            WriteCALL(0x006168f7, &DataAccess_FOpenHook);
-        }
-        
-        // HookFunction(DataAccess_LoadResourceFile_Address, &DataAccess_LoadResourceFileHook, 5, FunctionHookType::EntireReplacement);
-        {
-            WriteCALL(0x005ed284, &DataAccess_LoadResourceFileHook);
-            WriteCALL(0x005f2f05, &DataAccess_LoadResourceFileHook);
-            WriteCALL(0x005f46d2, &DataAccess_LoadResourceFileHook);
-        }
+    void Install() {
+        fopen_finfo = HookFunction((void*&)DataAccess_FOpen, &DataAccess_FOpenHook, 6, FunctionHookType::EntireReplacement);
 
-        // SetFunctionOffset(DataAccess_FOpen, GetRelocatedCode(DataAccess_FOpen));
-        // SetFunctionOffset(DataAccess_LoadResourceFile, GetRelocatedCode(DataAccess_LoadResourceFile));
+        loadresourcefile_finfo = HookFunction((void*&)DataAccess_LoadResourceFile, &DataAccess_LoadResourceFileHook, 5, FunctionHookType::EntireReplacement);
+
+        if (fopen_finfo.type != FunctionHookType::Invalid && loadresourcefile_finfo.type != FunctionHookType::Invalid)
+            Logging::Log("[DataAccessLogging::Install] Successfully installed patch!\n");
     }
 
-    void uninstall() {
-        // UninstallFunctionHook(DataAccess_FOpen_Address);
-        // UninstallFunctionHook(DataAccess_LoadResourceFile_Address);
-        // SetFunctionOffset(DataAccess_FOpen, DataAccess_FOpen_Address);
-        // SetFunctionOffset(DataAccess_LoadResourceFile, DataAccess_LoadResourceFile_Address);
+    void Uninstall() {
+        UninstallFunctionHook(fopen_finfo);
+        UninstallFunctionHook(loadresourcefile_finfo);
     }
 };
 
 namespace LargeVehiclePatch {
     // Allows the user to specify which characters should use the Monster Truck CSS Camera animation instead of the default one.
+
+    HookedFunctionInfo largevehicle_finfo;
 
     std::vector<std::string> large_vehicles;
 
@@ -178,77 +140,47 @@ namespace LargeVehiclePatch {
         return ret;
     }
 
-    bool install() {
-        is_installed = CollectCharactersToPatch();
-        if (is_installed) {
-            HookFunction(0x0050FB1F, &IsNotLargeVehicle, 0x3B, FunctionHookType::InlineReplacement);
+    void Install() {
+        if (CollectCharactersToPatch()) {
+            largevehicle_finfo = HookFunction(0x0050FB1F, &IsNotLargeVehicle, 0x3B, FunctionHookType::InlineReplacement);
+            Logging::Log("[LargeVehiclePatch::Install] Successfully installed patch!\n");
+            is_installed = true;
         }
-        return is_installed;
     };
 
-    void uninstall() {
+    void Uninstall() {
         if (is_installed) {
-            UninstallFunctionHook(0x0050FB1F);
+            UninstallFunctionHook(largevehicle_finfo);
             is_installed = false;
         }
     };
 };
 
-namespace CarsDialoguePatches {
+namespace CarsDialogueEX {
 
-    constexpr unsigned char MAX_NUMBER_OF_CARS = 0x50;
-
-    // Populates what would have been an in-place array with just a pointer to an array on heap. Used for relocating the CarsCharacterDialogue array in the CarsDialogue class.
-    void __stdcall eh_vector_constructor_iterator_HeapHook(void* cars_character_dialogue_destination, int elemsize, int numelems, void* constructor, void* destructor)
-    {
-        void** dest_ptr = (void**)cars_character_dialogue_destination;
-        memset(dest_ptr, 0x69, elemsize * numelems); // Used for debugging purposes.
-        *dest_ptr = calloc(numelems, elemsize);
-
-        char* curr_elem = (char*)*dest_ptr;
-
-        for (int x = 0; x < numelems; x++) {
-            ((void(__thiscall*)(void*))constructor)(curr_elem);
-            curr_elem += elemsize;
+    __declspec(naked) void CarsDialogue_CarsDialogue_LEA_PATCH() {
+        __asm {
+            // lea eax, [esi + 0x114]
+            lea eax, [esi + 0xA40]
+            ret
         }
-
-        Logging::Log("[CarsDialogue::CarsDialogue] Created CarsCharacterDialogue array on heap at pointer: 0x%p.\n", dest_ptr);
-    }
-
-    // Destroys our custom-ly allocated CarsCharacterDialogue array in the CarsDialogue class's destructor.
-    void __stdcall eh_vector_destructor_iterator_HeapHook(void* cars_character_dialogue_array_ptr, int elemsize, int numelems, void* destructor)
-    {
-        void* actual_start_of_array = *(void**)cars_character_dialogue_array_ptr;
-
-        char* curr_elem = (char*)actual_start_of_array;
-
-        for (int x = 0; x < numelems; x++) {
-            ((void(__thiscall*)(void*))destructor)(curr_elem);
-            curr_elem += elemsize;
-        }
-
-        free(actual_start_of_array);
-
-        Logging::Log("[CarsDialogue::~CarsDialogue] Destroyed heap-allocated CarsCharacterDialogue array.\n");
     }
 
     __declspec(naked) void CarsDialogue_Create_LEA_PATCH() {
         __asm {
-            // lea edi,[esi + 0x120]
-            mov edi, [esi + 0x114]
-            add edi, 0xC
+            // lea edi, [esi + 0x120]
+            lea edi, [esi + 0xA4C]
             ret
         }
     }
-    
+
     __declspec(naked) void CarsDialogue_LoadDialogue_LEA_PATCH() {
         __asm {
             // lea ecx, [eax * 0x8]
             // sub ecx, eax
             // lea esi, [edi + ecx * 4 + 0x114]
             imul ecx, eax, 0x1C
-            mov esi, [edi + 0x114]
-            add esi, ecx
+            lea esi, [edi + ecx + 0xA40]
             ret
         }
     }
@@ -256,196 +188,140 @@ namespace CarsDialoguePatches {
     __declspec(naked) void CarsDialogue_Reset_LEA_PATCH() {
         __asm {
             // lea ebx, [esi + 0x114]
-            mov ebx, [esi + 0x114]
+            lea ebx, [esi + 0xA40]
             ret
         }
     }
 
-    __declspec(naked) void CarsDialogue_unk_LEA_PATCH() {
-
+    __declspec(naked) void CarsDialogue_BumpWreckOutOfControl_LEA_PATCH() {
         __asm {
             // lea ecx, [eax * 0x8]
             // sub ecx, eax
-            // lea eax, [esi + ecx * 4 + 0x114]
+            // cmp [ebx + ecx * 0x4 + 0x118], 0x0
             imul ecx, eax, 0x1C
-            mov eax, [esi + 0x114]
-            add eax, ecx
+            cmp [ebx + ecx + 0xA44], 0x0
             ret
         }
     }
 
-    __declspec(naked) void CarsDialogue_unk9_LEA_PATCH() {
-
+    __declspec(naked) void CarsDialogue_BumpWreckOutOfControl_PART2_LEA_PATCH() {
         __asm {
-            // lea ecx, [eax * 0x8]
-            // sub ecx, eax
-            // lea eax, [edi + ecx * 4 + 0x114]
-            imul ecx, eax, 0x1C
-            mov eax, [edi + 0x114]
-            add eax, ecx
+            // lea ebp, [ebx + ecx * 0x4 + 0x114]
+            lea ebp, [ebx + ecx + 0xA44]
             ret
         }
     }
 
-    __declspec(naked) void CarsDialogue_unk10_LEA_PATCH() {
-
+    __declspec(naked) void CarsDialogue_UNK_LEA_PATCH() {
         __asm {
-            // lea ecx, [eax * 0x8]
-            // sub ecx, eax
-            // lea eax, [ebx + ecx * 4 + 0x114]
-            imul ecx, eax, 0x1C
-            mov eax, [ebx + 0x114]
-            add eax, ecx
+            // lea eax, [edi + 0x11C]
+            lea ebx, [edi + 0xA48]
             ret
         }
     }
 
-    __declspec(naked) void CarsDialogue_unk2_LEA_PATCH() {
+    __declspec(naked) void CarsDialogue_UNK2_LEA_PATCH() {
         __asm {
-            // lea ebx, [edi + 0x11c]
-            mov ebx, [edi + 0x114]
-            add ebx, 0x8
+            // lea edi, [esi + 0x11C]
+            lea edi, [esi + 0xA48]
             ret
         }
     }
 
-    __declspec(naked) void CarsDialogue_unk3_4_LEA_PATCH() {
-        __asm {
-            // lea edi, [ebx + 0x114]
-            mov edi, [ebx + 0x114]
-            ret
-        }
-    }
-
-    __declspec(naked) void CarsDialogue_unk5_LEA_PATCH() {
-        __asm {
-            // lea edi, [ebx + 0x118]
-            mov edi, [ebx + 0x114]
-            add edi, 0x4
-            ret
-        }
-    }
-
-    __declspec(naked) void CarsDialogue_unk6_LEA_PATCH() {
-
-        __asm {
-            // lea edi, [ebx + 0x11C]
-            mov edi, [ebx + 0x114]
-            add edi, 0x8
-            ret
-        }
-    }
-
-    __declspec(naked) void CarsDialogue_unk7_LEA_PATCH() {
-
+    __declspec(naked) void CarsDialogue_UNK3_LEA_PATCH() {
         __asm {
             // lea ecx, [esi * 0x8]
             // sub ecx, esi
             // lea esi, [ebx + ecx * 4 + 0x114]
             imul ecx, esi, 0x1C
-            mov esi, [ebx + 0x114]
-            add esi, ecx
+            lea esi, [ebx + ecx + 0xA40]
             ret
         }
     }
 
-    __declspec(naked) void CarsDialogue_unk8_LEA_PATCH() {
-
+    __declspec(naked) void CarsDialogue_UNK4_LEA_PATCH() {
         __asm {
             // lea ecx, [eax * 0x8]
             // sub ecx, eax
-            // cmp [ebx + ecx * 0x4 + 0x118], 0x0
-            // push ebp
-            // lea ebp, [ebx + ecx * 0x4 + 0x114]
-
-            imul eax, 0x1C
-            mov ecx, [ebx + 0x114]
-            cmp dword ptr [ecx + eax + 0x4], 0x0
+            // lea eax, [esi + ecx * 4 + 0x114]
+            imul ecx, eax, 0x1C
+            lea eax, [esi + ecx + 0xA40]
             ret
         }
     }
 
-    int GetNumberOfCars() {
-        std::ifstream dialogue_txt(FileSystem::GetPathForFile("c\\audio\\dialogue\\dialogue.txt"), std::ios::in);
-        std::string line;
-        while (std::getline(dialogue_txt, line)) {
-            if (line.find("NumberOfCars") != -1) {
-                dialogue_txt.close();
-                return std::stoi(line.substr(12));
-            }
+    __declspec(naked) void CarsDialogue_UNK5_LEA_PATCH() {
+        __asm {
+            // lea ecx, [eax * 0x8]
+            // sub ecx, eax
+            // lea eax, [edi + ecx * 4 + 0x114]
+            imul ecx, eax, 0x1C
+            lea eax, [edi + ecx + 0xA40]
+            ret
         }
-        dialogue_txt.close();
-        return 0x50; // Default Value
     }
 
-    void install() {
-        // SetExecuteReadWritePermission(CarsDialogue_Constructor_Address + 0x3F, 1);
-        // SetExecuteReadWritePermission(CarsDialogue_Destructor_Address + 0x7D, 1);
-        // SetExecuteReadWritePermission(CarsDialogue_Create_Address + 0x5BE, 1);
-
-        // *(unsigned char*)(CarsDialogue_Constructor_Address + 0x3F) = MAX_NUMBER_OF_CARS;
-        // *(unsigned char*)(CarsDialogue_Destructor_Address + 0x7D) = MAX_NUMBER_OF_CARS;
-        // *(unsigned char*)(CarsDialogue_Create_Address + 0x5BE) = MAX_NUMBER_OF_CARS;
-
-        //*(unsigned char*)0x00482B6F = MAX_NUMBER_OF_CARS;
-
-        
-        HookFunction(0x00482D61, &CarsDialogue_LoadDialogue_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-        HookFunction(0x00482EA8, &CarsDialogue_Reset_LEA_PATCH, 6, FunctionHookType::InlineReplacement); //
-        HookFunction(0x004C1FF1, &CarsDialogue_Create_LEA_PATCH, 6, FunctionHookType::InlineReplacement);
-
-        HookFunction(0x0048319E, &CarsDialogue_unk_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-        HookFunction(0x004C2BB3, &CarsDialogue_unk_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // PlayOuchDialogue
-        HookFunction(0x004C310E, &CarsDialogue_unk_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-        HookFunction(0x004EED4A, &CarsDialogue_unk_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-
-        HookFunction(0x004EECBB, &CarsDialogue_unk_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-
-        HookFunction(0x004F4CAC, &CarsDialogue_unk_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-        HookFunction(0x004F4C51, &CarsDialogue_unk_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-
-        HookFunction(0x0043E251, &CarsDialogue_unk2_LEA_PATCH, 6, FunctionHookType::InlineReplacement); //
-
-        HookFunction(0x004E9D6B, &CarsDialogue_unk3_4_LEA_PATCH, 6, FunctionHookType::InlineReplacement); //
-        HookFunction(0x004E9EE3, &CarsDialogue_unk3_4_LEA_PATCH, 6, FunctionHookType::InlineReplacement); //
-
-        HookFunction(0x0043E06C, &CarsDialogue_unk5_LEA_PATCH, 6, FunctionHookType::InlineReplacement); //
-
-
-        HookFunction(0x004C2161, &CarsDialogue_unk6_LEA_PATCH, 6, FunctionHookType::InlineReplacement); //
-
-        HookFunction(0x004C2194, &CarsDialogue_unk7_LEA_PATCH, 16, FunctionHookType::InlineReplacement); //
-
-        HookFunction(0x004C2965, &CarsDialogue_unk8_LEA_PATCH, 0x19, FunctionHookType::InlineReplacement); // PlayBumpDialogue
-        // memset((DWORD*)0x004C2965, 0x90, 0x19);
-        // WriteCALL(0x004C2965, &CarsDialogue_unk8_LEA_PATCH);
-        *(DWORD*)0x004C296A = 0x012C8D55; // push ebp // lea ebp, [ecx + eax]
-
-        HookFunction(0x004C2A95, &CarsDialogue_unk8_LEA_PATCH, 0x19, FunctionHookType::InlineReplacement); // PlayWreckDialogue
-        // memset((DWORD*)0x004C2A95, 0x90, 0x19);
-        // WriteCALL(0x004C2A65, &CarsDialogue_unk8_LEA_PATCH);
-        *(DWORD*)0x004C2A6A = 0x012C8D55; // push ebp // lea ebp, [ecx + eax]
-
-        HookFunction(0x004C2C95, &CarsDialogue_unk8_LEA_PATCH, 0x19, FunctionHookType::InlineReplacement); // PlayOutOfControlDialogue
-        // memset((DWORD*)0x004C2C95, 0x90, 0x19);
-        // WriteCALL(0x004C2C65, &CarsDialogue_unk8_LEA_PATCH);
-        *(DWORD*)0x004C2C6A = 0x012C8D55; // push ebp // lea ebp, [ecx + eax]
-
-        HookFunction(0x004C2DCD, &CarsDialogue_unk9_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // PlayPassDialogue
-        HookFunction(0x004C2F0D, &CarsDialogue_unk9_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // PlayPassedDialogue
-        HookFunction(0x004C3026, &CarsDialogue_unk9_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // 
-
-        HookFunction(0x004EEF15, &CarsDialogue_unk10_LEA_PATCH, 16, FunctionHookType::InlineReplacement);
-        
-        WriteCALL(0x00482B93, &eh_vector_constructor_iterator_HeapHook);
-        WriteCALL(0x00482CE6, &eh_vector_destructor_iterator_HeapHook);
-
-        Logging::Log("[CarsDialoguePatches] Succesfully moved CarsCharacterDialogue array!\n");
-
+    __declspec(naked) void CarsDialogue_UNK6_LEA_PATCH() {
+        __asm {
+            // lea ecx, [eax * 0x8]
+            // sub ecx, eax
+            // lea eax, [ebx + ecx * 4 + 0x114]
+            imul ecx, eax, 0x1C
+            lea eax, [ebx + ecx + 0xA40]
+            ret
+        }
     }
 
+    void Install() {
+        Logging::Log("[CarsDialogueEX] Patching CarsDialogue class...\n");
+        WritePUSH(0x004f32c8, 0xA40 + 0x1BE4); // patch class size
 
-}
+        HookFunction(0x004C2965, &CarsDialogue_BumpWreckOutOfControl_LEA_PATCH, 0x11, FunctionHookType::InlineReplacement); // PlayBumpDialogue
+        HookFunction(0x004c2977, &CarsDialogue_BumpWreckOutOfControl_PART2_LEA_PATCH, 0x7, FunctionHookType::InlineReplacement); // PlayBumpDialogue
+        
+        HookFunction(0x004C2A95, &CarsDialogue_BumpWreckOutOfControl_LEA_PATCH, 0x11, FunctionHookType::InlineReplacement); // PlayWreckDialogue
+        HookFunction(0x004C2AA7, &CarsDialogue_BumpWreckOutOfControl_PART2_LEA_PATCH, 0x7, FunctionHookType::InlineReplacement); // PlayWreckDialogue
+        
+        HookFunction(0x004C2C95, &CarsDialogue_BumpWreckOutOfControl_LEA_PATCH, 0x11, FunctionHookType::InlineReplacement); // PlayOutOfControlDialogue
+        HookFunction(0x004C2CA7, &CarsDialogue_BumpWreckOutOfControl_PART2_LEA_PATCH, 0x7, FunctionHookType::InlineReplacement); // PlayOutOfControlDialogue
+        
+        HookFunction(0x00482B72, &CarsDialogue_CarsDialogue_LEA_PATCH, 0x6, FunctionHookType::InlineReplacement); // CarsDialogue
+        HookFunction(0x00482CD0, &CarsDialogue_CarsDialogue_LEA_PATCH, 0x6, FunctionHookType::InlineReplacement); // ~CarsDialogue
+        
+        HookFunction(0x0043E251, &CarsDialogue_UNK_LEA_PATCH, 0x6, FunctionHookType::InlineReplacement); // UNK
+        
+        HookFunction(0x004C2161, &CarsDialogue_UNK2_LEA_PATCH, 0x6, FunctionHookType::InlineReplacement); // UNK2
+        
+        HookFunction(0x004C1FF1, &CarsDialogue_Create_LEA_PATCH, 0x6, FunctionHookType::InlineReplacement); // Create
+        
+        HookFunction(0x004C2194, &CarsDialogue_UNK3_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK3
+        
+        HookFunction(0x00482D61, &CarsDialogue_LoadDialogue_LEA_PATCH, 0x7, FunctionHookType::InlineReplacement); // LoadDialogue
+        HookFunction(0x00482EA8, &CarsDialogue_Reset_LEA_PATCH, 0x6, FunctionHookType::InlineReplacement); // Reset
+        
+        HookFunction(0x0048319E, &CarsDialogue_UNK4_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK4
+        HookFunction(0x004C2BB3, &CarsDialogue_UNK4_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // PlayOuchDialogue
+        HookFunction(0x004C2BB3, &CarsDialogue_UNK5_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // PlayPassedDialogue
+        HookFunction(0x004C3026, &CarsDialogue_UNK5_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK5
+        
+        HookFunction(0x004C310E, &CarsDialogue_UNK4_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK6
+        HookFunction(0x004EECBB, &CarsDialogue_UNK4_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK7
+        HookFunction(0x004EED4A, &CarsDialogue_UNK4_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK8
+        
+        HookFunction(0x004EEF15, &CarsDialogue_UNK6_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK9
+        
+        HookFunction(0x004F4C51, &CarsDialogue_UNK4_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK10
+
+        HookFunction(0x004F4CAC, &CarsDialogue_UNK4_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // UNK11
+
+        HookFunction(0x004C2DCD, &CarsDialogue_UNK5_LEA_PATCH, 16, FunctionHookType::InlineReplacement); // PlayPassDialogue
+
+        Logging::Log("[CarsDialogueEX] Succesfully moved CarsCharacterDialogue array!\n");
+
+        auto lpCarsDialogue = *(DWORD*)(*(DWORD*)(lpCarsGame + 1088) + 68);
+    }
+
+};
 
 namespace AnimationPatches {
 
@@ -489,7 +365,7 @@ namespace GameTextPatches {
 
     // Prevent compiler from removing the in_EDX arguments.
 #pragma optimize( "", off )
-    GameText* __fastcall GameText_Create(GameText* this_ptr, void* in_EDX, char* name) {
+    GameText* __fastcall GameText_Create_Hook(GameText* this_ptr, void* in_EDX, char* name) {
 
         Logging::Log("[GameText::CreateFromJSON] Reading %s strings from JSON...\n", name);
 
@@ -552,14 +428,14 @@ namespace GameTextPatches {
 
     }
 
-    void __fastcall GameText_LoadGameText(GameText* this_ptr, void* in_EDX, int param_1) {
+    void __fastcall GameText_LoadGameText_Hook(GameText* this_ptr, void* in_EDX, int param_1) {
         return;
     }
 #pragma optimize( "", on )
 
     void install() {
-        HookFunction(GameText_Create_Address, &GameText_Create, 7, FunctionHookType::EntireReplacement);
-        HookFunction(GameText_LoadGameText_Address, &GameText_LoadGameText, 6, FunctionHookType::EntireReplacement);
+        HookFunction((void*&)GameText_Create, &GameText_Create_Hook, 7, FunctionHookType::EntireReplacement);
+        HookFunction((void*&)GameText_LoadGameText, &GameText_LoadGameText_Hook, 6, FunctionHookType::EntireReplacement);
     }
 
 };
@@ -577,9 +453,9 @@ namespace WideScreenPatches {
         }
     }
 
-    void install() {
+    void Install() {
         if (ConfigManager::IsWidescreenEnabled) {
-            Logging::Log("[WideScreenPatches::install] Setting screen mode to widescreen...\n");
+            Logging::Log("[WideScreenPatches::Install] Setting screen mode to widescreen...\n");
 
             HookFunction(0x00421E22, &CMPPatch, 6, FunctionHookType::InlineReplacement);
 
@@ -599,8 +475,8 @@ namespace WideScreenPatches {
 };
 
 namespace LoadingScreenPatch {
-    // please excuse how awful this is written
-    // i didnt have any better ideas at the time
+
+    HookedFunctionInfo loading_screen_finfo;
 
     DWORD* ret_address = (DWORD*)0x004053A2;
 
@@ -621,13 +497,10 @@ namespace LoadingScreenPatch {
         }
     }
 
-    void install() {
-
-        // yeah so instead of using a normal inline hook that CALLs we have to jank together a fake one using a single JMP instruction
-        // messy but hey it works
-        SetExecuteReadWritePermission((DWORD*)0x0040538e, 0x14);
-        memset((DWORD*)0x0040538e, 0x90, 0x14);
-        WriteJMP(0x0040538e, &CalculateLoadingScreenPath);
+    void Install() {
+        loading_screen_finfo = HookFunction(0x0040538e, &CalculateLoadingScreenPath, 0x14, FunctionHookType::InlineReplacementJMP);
+        if (loading_screen_finfo.type != FunctionHookType::Invalid)
+            Logging::Log("[LoadingScreenPatch::Install] Successfully installed patch!\n");
     }
 
 };

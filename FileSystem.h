@@ -5,6 +5,12 @@
 
 namespace FileSystem {
 
+    HookedFunctionInfo _fopen_finfo;
+    HookedFunctionInfo binkopen_finfo;
+    HookedFunctionInfo bassstreamcreatefile_finfo;
+    HookedFunctionInfo basssampleload_finfo;
+    HookedFunctionInfo _fclose_finfo;
+
     struct CallbackContext {
         const char* FilePath;
         void* DataPtr;
@@ -15,6 +21,12 @@ namespace FileSystem {
     struct CallbackInfo {
         unsigned long MaxFileSize;
         void* CallBackFunction;
+    };
+
+    enum class OverrideType : uint32_t
+    {
+        Folder,
+        SingleFile
     };
 
     std::unordered_map<std::string, std::filesystem::path> MAP;
@@ -28,17 +40,9 @@ namespace FileSystem {
 
     std::unordered_map<std::string, CallbackInfo> InstalledCallbacks;
 
+    std::unordered_map<std::string, std::filesystem::path> PathOverrides;
+
     std::unordered_map<void*, std::filesystem::path> FileBacking;
-
-    DeclareFunction(DWORD*, __stdcall, BinkOpen, GetProcAddress(GetModuleHandleA("binkw32.dll"), "_BinkOpen@8"), char*, DWORD);
-
-    DeclareFunction(DWORD, __stdcall, BASS_SampleLoad, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), BOOL, char*, DWORD, DWORD, DWORD, DWORD);
-
-    DeclareFunction(DWORD, __stdcall, BASS_StreamCreateFile, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"), BOOL, char*, DWORD, DWORD, DWORD);
-
-    DeclareFunction(void*, __cdecl, __fsopen, 0x0063FBFB, char*, char*, int); // VS2005 CRT function
-
-    DeclareFunction(int, __cdecl, _fclose, 0x0063FD94, void*); // VS2005 CRT function
 
     typedef int (*CarsFileCallback)(CallbackContext*);
 
@@ -91,12 +95,18 @@ namespace FileSystem {
         return CURRENT_DIRECTORY + "\\LocalStorage\\FileBacking\\" + str.substr(0, 16) + ".tmp";    // assumes 32 < number of characters in str         
     }
 	
-	// Registers a file callback. Takes in three arguments: a file path string, a maximum buffer size, and a callback function pointer.
+	// Registers a file callback. Takes in three arguments: an asset file path string, a maximum buffer size, and a callback function pointer.
     HIOCTANE_API void __stdcall HiOctane_RegisterFileCallback(const char* filepath, size_t max_size, CarsFileCallback callbackfunc) {
         InstalledCallbacks.insert_or_assign(filepath, CallbackInfo{ max_size, callbackfunc });
     }
+
+    // TODO: Implement overrides PROPERLY!!!!!!!
+    // Registers a file/folder override. Takes in three arguments: an override type, an asset file/folder path string, and an absolute path string.
+    HIOCTANE_API void __stdcall HiOctane_RegisterPathOverride(OverrideType type, const char* filepath, const char* absolute_path) {
+        PathOverrides.insert_or_assign(filepath, absolute_path);
+    }
 	
-	// Takes in three arguments: a file path string, a destination buffer, and the size of the buffer (used for bounds checking)
+	// Takes in three arguments: an asset file path string, a destination buffer, and the size of the buffer (used for bounds checking)
 	// If the buffer is too small, or the file does not exist, 0 is returned. Otherwise, the number of bytes written is returned.
 	HIOCTANE_API bool __stdcall HiOctane_LoadFile(const char* filepath, void* buffer, size_t allocated) {
 		auto p = GetPathForFile(filepath);
@@ -144,7 +154,7 @@ namespace FileSystem {
                                     make_lowercase(line);
                                     if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(), line) == MARK_AS_DELETED.end()) {
                                         MARK_AS_DELETED.push_back(line);
-                                        Logging::Log("[ModSupport::FileDiscovery] Added %s to the deletion queue.\n", line.c_str());
+                                        Logging::Log("[FileSystem::FileDiscovery] Added %s to the deletion queue.\n", line.c_str());
                                     }
                                 }
                                 file.close();
@@ -158,11 +168,11 @@ namespace FileSystem {
                                 // For adding mp3/wav/aiff support, we strip the mod path root AND the extension before adding .ogg to the end.
                                 
                                 if (MAP.find(base_filename) != MAP.end()) {
-                                    Logging::Log("[ModSupport::FileDiscovery] File: %s in mod: %s overwrites existing mod file in: %s\n", base_filename.c_str(), mod.path().filename().string().c_str(), GetModForFile(base_filename).c_str());
+                                    Logging::Log("[FileSystem::FileDiscovery] File: %s in mod: %s overwrites existing mod file in: %s\n", base_filename.c_str(), mod.path().filename().string().c_str(), GetModForFile(base_filename).c_str());
                                     MAP.insert_or_assign(base_filename, entry.path());
                                 }
                                 else {
-                                    Logging::Log("[ModSupport::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
+                                    Logging::Log("[FileSystem::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
                                     MAP.insert_or_assign(base_filename, entry.path());
                                 }
                             }
@@ -171,11 +181,11 @@ namespace FileSystem {
                                 make_lowercase(base_filename);
 
                                 if (MAP.find(base_filename) != MAP.end()) {
-                                    Logging::Log("[ModSupport::FileDiscovery] File: %s in mod: %s overwrites existing mod file in: %s\n", base_filename.c_str(), mod.path().filename().string().c_str(), GetModForFile(base_filename).c_str());
+                                    Logging::Log("[FileSystem::FileDiscovery] File: %s in mod: %s overwrites existing mod file in: %s\n", base_filename.c_str(), mod.path().filename().string().c_str(), GetModForFile(base_filename).c_str());
                                     MAP.insert_or_assign(base_filename, entry.path());
                                 }
                                 else {
-                                    Logging::Log("[ModSupport::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
+                                    Logging::Log("[FileSystem::FileDiscovery] Found file: %s in mod: %s\n", base_filename.c_str(), mod.path().filename().string().c_str());
                                     MAP.insert_or_assign(base_filename, entry.path());
                                 }
                             }
@@ -229,7 +239,7 @@ namespace FileSystem {
             if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
                 const auto& out_path = MAP.at(base_filepath);
 
-                Logging::Log("[ModSupport::BinkW32::BinkOpen] Loading Bink file: %s from mod: %s...\n", base_filepath.c_str(), GetModForFile(base_filepath).c_str());
+                Logging::Log("[FileSystem::BinkW32::BinkOpen] Loading Bink file: %s from mod: %s...\n", base_filepath.c_str(), GetModForFile(base_filepath).c_str());
 
                 // return expected result
                 return BinkOpen((char*)out_path.string().c_str(), flags);
@@ -256,7 +266,7 @@ namespace FileSystem {
             if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
                 const auto& out_path = MAP.at(base_filepath);
 
-                Logging::Log("[ModSupport::BASS::StreamCreateFile] Loading stream file: %s from mod: %s...\n", base_filepath.c_str(), GetModForFile(base_filepath).c_str());
+                Logging::Log("[FileSystem::BASS::StreamCreateFile] Loading stream file: %s from mod: %s...\n", base_filepath.c_str(), GetModForFile(base_filepath).c_str());
 
                 // return expected result
                 return BASS_StreamCreateFile(mem, (char*)out_path.string().c_str(), offset, length, flags);
@@ -283,7 +293,7 @@ namespace FileSystem {
             if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
                 const auto& out_path = MAP.at(base_filepath);
 
-                Logging::Log("[ModSupport::BASS::SampleLoad] Loading stream file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
+                Logging::Log("[FileSystem::BASS::SampleLoad] Loading stream file: %s from mod: %s...\n", base_filepath.c_str(), MAP.at(base_filepath).c_str());
 
                 // return expected result
                 return BASS_SampleLoad(mem, (char*)out_path.c_str(), offset, length, max, flags);
@@ -306,6 +316,7 @@ namespace FileSystem {
             base_filepath = base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
             make_lowercase(base_filepath); // force lowercase
 
+            // HandleOverride() if needed???
             if (_strnicmp(_Filename + DATA_DIR_PATH.size() + 2, "\\ui\\tex\\", 8) == 0 && ConfigManager::IsWidescreenEnabled) {
                 // If the file is a UI texture AND we are running in widescreen, use UI\Tex_HD instead of UI\Tex
                 std::string new_filepath = base_filepath.substr(0,8) + "_hd" + base_filepath.substr(8);
@@ -329,7 +340,7 @@ namespace FileSystem {
 
                 const auto& out_path = MAP.at(base_filepath);
 
-                Logging::Log("[ModSupport::FOpen] Loading file: %s from mod: %s...\n", base_filepath.c_str(), GetModForFile(base_filepath).c_str());
+                Logging::Log("[FileSystem::FOpen] Loading file: %s from mod: %s...\n", base_filepath.c_str(), GetModForFile(base_filepath).c_str());
 
                 return __fsopen((char*)out_path.string().c_str(), _Mode, 0x40); // return expected result
             }
@@ -356,76 +367,25 @@ namespace FileSystem {
         return _fclose(fp);
     }
 
-    bool Init() {
+    void Init() {
         FileDiscovery();
 
-        HookFunction(_fopen_Address, &_fopenHook, 0x13, FunctionHookType::EntireReplacement);
+        _fopen_finfo = HookFunction((void*&)_fopen, &_fopenHook, 0x13, FunctionHookType::EntireReplacement);
+        binkopen_finfo = HookFunction(0x006742E8, &BinkOpenHook, 0, FunctionHookType::IATReplacement);
+        basssampleload_finfo = HookFunction(0x00674084, &BASS_SampleLoadHook, 0, FunctionHookType::IATReplacement);
+        bassstreamcreatefile_finfo = HookFunction(0x00674040, &BASS_StreamCreateFileHook, 0, FunctionHookType::IATReplacement);
+        _fclose_finfo = HookFunction((void*&)_fclose, &_fcloseHook, 0x74, FunctionHookType::EntireReplacement);
 
-        SetExecuteReadWritePermission((void*)0x006742E8, 4);
-        *(DWORD*)(0x006742E8) = (DWORD)&BinkOpenHook;
-        // HookFunction(0x006742E8, &BinkOpenHook, 0, FunctionHookType::IATReplacement);
-
-        // HookFunction(0x00674084, &BASS_SampleLoadHook, 0, FunctionHookType::IATReplacement);
-
-        SetExecuteReadWritePermission((void*)0x00674040, 4);
-        *(DWORD*)(0x00674040) = (DWORD)&BASS_StreamCreateFileHook;
-
-        SetExecuteReadWritePermission((void*)0x00674084, 4);
-        *(DWORD*)(0x00674084) = (DWORD)&BASS_SampleLoadHook;
-
-        //HookFunction(0x00674040, &BASS_StreamCreateFileHook, 0, FunctionHookType::IATReplacement);
-
-        // HookFunction(_fclose_Address, &_fcloseHook, 0x74, FunctionHookType::EntireReplacement);
-        // SetFunctionOffset(_fclose, GetRelocatedCode(_fclose));
-        {
-            WriteCALL(0x0040ff11, &_fcloseHook);
-            WriteCALL(0x00425592, &_fcloseHook);
-            WriteCALL(0x004255b9, &_fcloseHook);
-            WriteCALL(0x00425652, &_fcloseHook);
-            WriteCALL(0x00425679, &_fcloseHook);
-            WriteCALL(0x00441be8, &_fcloseHook);
-            WriteCALL(0x00441c41, &_fcloseHook);
-            WriteCALL(0x004a5ab3, &_fcloseHook);
-            WriteCALL(0x00580f48, &_fcloseHook);
-            WriteCALL(0x005810d6, &_fcloseHook);
-            WriteCALL(0x00581241, &_fcloseHook);
-            WriteCALL(0x00581555, &_fcloseHook);
-            WriteCALL(0x005815ae, &_fcloseHook);
-            WriteCALL(0x00583ec1, &_fcloseHook);
-            WriteCALL(0x00583f52, &_fcloseHook);
-            WriteCALL(0x00595fd5, &_fcloseHook);
-            WriteCALL(0x00596d3d, &_fcloseHook);
-            WriteCALL(0x00596de5, &_fcloseHook);
-            WriteCALL(0x00596dff, &_fcloseHook);
-            WriteCALL(0x005a93f8, &_fcloseHook);
-            WriteCALL(0x005a9b9c, &_fcloseHook);
-            WriteCALL(0x005c0c29, &_fcloseHook);
-            WriteCALL(0x005c1679, &_fcloseHook);
-            WriteCALL(0x005c1fae, &_fcloseHook);
-            WriteCALL(0x005d339b, &_fcloseHook);
-            WriteCALL(0x005d3b94, &_fcloseHook);
-            WriteCALL(0x005d3bc9, &_fcloseHook);
-            WriteCALL(0x00600f21, &_fcloseHook);
-            WriteCALL(0x00617687, &_fcloseHook);
-            WriteCALL(0x00618b0a, &_fcloseHook);
-            WriteCALL(0x00628f79, &_fcloseHook);
-        }
-
-        return true;
+        if (_fopen_finfo.type != FunctionHookType::Invalid && binkopen_finfo.type != FunctionHookType::Invalid && basssampleload_finfo.type != FunctionHookType::Invalid && bassstreamcreatefile_finfo.type != FunctionHookType::Invalid && _fclose_finfo.type != FunctionHookType::Invalid)
+            Logging::Log("[FileSystem::Init] Filesystem successfully initialized!\n");
     }
 
     void Deinit() {
-
-        UninstallFunctionHook(_fopen_Address);
-
-        // UninstallFunctionHook(_fclose_Address);
-        // SetFunctionOffset(_fclose, _fclose_Address);
-
-        UninstallFunctionHook(0x006742E8);
-        UninstallFunctionHook(0x00674040);
-        UninstallFunctionHook(0x00674084);
-
-
+        UninstallFunctionHook(_fopen_finfo);
+        UninstallFunctionHook(binkopen_finfo);
+        UninstallFunctionHook(basssampleload_finfo);
+        UninstallFunctionHook(bassstreamcreatefile_finfo);
+        UninstallFunctionHook(_fclose_finfo);
     }
 
 };

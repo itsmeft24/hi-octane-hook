@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <algorithm>
+#include <dbghelp.h>
 
 #define HIOCTANE_API extern "C" __declspec(dllexport)
 

@@ -53,19 +53,21 @@ void HiOctaneEntry()
 
     FileSystem::Init();
 
-    WideScreenPatches::install();
+    WideScreenPatches::Install();
 
-    CarsActivityUI_RequestDialogueHook::install();
+    DialogueListEx::Install();
 
-    DataAccessLogging::install();
+    DataAccessLogging::Install();
 
-    LargeVehiclePatch::install();
+    LargeVehiclePatch::Install();
 
-    LoadingScreenPatch::install();
+    LoadingScreenPatch::Install();
 
-    CarsDialoguePatches::install();
+    // CarsDialoguePatches::install();
 
-    //GameTextPatches::install();
+    // CarsDialogueEX::Install();
+
+    // GameTextPatches::install();
 
     PluginManager::LoadAllPlugins();
 
@@ -86,11 +88,11 @@ void HiOctaneExit() {
     
     Logging::Log("[HiOctaneExit] Exiting...\n");
 
-    LargeVehiclePatch::uninstall();
+    LargeVehiclePatch::Uninstall();
 
-    DataAccessLogging::uninstall();
+    DataAccessLogging::Uninstall();
 
-    CarsActivityUI_RequestDialogueHook::uninstall();
+    DialogueListEx::Uninstall();
     
     PluginManager::ExitAllPlugins();
 
