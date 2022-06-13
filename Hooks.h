@@ -507,10 +507,11 @@ namespace LoadingScreenPatch {
 
 namespace AutomaticBoostPatch {
 
-    DWORD* boostthing = (DWORD*)0x006ED818;
+    DWORD* pBoostLevel = (DWORD*)0x006ED818;
 
     void Install() {
-        SetReadWritePermission((DWORD*)(0x006ED818), 1); *(DWORD*)(0x006ED818) = 3;
+        SetReadWritePermission(pBoostLevel, 4);
+        *pBoostLevel = 3;
         Logging::Log("[AutomaticBoostPatch::Install] Successfully installed patch!\n");
     }
 };
