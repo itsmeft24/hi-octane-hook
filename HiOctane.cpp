@@ -62,6 +62,8 @@ void HiOctaneEntry()
     LargeVehiclePatch::Install();
 
     LoadingScreenPatch::Install();
+	
+	AutomaticBoostPatch::Install();
 
     // CarsDialoguePatches::install();
 
