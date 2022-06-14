@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31829.152
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Cars-Hi-Octane", "Cars-Hi-Octane.vcxproj", "{4DBE5209-A7C6-474E-AB1B-E60B066915F0}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{4DBE5209-A7C6-474E-AB1B-E60B066915F0}.Debug|x86.ActiveCfg = Debug|Win32
+		{4DBE5209-A7C6-474E-AB1B-E60B066915F0}.Debug|x86.Build.0 = Debug|Win32
+		{4DBE5209-A7C6-474E-AB1B-E60B066915F0}.Release|x86.ActiveCfg = Release|Win32
+		{4DBE5209-A7C6-474E-AB1B-E60B066915F0}.Release|x86.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {2C99AE32-3B9E-415E-B6B3-B5F7C33E043A}
+	EndGlobalSection
+EndGlobal
