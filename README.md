@@ -1,6 +1,6 @@
 # hi-octane-hook
 A collection of code mods for the PC version of Cars: Mater-National, intended to be used alongside the Hi-Octane mod for extending the functionality of the game.
-Currently implemented features include:
+Currently planned features include:
 - [x] UI elements now respond to 16x9 resolutions.
 - [x] An interface for modifying game files at runtime was introduced as part of Cars: Hi-Octane's exposed file callback API. This feature is intended for developers.
 - [x] The user can now store community/user-made patches in a mods/ folder located in the root of the game's installation.
