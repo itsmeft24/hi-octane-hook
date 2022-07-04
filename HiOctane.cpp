@@ -1,19 +1,21 @@
-#define _CRT_SECURE_NO_WARNINGS
-#define NOMINMAX
 
 #include <iostream>
 #include <filesystem>
-#include <string>
 #include <vector>
 #include <fstream>
 #include <Windows.h>
 #include <Shlwapi.h>
 
-static std::string CURRENT_DIRECTORY;
+#include "Globals.h"
+#include "Utils.h"
+#include "Logging.h"
+#include "ConfigManager.h"
+#include "FileSystem.h"
+#include "Hooks.h"
+#include "PluginManager.h"
 
-static std::string DATA_DIR_PATH;
-
-constexpr auto WindowTitle = "Cars: Hi-Octane Console";
+std::string DATA_DIR_PATH = "";
+std::string CURRENT_DIRECTORY = "";
 
 constexpr auto DATA_DIR = "hi-octane";
 
@@ -21,20 +23,9 @@ const char* DATA_DIR_PATCH = "%s\\Hi-Octane\\"; // Replaces DataPC.
 
 extern "C" __declspec(dllexport) const char* VERSION = "1.9.2.3";
 
-#include "Utils.h"
-#include "InlineContext.h"
-#include "HookFunction.h"
-
-#include "Offsets.h"
-#include "Logging.h"
-#include "PluginManager.h"
-#include "ConfigManager.h"
-#include "FileSystem.h"
-#include "Hooks.h"
-
 void HiOctaneEntry()
 {
-    WritePUSH(0x00619929, DATA_DIR_PATCH);
+    WritePUSH(AsVoidPtr(0x00619929), AsVoidPtr(DATA_DIR_PATCH));
     // Set the games' DataPC path to our own.
 
     char CURR_DIR_BUF[260];
@@ -53,7 +44,7 @@ void HiOctaneEntry()
 
     FileSystem::Init();
 
-    WideScreenPatches::Install();
+    WideScreenPatch::Install();
 
     DialogueListEx::Install();
 
@@ -65,11 +56,9 @@ void HiOctaneEntry()
 	
     AutomaticBoostPatch::Install();
 
-    // CarsDialoguePatches::install();
-
     // CarsDialogueEX::Install();
 
-    // GameTextPatches::install();
+    // GameTextJSON::install();
 
     PluginManager::LoadAllPlugins();
 
