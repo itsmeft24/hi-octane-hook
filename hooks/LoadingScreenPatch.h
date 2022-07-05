@@ -1,8 +1,8 @@
 #pragma once
 
 namespace LoadingScreenPatch {
-	
-    void Install();
 
-    void Uninstall();
-};
+void Install();
+
+void Uninstall();
+}; // namespace LoadingScreenPatch

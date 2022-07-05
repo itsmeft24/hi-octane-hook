@@ -1,6 +1,6 @@
 #pragma once
 
 namespace CarsDialogueEx {
-	
-    void Install();
+
+void Install();
 };

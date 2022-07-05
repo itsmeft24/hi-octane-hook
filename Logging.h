@@ -2,9 +2,9 @@
 
 namespace Logging {
 
-	bool Init();
+bool Init();
 
-	void Log(const char* format, ...);
+void Log(const char *format, ...);
 
-	void Deinit();
-};
+void Deinit();
+}; // namespace Logging

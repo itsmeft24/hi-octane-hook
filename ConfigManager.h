@@ -2,10 +2,10 @@
 
 namespace ConfigManager {
 
-	extern bool IsWidescreenEnabled;
-	extern unsigned int DesiredWindowWidth;
-	extern unsigned int DesiredWindowHeight;
-	
-	void ReadConfigFile();
-	
-};
+extern bool IsWidescreenEnabled;
+extern unsigned int DesiredWindowWidth;
+extern unsigned int DesiredWindowHeight;
+
+void ReadConfigFile();
+
+}; // namespace ConfigManager

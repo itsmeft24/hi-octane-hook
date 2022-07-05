@@ -1,8 +1,8 @@
 #pragma once
 
 namespace LargeVehiclePatch {
-	
-    void Install();
 
-    void Uninstall();
-};
+void Install();
+
+void Uninstall();
+}; // namespace LargeVehiclePatch

@@ -1,8 +1,8 @@
 #pragma once
 
 namespace WideScreenPatch {
-	
-    void Install();
 
-    void Uninstall();
-};
+void Install();
+
+void Uninstall();
+}; // namespace WideScreenPatch

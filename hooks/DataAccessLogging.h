@@ -1,8 +1,8 @@
 #pragma once
 
 namespace DataAccessLogging {
-	
-    void Install();
 
-    void Uninstall();
-};
+void Install();
+
+void Uninstall();
+}; // namespace DataAccessLogging
