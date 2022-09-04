@@ -58,7 +58,7 @@ void HiOctaneEntry() {
 
   // CarsDialogueEX::Install();
 
-  // GameTextJSON::install();
+  GameTextJSON::Install();
 
   PluginManager::LoadAllPlugins();
 
