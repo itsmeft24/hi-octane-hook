@@ -9,5 +9,5 @@ Currently planned features include:
 - [x] Characters that were previously unable to have a selected quote on the character selection screen now have selected quotes, a new file C\Global\Chars\DialogueList.ini is used to store a list of each of the added characters.
 - [x] Monster trucks that previously used the normal character selection screen camera animation now use the monster truck-specific character selection screen camera animation. A new file C\Global\Chars\LargeVehicles.ini describes each character that should use this different animation.
 - [x] A console window now relays information during runtime, used for many purposes, including showing every single file being loaded by the game to make debugging significantly easier.
-- [ ] The old .bin and .loc files are gone, and in their place are standard JSON files, in order to make creating and testing localization edits significantly easier.
+- [x] The old .bin and .loc files are gone, and in their place are standard JSON files, in order to make creating and testing localization edits significantly easier.
 - [ ] More than 80 characters can be fully voiced. (This is especially difficult!)
