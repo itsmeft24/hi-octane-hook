@@ -57,6 +57,8 @@ void HiOctaneEntry() {
   AutomaticBoostPatch::Install();
 
   // CarsDialogueEX::Install();
+  
+  EnableDebugConfig::Install();
 
   GameTextJSON::Install();
 

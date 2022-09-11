@@ -4,6 +4,7 @@
 #include "hooks/CarsDialogueEx.h"
 #include "hooks/DataAccessLogging.h"
 #include "hooks/DialogueListEx.h"
+#include "hooks/EnableDebugConfig.h"
 #include "hooks/GameTextJSON.h"
 #include "hooks/LargeVehiclePatch.h"
 #include "hooks/LoadingScreenPatch.h"
