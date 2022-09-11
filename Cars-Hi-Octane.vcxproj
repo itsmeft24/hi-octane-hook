@@ -19,6 +19,7 @@
     <ClCompile Include="hooks\CarsDialogueEx.cpp" />
     <ClCompile Include="hooks\DataAccessLogging.cpp" />
     <ClCompile Include="hooks\DialogueListEx.cpp" />
+    <ClCompile Include="hooks\EnableDebugConfig.cpp" />
     <ClCompile Include="hooks\GameTextJSON.cpp" />
     <ClCompile Include="hooks\LargeVehiclePatch.cpp" />
     <ClCompile Include="hooks\LoadingScreenPatch.cpp" />
@@ -37,6 +38,7 @@
     <ClInclude Include="hooks\CarsDialogueEx.h" />
     <ClInclude Include="hooks\DataAccessLogging.h" />
     <ClInclude Include="hooks\DialogueListEx.h" />
+    <ClInclude Include="hooks\EnableDebugConfig.h" />
     <ClInclude Include="hooks\GameTextJSON.h" />
     <ClInclude Include="hooks\LargeVehiclePatch.h" />
     <ClInclude Include="hooks\LoadingScreenPatch.h" />
