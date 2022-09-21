@@ -8,4 +8,5 @@
 #include "hooks/GameTextJSON.h"
 #include "hooks/LargeVehiclePatch.h"
 #include "hooks/LoadingScreenPatch.h"
+#include "hooks/MiscUIFixes.h"
 #include "hooks/WidescreenPatch.h"

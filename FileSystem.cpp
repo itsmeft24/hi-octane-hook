@@ -336,6 +336,10 @@ DWORD __stdcall BASS_StreamCreateFileHook(BOOL mem, char *file, DWORD offset,
       // return expected result
       return BASS_StreamCreateFile(mem, (char *)out_path.string().c_str(),
                                    offset, length, flags);
+    } else {
+      Logging::Log(
+          "[FileSystem::BASS::StreamCreateFile] Loading stream file: %s...\n",
+          base_filepath.c_str());
     }
 
     if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(),
@@ -372,6 +376,10 @@ DWORD __stdcall BASS_SampleLoadHook(BOOL mem, char *file, DWORD offset,
       // return expected result
       return BASS_SampleLoad(mem, (char *)out_path.c_str(), offset, length, max,
                              flags);
+    } else {
+      Logging::Log(
+          "[FileSystem::BASS::SampleLoad] Loading stream file: %s...\n",
+          base_filepath.c_str());
     }
 
     if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(),

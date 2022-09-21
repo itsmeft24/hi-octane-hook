@@ -59,6 +59,8 @@ void HiOctaneEntry() {
   // CarsDialogueEX::Install();
   
   EnableDebugConfig::Install();
+  
+  MiscUIFixes::Install();
 
   GameTextJSON::Install();
 

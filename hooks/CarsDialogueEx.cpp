@@ -4,6 +4,8 @@
 #include "../Logging.h"
 #include "../Utils.h"
 
+constexpr unsigned char MAX_NUMBER_OF_CARS = 1;
+
 __declspec(naked) void CarsDialogue_CarsDialogue_LEA_PATCH() {
   __asm {
     // lea eax, [esi + 0x114]
@@ -53,14 +55,14 @@ __declspec(naked) void CarsDialogue_BumpWreckOutOfControl_LEA_PATCH() {
 __declspec(naked) void CarsDialogue_BumpWreckOutOfControl_PART2_LEA_PATCH() {
   __asm {
     // lea ebp, [ebx + ecx * 0x4 + 0x114]
-		lea ebp, [ebx + ecx + 0xA44]
+		lea ebp, [ebx + ecx + 0xA40]
 		ret
   }
 }
 
 __declspec(naked) void CarsDialogue_UNK_LEA_PATCH() {
   __asm {
-    // lea eax, [edi + 0x11C]
+    // lea ebx, [edi + 0x11C]
 		lea ebx, [edi + 0xA48]
 		ret
   }
@@ -68,8 +70,8 @@ __declspec(naked) void CarsDialogue_UNK_LEA_PATCH() {
 
 __declspec(naked) void CarsDialogue_UNK2_LEA_PATCH() {
   __asm {
-    // lea edi, [esi + 0x11C]
-		lea edi, [esi + 0xA48]
+    // lea edi, [ebx + 0x11C]
+		lea edi, [ebx + 0xA48]
 		ret
   }
 }
@@ -118,10 +120,29 @@ __declspec(naked) void CarsDialogue_UNK6_LEA_PATCH() {
   }
 }
 
+__declspec(naked) void CarsDialogue_UNK7_LEA_PATCH() {
+  __asm {
+    // lea edi, [ebx + 0x114]
+		lea edi, [ebx + 0xA40]
+		ret
+  }
+}
+
 void CarsDialogueEx::Install() {
   Logging::Log("[CarsDialogueEx] Patching CarsDialogue class...\n");
-  WritePUSH(AsVoidPtr(0x004f32c8),
-            AsVoidPtr(0xA40 + 0x1BE4)); // patch class size
+
+  SetExecuteReadWritePermission(AsVoidPtr(0x00482B6F), 1);
+  SetExecuteReadWritePermission(AsVoidPtr(0x00482CCD), 1);
+  SetExecuteReadWritePermission(AsVoidPtr(0x004C1FDE), 1);
+  SetExecuteReadWritePermission(AsVoidPtr(0x004C1FE3), 1);
+
+  *(unsigned char *)(0x00482B6F) = MAX_NUMBER_OF_CARS;
+  *(unsigned char *)(0x00482CCD) = MAX_NUMBER_OF_CARS;
+  *(unsigned char *)(0x004C1FDE) = MAX_NUMBER_OF_CARS;
+  *(unsigned char *)(0x004C1FE3) = MAX_NUMBER_OF_CARS;
+
+  WritePUSH(AsVoidPtr(0x004F32C8),
+            AsVoidPtr(0xA40 + (0x1C * MAX_NUMBER_OF_CARS))); // patch class size
 
   HookFunction(0x004C2965, &CarsDialogue_BumpWreckOutOfControl_LEA_PATCH, 0x11,
                FunctionHookType::InlineReplacement); // PlayBumpDialogue
@@ -156,7 +177,7 @@ void CarsDialogueEx::Install() {
   HookFunction(0x004C2194, &CarsDialogue_UNK3_LEA_PATCH, 16,
                FunctionHookType::InlineReplacement); // UNK3
 
-  HookFunction(0x00482D61, &CarsDialogue_LoadDialogue_LEA_PATCH, 0x7,
+  HookFunction(0x00482D61, &CarsDialogue_LoadDialogue_LEA_PATCH, 16,
                FunctionHookType::InlineReplacement); // LoadDialogue
   HookFunction(0x00482EA8, &CarsDialogue_Reset_LEA_PATCH, 0x6,
                FunctionHookType::InlineReplacement); // Reset
@@ -165,7 +186,7 @@ void CarsDialogueEx::Install() {
                FunctionHookType::InlineReplacement); // UNK4
   HookFunction(0x004C2BB3, &CarsDialogue_UNK4_LEA_PATCH, 16,
                FunctionHookType::InlineReplacement); // PlayOuchDialogue
-  HookFunction(0x004C2BB3, &CarsDialogue_UNK5_LEA_PATCH, 16,
+  HookFunction(0x004C2F0D, &CarsDialogue_UNK5_LEA_PATCH, 16,
                FunctionHookType::InlineReplacement); // PlayPassedDialogue
   HookFunction(0x004C3026, &CarsDialogue_UNK5_LEA_PATCH, 16,
                FunctionHookType::InlineReplacement); // UNK5
@@ -189,10 +210,11 @@ void CarsDialogueEx::Install() {
   HookFunction(0x004C2DCD, &CarsDialogue_UNK5_LEA_PATCH, 16,
                FunctionHookType::InlineReplacement); // PlayPassDialogue
 
+  HookFunction(0x004E9EE3, &CarsDialogue_UNK7_LEA_PATCH, 6,
+               FunctionHookType::InlineReplacement); // UNK12
+  HookFunction(0x004E9D6B, &CarsDialogue_UNK7_LEA_PATCH, 6,
+               FunctionHookType::InlineReplacement); // UNK13
+
   Logging::Log("[CarsDialogueEX::Install] Succesfully moved "
                "CarsCharacterDialogue array!\n");
-
-  auto lpCarsDialogue =
-      *(DWORD *)(*(DWORD *)(0x00718A74 + 1088) +
-                 68); // lpCarsGame->lpCarsAudioManager->lpCarsDialogue
 }
