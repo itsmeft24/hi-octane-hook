@@ -56,7 +56,7 @@ jobs:
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         name: beta
-        code: latest
+        code: beta
         body: Beta built off of the latest code in the repository.
         prerelease: true
         recreate: true
