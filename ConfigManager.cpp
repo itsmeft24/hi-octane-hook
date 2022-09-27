@@ -18,8 +18,9 @@ std::optional<bool> ReadBool(const std::string &str) {
   size_t equal = str.find('=');
   if (equal != -1 && equal != str.size() - 1) {
     std::string stripped = str.substr(equal);
-    stripped.erase(std::remove_if(str.begin(), str.end(), std::isspace),
-                   str.end());
+    stripped.erase(
+        std::remove_if(stripped.begin(), stripped.end(), std::isspace),
+        stripped.end());
     int bool_char = std::tolower(stripped[0]);
     return bool_char == 't' || bool_char == 'y' || bool_char == '1';
   }
