@@ -30,10 +30,11 @@ std::optional<int> ReadInt(const std::string &str) {
   size_t equal = str.find('=');
   if (equal != -1 && equal != str.size() - 1) {
     std::string stripped = str.substr(equal);
-    stripped.erase(std::remove_if(str.begin(), str.end(), std::isspace),
-                   str.end());
+    stripped.erase(
+        std::remove_if(stripped.begin(), stripped.end(), std::isspace),
+        stripped.end());
     try {
-      std::stoi(stripped);
+      int num = std::stoi(stripped);
     } catch (std::invalid_argument &error) {
       Logging::Log(
           "[ConfigManager::ReadInt] Failed to parse string: %s. Error: %s",
