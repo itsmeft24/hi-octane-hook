@@ -17,7 +17,7 @@ unsigned int ConfigManager::DesiredWindowHeight = 0;
 std::optional<bool> ReadBool(const std::string &str) {
   size_t equal = str.find('=');
   if (equal != -1 && equal != str.size() - 1) {
-    std::string stripped = str.substr(equal);
+    std::string stripped = str.substr(equal + 1);
     stripped.erase(
         std::remove_if(stripped.begin(), stripped.end(), std::isspace),
         stripped.end());
@@ -30,7 +30,7 @@ std::optional<bool> ReadBool(const std::string &str) {
 std::optional<int> ReadInt(const std::string &str) {
   size_t equal = str.find('=');
   if (equal != -1 && equal != str.size() - 1) {
-    std::string stripped = str.substr(equal);
+    std::string stripped = str.substr(equal + 1);
     stripped.erase(
         std::remove_if(stripped.begin(), stripped.end(), std::isspace),
         stripped.end());
