@@ -54,8 +54,6 @@ void HiOctaneEntry() {
 
   LoadingScreenPatch::Install();
 
-  CarsDialogueEx::Install();
-
   GameTextJSON::Install();
 
   EnableDebugConfig::Install();
