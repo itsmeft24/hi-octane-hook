@@ -1,4 +1,5 @@
 
+#include "../ConfigManager.h"
 #include "../Globals.h"
 #include "../HookFunction.h"
 #include "../Logging.h"
@@ -36,10 +37,12 @@ void __fastcall SetConfigArgumentsHook(void *this_ptr) {
 }
 
 void EnableDebugConfig::Install() {
-  setconfigarguments_finfo = HookFunction((void *&)CarsGame_SetConfigArguments,
-                                          &SetConfigArgumentsHook, 5,
-                                          FunctionHookType::EntireReplacement);
-  if (setconfigarguments_finfo.type != FunctionHookType::Invalid)
-    Logging::Log(
-        "[EnableDebugConfig::Install] Successfully installed patch!\n");
+  if (ConfigManager::EnableDebugTxtConfig) {
+    setconfigarguments_finfo = HookFunction(
+        (void *&)CarsGame_SetConfigArguments, &SetConfigArgumentsHook, 5,
+        FunctionHookType::EntireReplacement);
+    if (setconfigarguments_finfo.type != FunctionHookType::Invalid)
+      Logging::Log(
+          "[EnableDebugConfig::Install] Successfully installed patch!\n");
+  }
 }

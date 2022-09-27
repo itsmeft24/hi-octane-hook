@@ -1,6 +1,5 @@
 #pragma once
 
-#include "hooks/AutomaticBoostPatch.h"
 #include "hooks/CarsDialogueEx.h"
 #include "hooks/DataAccessLogging.h"
 #include "hooks/DialogueListEx.h"

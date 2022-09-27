@@ -15,7 +15,6 @@
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="HiOctane.cpp" />
     <ClCompile Include="HookFunction.cpp" />
-    <ClCompile Include="hooks\AutomaticBoostPatch.cpp" />
     <ClCompile Include="hooks\CarsDialogueEx.cpp" />
     <ClCompile Include="hooks\DataAccessLogging.cpp" />
     <ClCompile Include="hooks\DialogueListEx.cpp" />
@@ -23,7 +22,7 @@
     <ClCompile Include="hooks\GameTextJSON.cpp" />
     <ClCompile Include="hooks\LargeVehiclePatch.cpp" />
     <ClCompile Include="hooks\LoadingScreenPatch.cpp" />
-	<ClCompile Include="hooks\MiscUIFixes.cpp" />
+    <ClCompile Include="hooks\MiscUIFixes.cpp" />
     <ClCompile Include="hooks\WidescreenPatch.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="PluginManager.cpp" />
@@ -35,7 +34,6 @@
     <ClInclude Include="Globals.h" />
     <ClInclude Include="HookFunction.h" />
     <ClInclude Include="Hooks.h" />
-    <ClInclude Include="hooks\AutomaticBoostPatch.h" />
     <ClInclude Include="hooks\CarsDialogueEx.h" />
     <ClInclude Include="hooks\DataAccessLogging.h" />
     <ClInclude Include="hooks\DialogueListEx.h" />
@@ -43,7 +41,7 @@
     <ClInclude Include="hooks\GameTextJSON.h" />
     <ClInclude Include="hooks\LargeVehiclePatch.h" />
     <ClInclude Include="hooks\LoadingScreenPatch.h" />
-	<ClInclude Include="hooks\MiscUIFixes.h" />
+    <ClInclude Include="hooks\MiscUIFixes.h" />
     <ClInclude Include="hooks\WidescreenPatch.h" />
     <ClInclude Include="InlineContext.h" />
     <ClInclude Include="Logging.h" />
@@ -85,7 +83,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)\bin</OutDir>
+    <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
     <TargetName>Cars-Hi-Octane</TargetName>
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
@@ -94,7 +92,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Cars-Hi-Octane</TargetName>
-    <OutDir>$(ProjectDir)\bin</OutDir>
+    <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
@@ -123,7 +121,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NOMINMAX;WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>

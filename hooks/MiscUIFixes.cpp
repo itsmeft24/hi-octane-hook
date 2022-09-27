@@ -18,7 +18,7 @@ void __fastcall UnkLayer_HandleOK_Hook(uintptr_t layer) {
   // Find pCarsUIManager instance.
   uintptr_t UnkStruct1 = *(uintptr_t *)(0x006FE590);
   uintptr_t UnkStruct2 = *(uintptr_t *)(UnkStruct1 + 0x24);
-  uintptr_t pCarsAudioManager = *(uintptr_t *)(UnkStruct2 + 0xF0);
+  uintptr_t pCarsUIManager = *(uintptr_t *)(UnkStruct2 + 0xF0);
 
   int SoundEffectIndex = 0;
 
@@ -45,7 +45,7 @@ void __fastcall UnkLayer_HandleOK_Hook(uintptr_t layer) {
       return;
     }
     *(int *)(UnkStruct3 + 0xb0) = 1;
-    CarsUIManager_PlaySoundEvent(pCarsAudioManager, SoundEffectIndex, 1, 1);
+    CarsUIManager_PlaySoundEvent(pCarsUIManager, SoundEffectIndex, 1, 1);
   }
 }
 

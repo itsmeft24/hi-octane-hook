@@ -54,15 +54,13 @@ void HiOctaneEntry() {
 
   LoadingScreenPatch::Install();
 
-  AutomaticBoostPatch::Install();
-
-  // CarsDialogueEX::Install();
-  
-  EnableDebugConfig::Install();
-  
-  MiscUIFixes::Install();
+  CarsDialogueEx::Install();
 
   GameTextJSON::Install();
+
+  EnableDebugConfig::Install();
+
+  MiscUIFixes::Install();
 
   PluginManager::LoadAllPlugins();
 

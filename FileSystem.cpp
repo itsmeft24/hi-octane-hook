@@ -96,6 +96,12 @@ std::filesystem::path GenerateFileBackingPath() {
 
   std::shuffle(str.begin(), str.end(), generator);
 
+  if (!std::filesystem::exists(CURRENT_DIRECTORY +
+                               "\\LocalStorage\\FileBacking\\")) {
+    std::filesystem::create_directories(CURRENT_DIRECTORY +
+                                        "\\LocalStorage\\FileBacking\\");
+  }
+
   return CURRENT_DIRECTORY + "\\LocalStorage\\FileBacking\\" +
          str.substr(0, 16) + ".tmp"; // assumes 32 < number of characters in str
 }
@@ -108,8 +114,9 @@ inline void *HandleCallback(FileSystem::CallbackInfo &info,
   FileSystem::CallbackContext clbkcontext{base_filepath.c_str(), data,
                                           info.MaxFileSize, 0};
 
-  Logging::Log("[Hi-Octane API] Executing file callback for: %s...\n",
-               base_filepath.c_str());
+  Logging::Log(
+      "[FileSystem::HandleCallback] Executing file callback for: %s...\n",
+      base_filepath.c_str());
 
   FileSystem::CarsFileCallback clbk =
       (FileSystem::CarsFileCallback)InstalledCallbacks.at(base_filepath)
@@ -396,63 +403,71 @@ DWORD __stdcall BASS_SampleLoadHook(BOOL mem, char *file, DWORD offset,
 
 void *__cdecl _fopenHook(char *_Filename,
                          char *_Mode) { // modified _fopen from VS2005
-  if (_strnicmp(_Filename, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) ==
-      0) { // is a DataPC file
+  if (*_Mode == 'r') {
+    if (_strnicmp(_Filename, DATA_DIR_PATH.c_str(), DATA_DIR_PATH.size()) ==
+        0) { // is a DataPC file
 
-    std::string base_filepath = _Filename;
-    base_filepath =
-        base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
-    make_lowercase(base_filepath);                      // force lowercase
+      std::string base_filepath = _Filename;
+      base_filepath =
+          base_filepath.substr(DATA_DIR_PATH.size() + 1); // strip DataPC path
+      make_lowercase(base_filepath);                      // force lowercase
 
-    if (_strnicmp(_Filename + DATA_DIR_PATH.size() + 2, "\\ui\\tex\\", 8) ==
-            0 &&
-        ConfigManager::IsWidescreenEnabled) {
-      // If the file is a UI texture AND we are running in widescreen, use
-      // UI\Tex_HD instead of UI\Tex
-      std::string new_filepath =
-          base_filepath.substr(0, 8) + "_hd" + base_filepath.substr(8);
-      if (std::filesystem::exists(DATA_DIR_PATH + '\\' + new_filepath) ||
-          MAP.find(new_filepath) != MAP.end() ||
-          InstalledCallbacks.find(new_filepath) != InstalledCallbacks.end()) {
-        memcpy(_Filename + DATA_DIR_PATH.size() + 1, new_filepath.c_str(),
-               new_filepath.size());
-        *(_Filename + DATA_DIR_PATH.size() + 1 + new_filepath.size()) = 0;
-        base_filepath = new_filepath;
+      if (_strnicmp(_Filename + DATA_DIR_PATH.size() + 2, "\\ui\\tex\\", 8) ==
+              0 &&
+          ConfigManager::IsWidescreenEnabled) {
+        // If the file is a UI texture AND we are running in widescreen, use
+        // UI\Tex_HD instead of UI\Tex
+        std::string new_filepath =
+            base_filepath.substr(0, 8) + "_hd" + base_filepath.substr(8);
+        if (std::filesystem::exists(DATA_DIR_PATH + '\\' + new_filepath) ||
+            MAP.find(new_filepath) != MAP.end() ||
+            InstalledCallbacks.find(new_filepath) != InstalledCallbacks.end()) {
+          memcpy(_Filename + DATA_DIR_PATH.size() + 1, new_filepath.c_str(),
+                 new_filepath.size());
+          *(_Filename + DATA_DIR_PATH.size() + 1 + new_filepath.size()) = 0;
+          base_filepath = new_filepath;
+        }
       }
-    }
 
-    if (InstalledCallbacks.find(base_filepath) !=
-        InstalledCallbacks
-            .end()) { // if we have an installed callback for the file
-                      // (callbacks take priority over normal files)
+      if (InstalledCallbacks.find(base_filepath) !=
+          InstalledCallbacks
+              .end()) { // if we have an installed callback for the file
+                        // (callbacks take priority over normal files)
 
-      void *ret = HandleCallback(InstalledCallbacks.at(base_filepath),
-                                 base_filepath, _Mode);
-      if (ret != nullptr) {
-        return ret; // If the callback succeeded, return the expected result.
+        void *ret = HandleCallback(InstalledCallbacks.at(base_filepath),
+                                   base_filepath, _Mode);
+        if (ret != nullptr) {
+          return ret; // If the callback succeeded, return the expected result.
+        }
+        // If the callback failed, continue as normal.
       }
-      // If the callback failed, continue as normal.
-    }
 
-    if (MAP.find(base_filepath) !=
-        MAP.end()) { // if we have a modfile for the file
+      if (MAP.find(base_filepath) !=
+          MAP.end()) { // if we have a modfile for the file
 
-      const auto &out_path = MAP.at(base_filepath);
+        const auto &out_path = MAP.at(base_filepath);
 
-      Logging::Log("[FileSystem::FOpen] Loading file: %s from mod: %s...\n",
-                   base_filepath.c_str(), GetModForFile(base_filepath).c_str());
+        Logging::Log("[FileSystem::FOpen] Loading file: %s from mod: %s...\n",
+                     base_filepath.c_str(),
+                     GetModForFile(base_filepath).c_str());
 
-      return __fsopen((char *)out_path.string().c_str(), _Mode,
-                      0x40); // return expected result
-    }
+        return __fsopen((char *)out_path.string().c_str(), _Mode,
+                        0x40); // return expected result
+      }
 
-    if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(),
-                  base_filepath) != MARK_AS_DELETED.end()) {
-      return nullptr;
-    } // if the file should be marked as deleted, then return nullptr.
+      if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(),
+                    base_filepath) != MARK_AS_DELETED.end()) {
+        return nullptr;
+      } // if the file should be marked as deleted, then return nullptr.
       // this comes after swapping the path for modfiles and after callbacks are
       // dealt with, so if another mod (or the mod itself) has that file it will
       // still be loaded.
+    }
+    return __fsopen(_Filename, _Mode, 0x40); // return expected result
+  }
+  auto parent_dir = std::filesystem::path(_Filename).parent_path();
+  if (!std::filesystem::exists(parent_dir)) {
+    std::filesystem::create_directories(parent_dir);
   }
   return __fsopen(_Filename, _Mode, 0x40); // return expected result
 }
