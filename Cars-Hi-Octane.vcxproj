@@ -83,7 +83,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
+    <OutDir>$(ProjectDir)\bin</OutDir>
     <TargetName>Cars-Hi-Octane</TargetName>
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
@@ -92,7 +92,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Cars-Hi-Octane</TargetName>
-    <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
+    <OutDir>$(ProjectDir)\bin</OutDir>
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
