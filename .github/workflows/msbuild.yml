@@ -1,0 +1,67 @@
+name: MSBuild
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  # Path to the solution file relative to the root of the project.
+  SOLUTION_FILE_PATH: Cars-Hi-Octane.sln
+
+  # Configuration type to build.
+  # You can convert this to a build matrix if you need coverage of multiple configuration types.
+  # https://docs.github.com/actions/learn-github-actions/managing-complex-workflows#using-a-build-matrix
+  BUILD_CONFIGURATION: Release
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Add MSBuild to PATH
+      uses: microsoft/setup-msbuild@v1.0.2
+
+    - name: Install packages and dependencies
+      run: |
+        bootstrap-vcpkg
+        vcpkg install rapidjson detours
+        vcpkg integrate install
+      
+    - name: Build
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      # Add additional options to the MSBuild command line here (like platform or verbosity level).
+      # See https://docs.microsoft.com/visualstudio/msbuild/msbuild-command-line-reference
+      run: msbuild /m /p:Configuration=${{env.BUILD_CONFIGURATION}} ${{env.SOLUTION_FILE_PATH}}
+      
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v1
+      with:
+        name: cars-hi-octane
+        path: |
+            bin\cars-hi-octane.dll
+            bin\cars-hi-octane-launcher-cli.exe
+  
+  upload:
+    runs-on: windows-latest
+    needs: build
+    steps:
+    - uses: actions/download-artifact@v1
+      with:
+        name: cars-hi-octane
+    
+    - name: Upload Release
+      uses: majkrzak/create-release@master
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        name: beta
+        code: beta
+        body: Beta built off of the latest code in the repository.
+        prerelease: true
+        recreate: true
+        assets: >
+            cars-hi-octane/cars-hi-octane.dll:cars-hi-octane.dll:application/x-msdownload
+            cars-hi-octane/cars-hi-octane-launcher-cli.exe:cars-hi-octane-launcher-cli.exe:application/x-msdownload
