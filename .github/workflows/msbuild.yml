@@ -54,12 +54,10 @@ jobs:
         name: cars-hi-octane
     
     - name: Upload Release
-      uses: majkrzak/create-release@master
+      uses: "marvinpinto/action-automatic-releases@v1.2.1"
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        name: beta
-        code: beta
-        body: Beta built off of the latest code in the repository.
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "beta"
         prerelease: true
-        recreate: true
-        assets: cars-hi-octane/release.zip:release.zip:application/zip
+        title: "beta"
+        files: cars-hi-octane/release.zip
