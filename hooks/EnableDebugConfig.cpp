@@ -15,8 +15,6 @@ DeclareFunction(void, __thiscall, ParameterBlock_Dtor, 0x005c4440, void *);
 DeclareFunction(void, __thiscall, ParameterBlock_OpenFile, 0x005d87c0, void *,
                 const char *, int, int, size_t *, size_t);
 
-HookedFunctionInfo setconfigarguments_finfo;
-
 void __fastcall SetConfigArgumentsHook(void *this_ptr) {
   // Call original function to set the config members to their default values.
   CarsGame_SetConfigArguments(this_ptr);
@@ -38,10 +36,10 @@ void __fastcall SetConfigArgumentsHook(void *this_ptr) {
 
 void EnableDebugConfig::Install() {
   if (ConfigManager::EnableDebugTxtConfig) {
-    setconfigarguments_finfo = HookFunction(
+      HookedFunctionInfo info = HookFunction(
         (void *&)CarsGame_SetConfigArguments, &SetConfigArgumentsHook, 5,
         FunctionHookType::EntireReplacement);
-    if (setconfigarguments_finfo.type != FunctionHookType::Invalid)
+    if (info.type != FunctionHookType::Invalid)
       Logging::Log(
           "[EnableDebugConfig::Install] Successfully installed patch!\n");
   }

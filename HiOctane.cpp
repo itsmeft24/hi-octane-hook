@@ -63,30 +63,13 @@ void HiOctaneEntry() {
   PluginManager::LoadAllPlugins();
 
   PluginManager::StartAllPlugins();
-
-#ifdef _DEBUG
-  unsigned long long WaitForExternalEdit = 8389773196515696983;
-  Logging::Log("[HiOctaneEntry] Waiting for debugger to attach...");
-  while (WaitForExternalEdit == 8389773196515696983) {
-    Sleep(100);
-  }
-  Logging::Log("[HiOctaneEntry] Debugger attached!");
-#endif
 }
 
 void HiOctaneExit() {
 
   Logging::Log("[HiOctaneExit] Exiting...\n");
 
-  LargeVehiclePatch::Uninstall();
-
-  DataAccessLogging::Uninstall();
-
-  DialogueListEx::Uninstall();
-
   PluginManager::ExitAllPlugins();
-
-  FileSystem::Deinit();
 
   Logging::Deinit();
 

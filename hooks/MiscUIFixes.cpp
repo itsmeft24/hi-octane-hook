@@ -8,8 +8,6 @@ DeclareFunction(int, __thiscall, CarsUIManager_PlaySoundEvent, 0x005c9760,
                 uintptr_t, int, int, int);
 DeclareFunction(void, __thiscall, UnkLayer_HandleOK, 0x00511e00, uintptr_t);
 
-HookedFunctionInfo unklayer_handleok_finfo;
-
 void __fastcall UnkLayer_HandleOK_Hook(uintptr_t layer) {
 
   // Call original function.
@@ -50,9 +48,9 @@ void __fastcall UnkLayer_HandleOK_Hook(uintptr_t layer) {
 }
 
 void MiscUIFixes::Install() {
-  unklayer_handleok_finfo =
+  HookedFunctionInfo info =
       HookFunction((void *&)UnkLayer_HandleOK, UnkLayer_HandleOK_Hook, 6,
                    FunctionHookType::EntireReplacement);
-  if (unklayer_handleok_finfo.type != FunctionHookType::Invalid)
+  if (info.type != FunctionHookType::Invalid)
     Logging::Log("[MiscUIFixes::Install] Successfully installed patch!\n");
 }

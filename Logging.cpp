@@ -51,5 +51,6 @@ HIOCTANE_API void _API_Logging_Log(const char *format, ...) {
     va_start(args, format);
     vfprintf(log_file, format, args);
     va_end(args);
+    fflush(log_file);
   }
 }

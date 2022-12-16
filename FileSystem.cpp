@@ -30,12 +30,6 @@ DeclareFunction(DWORD, __stdcall, BASS_StreamCreateFile,
                                "BASS_StreamCreateFile"),
                 BOOL, char *, DWORD, DWORD, DWORD);
 
-HookedFunctionInfo _fopen_finfo;
-HookedFunctionInfo binkopen_finfo;
-HookedFunctionInfo bassstreamcreatefile_finfo;
-HookedFunctionInfo basssampleload_finfo;
-HookedFunctionInfo _fclose_finfo;
-
 std::unordered_map<std::string, std::filesystem::path> MAP;
 
 std::vector<std::string> MARK_AS_DELETED;
@@ -489,16 +483,16 @@ int __cdecl _fcloseHook(void *fp) {
 void FileSystem::Init() {
   FileDiscovery();
 
-  _fopen_finfo = HookFunction((void *&)_fopen, &_fopenHook, 0x13,
+  HookedFunctionInfo _fopen_finfo = HookFunction((void *&)_fopen, &_fopenHook, 0x13,
                               FunctionHookType::EntireReplacement);
-  binkopen_finfo = HookFunction(0x006742E8, &BinkOpenHook, 0,
+  HookedFunctionInfo binkopen_finfo = HookFunction(0x006742E8, &BinkOpenHook, 0,
                                 FunctionHookType::IATReplacement);
-  basssampleload_finfo = HookFunction(0x00674084, &BASS_SampleLoadHook, 0,
+  HookedFunctionInfo basssampleload_finfo = HookFunction(0x00674084, &BASS_SampleLoadHook, 0,
                                       FunctionHookType::IATReplacement);
-  bassstreamcreatefile_finfo =
+  HookedFunctionInfo bassstreamcreatefile_finfo =
       HookFunction(0x00674040, &BASS_StreamCreateFileHook, 0,
                    FunctionHookType::IATReplacement);
-  _fclose_finfo = HookFunction((void *&)_fclose, &_fcloseHook, 0x74,
+  HookedFunctionInfo _fclose_finfo = HookFunction((void *&)_fclose, &_fcloseHook, 0x74,
                                FunctionHookType::EntireReplacement);
 
   if (_fopen_finfo.type != FunctionHookType::Invalid &&
@@ -507,12 +501,4 @@ void FileSystem::Init() {
       bassstreamcreatefile_finfo.type != FunctionHookType::Invalid &&
       _fclose_finfo.type != FunctionHookType::Invalid)
     Logging::Log("[FileSystem::Init] Filesystem successfully initialized!\n");
-}
-
-void FileSystem::Deinit() {
-  UninstallFunctionHook(_fopen_finfo);
-  UninstallFunctionHook(binkopen_finfo);
-  UninstallFunctionHook(basssampleload_finfo);
-  UninstallFunctionHook(bassstreamcreatefile_finfo);
-  UninstallFunctionHook(_fclose_finfo);
 }

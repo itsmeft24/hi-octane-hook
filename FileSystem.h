@@ -23,6 +23,4 @@ typedef int (*CarsFileCallback)(CallbackContext *);
 std::filesystem::path GetPathForFile(std::string path);
 
 void Init();
-
-void Deinit();
 }; // namespace FileSystem

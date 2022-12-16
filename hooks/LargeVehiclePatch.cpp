@@ -10,11 +10,7 @@
 
 #include "LargeVehiclePatch.h"
 
-HookedFunctionInfo largevehicle_finfo;
-
 std::vector<std::string> large_vehicles;
-
-bool is_installed = false;
 
 bool LV_CollectCharactersToPatch() {
   std::ifstream file(
@@ -42,17 +38,11 @@ BOOL __stdcall IsNotLargeVehicle(char *character) {
 
 void LargeVehiclePatch::Install() {
   if (LV_CollectCharactersToPatch()) {
-    largevehicle_finfo = HookFunction(0x0050FB1F, &IsNotLargeVehicle, 0x3B,
+      HookedFunctionInfo info = HookFunction(0x0050FB1F, &IsNotLargeVehicle, 0x3B,
                                       FunctionHookType::InlineReplacement);
-    Logging::Log(
-        "[LargeVehiclePatch::Install] Successfully installed patch!\n");
-    is_installed = true;
-  }
-};
-
-void LargeVehiclePatch::Uninstall() {
-  if (is_installed) {
-    UninstallFunctionHook(largevehicle_finfo);
-    is_installed = false;
-  }
+      if (info.type != FunctionHookType::Invalid) {
+          Logging::Log(
+              "[LargeVehiclePatch::Install] Successfully installed patch!\n");
+      }
+}
 };

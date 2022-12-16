@@ -6,8 +6,6 @@
 #include "../Logging.h"
 #include "LoadingScreenPatch.h"
 
-HookedFunctionInfo loading_screen_finfo;
-
 BYTE *lpCarsGame = (BYTE *)0x00718A74;
 
 DWORD *ret_address = (DWORD *)0x004053A2;
@@ -30,10 +28,10 @@ __declspec(naked) void CalculateLoadingScreenPath() {
 }
 
 void LoadingScreenPatch::Install() {
-  loading_screen_finfo =
+	HookedFunctionInfo info =
       HookFunction(0x0040538e, &CalculateLoadingScreenPath, 0x14,
                    FunctionHookType::InlineReplacementJMP);
-  if (loading_screen_finfo.type != FunctionHookType::Invalid)
+  if (info.type != FunctionHookType::Invalid)
     Logging::Log(
         "[LoadingScreenPatch::Install] Successfully installed patch!\n");
 }

@@ -27,10 +27,6 @@ DeclareFunction(void, __thiscall, ContainerHashTable__charptrToint__Destructor,
 DeclareFunction(void, __thiscall, ContainerHashTable__charptrToint__CHTAdd,
                 0x005bb280, void *, char *, int, void *, int);
 
-HookedFunctionInfo gametext_create_finfo;
-HookedFunctionInfo gametext_dtor_finfo;
-HookedFunctionInfo gametext_loadgametext_finfo;
-
 struct AppensionInfo {
   unsigned char appensionCount;
   char pad[3];
@@ -240,17 +236,17 @@ void __fastcall GameText_Destructor_Hook(GameText *this_ptr, void *in_EDX) {
 #pragma optimize("", on)
 
 void GameTextJSON::Install() {
-  gametext_create_finfo =
+    HookedFunctionInfo gametext_create_finfo =
       HookFunction((void *&)GameText_Create, &GameText_Create_Hook, 7,
                    FunctionHookType::EntireReplacement);
   // Since we end up allocating memory ourselves, we need to hook the destructor
   // so the memory is freed properly.
-  gametext_dtor_finfo =
+    HookedFunctionInfo gametext_dtor_finfo =
       HookFunction((void *&)GameText_Destructor, &GameText_Destructor_Hook, 6,
                    FunctionHookType::EntireReplacement);
   // All class initialization now happens in GameText::Create, so LoadGameText
   // can just be stubbed out.
-  gametext_loadgametext_finfo =
+    HookedFunctionInfo gametext_loadgametext_finfo =
       HookFunction((void *&)GameText_LoadGameText, &GameText_LoadGameText_Hook,
                    6, FunctionHookType::EntireReplacement);
 

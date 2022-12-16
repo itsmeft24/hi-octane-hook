@@ -16,8 +16,6 @@ DeclareFunction(void, __thiscall, CarsActivity_AddNameToDialogueList,
 DeclareFunction(void, __thiscall, CarsActivityUI_RequestDialogue, 0x004BD360,
                 void *);
 
-HookedFunctionInfo request_dialogue_finfo;
-
 std::vector<std::string> dialogue_list = {
     "mcq",  "mat",  "hud", "ram",  "flo",  "sar",  "fil",  "lui", "sven",
     "otto", "hiro", "gio", "emma", "mcqm", "matm", "sulm", "mike"};
@@ -58,14 +56,10 @@ HIOCTANE_API bool RegisterDialogueListAddition(const char *character) {
 }
 
 void DialogueListEx::Install() {
-  request_dialogue_finfo =
+  HookedFunctionInfo info =
       HookFunction((void *&)CarsActivityUI_RequestDialogue, &RequestDialogue,
                    0x110, FunctionHookType::EntireReplacement);
-  if (request_dialogue_finfo.type != FunctionHookType::Invalid)
+  if (info.type != FunctionHookType::Invalid)
     Logging::Log("[DialogueListEx::Install] Successfully installed patch!\n");
   DL_CollectCharactersToPatch();
-};
-
-void DialogueListEx::Uninstall() {
-  UninstallFunctionHook(request_dialogue_finfo);
 };

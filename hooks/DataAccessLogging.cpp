@@ -12,9 +12,6 @@ DeclareFunction(int, __thiscall, DataAccess_LoadResourceFile, 0x005D2FC0,
 DeclareFunction(int, __thiscall, DataAccess_FindVirtualFile, 0x00580FD0, void *,
                 char *);
 
-HookedFunctionInfo fopen_finfo;
-HookedFunctionInfo loadresourcefile_finfo;
-
 // Prevent compiler from removing the in_EDX arguments.
 #pragma optimize("", off)
 int __fastcall DataAccess_FOpenHook(void *this_ptr, void *in_EDX,
@@ -49,10 +46,10 @@ int __fastcall DataAccess_LoadResourceFileHook(
 #pragma optimize("", on)
 
 void DataAccessLogging::Install() {
-  fopen_finfo = HookFunction((void *&)DataAccess_FOpen, &DataAccess_FOpenHook,
+    HookedFunctionInfo fopen_finfo = HookFunction((void *&)DataAccess_FOpen, &DataAccess_FOpenHook,
                              6, FunctionHookType::EntireReplacement);
 
-  loadresourcefile_finfo = HookFunction((void *&)DataAccess_LoadResourceFile,
+    HookedFunctionInfo loadresourcefile_finfo = HookFunction((void *&)DataAccess_LoadResourceFile,
                                         &DataAccess_LoadResourceFileHook, 5,
                                         FunctionHookType::EntireReplacement);
 
@@ -60,9 +57,4 @@ void DataAccessLogging::Install() {
       loadresourcefile_finfo.type != FunctionHookType::Invalid)
     Logging::Log(
         "[DataAccessLogging::Install] Successfully installed patch!\n");
-}
-
-void DataAccessLogging::Uninstall() {
-  UninstallFunctionHook(fopen_finfo);
-  UninstallFunctionHook(loadresourcefile_finfo);
 }
