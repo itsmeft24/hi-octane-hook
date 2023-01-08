@@ -11,8 +11,8 @@
 
 bool ConfigManager::EnableDebugTxtConfig = false;
 bool ConfigManager::IsWidescreenEnabled = false;
-unsigned int ConfigManager::DesiredWindowWidth = 0;
-unsigned int ConfigManager::DesiredWindowHeight = 0;
+unsigned int ConfigManager::DesiredWindowWidth = 1920;
+unsigned int ConfigManager::DesiredWindowHeight = 1080;
 
 std::optional<bool> ReadBool(const std::string &str) {
   size_t equal = str.find('=');
@@ -64,10 +64,10 @@ void ConfigManager::ReadConfigFile() {
       EnableDebugTxtConfig = ReadBool(line).value_or(false);
     }
     if (line.find("DesiredWindowWidth") != std::string::npos) {
-      DesiredWindowWidth = ReadInt(line).value_or(0);
+      DesiredWindowWidth = ReadInt(line).value_or(1920);
     }
     if (line.find("DesiredWindowHeight") != std::string::npos) {
-      DesiredWindowHeight = ReadInt(line).value_or(0);
+      DesiredWindowHeight = ReadInt(line).value_or(1080);
     }
   }
   conf_file.close();
