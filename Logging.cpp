@@ -5,6 +5,7 @@
 
 #include "Globals.h"
 #include "Logging.h"
+#include "ConfigManager.h"
 
 FILE *log_file = nullptr;
 FILE *console_handle = nullptr;
