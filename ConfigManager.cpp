@@ -9,6 +9,7 @@
 #include "Globals.h"
 #include "Logging.h"
 
+bool ConfigManager::EnableConsoleWindow = true;
 bool ConfigManager::EnableDebugTxtConfig = false;
 bool ConfigManager::IsWidescreenEnabled = false;
 unsigned int ConfigManager::DesiredWindowWidth = 1920;
@@ -57,6 +58,9 @@ void ConfigManager::ReadConfigFile() {
   std::ifstream conf_file(DATA_DIR_PATH + "\\config.ini", std::ios::in);
   std::string line;
   while (std::getline(conf_file, line)) {
+    if (line.find("EnableConsoleWindow") != std::string::npos) {
+      EnableConsoleWindow = ReadBool(line).value_or(true);
+    }
     if (line.find("EnableWidescreen") != std::string::npos) {
       IsWidescreenEnabled = ReadBool(line).value_or(false);
     }
