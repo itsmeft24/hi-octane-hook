@@ -43,7 +43,7 @@ void PluginManager::LoadAllPlugins() {
       if (entry.path().extension().string() == ".dll") {
         loaded_plugins.push_back(
             Plugin{base_name, LoadLibraryA(entry.path().string().c_str())});
-        Logging::Log("[PluginManager::LoadAllPlugins] Loading plugin: %s...",
+        Logging::Log("[PluginManager::LoadAllPlugins] Loading plugin: %s...\n",
                      base_name.c_str());
       }
     }
@@ -54,11 +54,11 @@ void PluginManager::StartAllPlugins() {
 
   for (auto &plugin : loaded_plugins) {
     Logging::Log("[PluginManager::StartAllPlugins] Running HiOctaneEntry for "
-                 "plugin: %s...",
+                 "plugin: %s...\n",
                  plugin.Name.c_str());
     plugin.ExecuteEntryPoint();
     Logging::Log("[PluginManager::StartAllPlugins] Finished running "
-                 "HiOctaneEntry for plugin: %s.",
+                 "HiOctaneEntry for plugin: %s.\n",
                  plugin.Name.c_str());
   }
 }
@@ -67,11 +67,11 @@ void PluginManager::ExitAllPlugins() {
 
   for (auto &plugin : loaded_plugins) {
     Logging::Log("[PluginManager::ExitAllPlugins] Running HiOctaneExit for "
-                 "plugin: %s...",
+                 "plugin: %s...\n",
                  plugin.Name.c_str());
     plugin.ExecuteExitPoint();
     Logging::Log("[PluginManager::ExitAllPlugins] Finished running "
-                 "HiOctaneExit for plugin: %s.",
+                 "HiOctaneExit for plugin: %s.\n",
                  plugin.Name.c_str());
     FreeLibrary(plugin.ModuleHandle);
   }
