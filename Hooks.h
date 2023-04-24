@@ -9,3 +9,4 @@
 #include "hooks/LoadingScreenPatch.h"
 #include "hooks/MiscUIFixes.h"
 #include "hooks/WidescreenPatch.h"
+#include "hooks/ExploreMusic.h"
