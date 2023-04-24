@@ -1,6 +1,6 @@
 #pragma once
 
-namespace BounceReturn {
+namespace ExploreMusic {
 
 void Install();
 }
