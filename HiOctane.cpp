@@ -60,6 +60,8 @@ void HiOctaneEntry() {
 
   MiscUIFixes::Install();
 
+  ExploreMusic::Install();
+
   PluginManager::LoadAllPlugins();
 
   PluginManager::StartAllPlugins();
