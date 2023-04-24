@@ -10,4 +10,5 @@ Currently implemented features include:
 - [x] Monster trucks that previously used the normal character selection screen camera animation now use the monster truck-specific character selection screen camera animation. A new file C\Global\Chars\LargeVehicles.ini describes each character that should use this different animation.
 - [x] A console window now relays information during runtime, used for many purposes, including showing every single file being loaded by the game to make debugging significantly easier.
 - [x] The old .bin and .loc files are gone, and in their place are standard JSON files, in order to make creating and testing localization edits significantly easier.
-- [X] The FE_Select_Continue and FE_Back sounds now play in the Main Menu, just as they do on the Xbox 360 and PS3 versions of the game.
+- [x] The FE_Select_Continue and FE_Back sounds now play in the Main Menu, just as they do on the Xbox 360 and PS3 versions of the game.
+- [x] Music now plays during the Explore activities in the game. [Thanks [Jordon](https://github.com/Jordon87)!]
