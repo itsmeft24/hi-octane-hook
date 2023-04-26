@@ -35,13 +35,13 @@ void HiOctaneEntry() {
   DATA_DIR_PATH = CURRENT_DIRECTORY + "\\" + DATA_DIR;
   // Get current directory and store it in a global variable. (Used for File IO
   // stuff.)
-
+  
+  ConfigManager::ReadConfigFile();
+  
   Logging::Init();
 
   Logging::Log("[HiOctaneEntry] Installing hooks...\n");
-
-  ConfigManager::ReadConfigFile();
-
+  
   FileSystem::Init();
 
   WideScreenPatch::Install();
