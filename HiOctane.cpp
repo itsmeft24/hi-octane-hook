@@ -14,8 +14,8 @@
 #include "PluginManager.h"
 #include "Utils.h"
 
-std::string DATA_DIR_PATH = "";
-std::string CURRENT_DIRECTORY = "";
+std::string DATA_DIR_PATH;// = "";
+std::string CURRENT_DIRECTORY;// = "";
 
 constexpr auto DATA_DIR = "hi-octane";
 
@@ -78,12 +78,25 @@ void HiOctaneExit() {
   FreeLibraryAndExitThread(GetModuleHandleA(NULL), 0);
 }
 
+// Initialization and de-initialization is now placed inside this thin WinMain wrapper.
+// This enables us to call MN's std library functions on HiOctaneEntry.
+DeclareFunction(int, __stdcall, _WinMain, 0x006196a0, HINSTANCE, HINSTANCE, PSTR, int);
+
+int __stdcall WinMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
+    HiOctaneEntry();
+    int result = _WinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+    HiOctaneExit();
+    return result;
+}
+
+HookedFunctionInfo mainInfo;
+
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
 
   if (reason == DLL_PROCESS_ATTACH) {
-    HiOctaneEntry();
+      mainInfo = HookFunction((void*&)_WinMain, WinMainHook, 6, FunctionHookType::EntireReplacement);
   } else if (reason == DLL_PROCESS_DETACH) {
-    HiOctaneExit();
+      UninstallFunctionHook(mainInfo);
   }
   return TRUE;
 }
