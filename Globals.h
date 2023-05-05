@@ -6,6 +6,8 @@ extern std::string CURRENT_DIRECTORY;
 
 extern std::string DATA_DIR_PATH;
 
+extern "C" __declspec(dllexport) const char* VERSION;
+
 #define AsVoidPtr(x) (void *)(x)
 
 #define DeclareFunction(ret_type, call_conv, name, offset, ...)                \

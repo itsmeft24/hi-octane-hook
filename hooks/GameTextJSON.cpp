@@ -205,6 +205,46 @@ GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
         this_ptr->CHTMap, this_ptr->textIdPointers[x], x, nullptr, 0);
   }
 
+  if (stricmp(name, "commonui") == 0) {
+      std::string valueString = "Hi-Octane Version: " + std::string(VERSION);
+
+      // reallocate the value buffer so the version string can fit, then strcpy it in
+      if (jsonSize < valueBufWritten + valueString.size() + 1) {
+          this_ptr->valueBuffer = reinterpret_cast<char*>(realloc(this_ptr->valueBuffer, valueBufWritten + valueString.size() + 1));
+      }
+      strcpy(this_ptr->valueBuffer + valueBufWritten, valueString.c_str());
+
+      // build stringinfo
+      StringInfo versionStringInfo = {};
+      versionStringInfo.maxSize = valueString.size();
+      versionStringInfo.isDynamic = false;
+      versionStringInfo.flags = 1;
+      versionStringInfo.value = this_ptr->valueBuffer + valueBufWritten;
+      versionStringInfo.appensionInfo = nullptr;
+      versionStringInfo.isAppendedToCount = 0;
+      versionStringInfo.isAppendedTo = nullptr;
+
+      // add nul terminator to the value buffer (realloc doesnt zero-initialize the buffer)
+      valueBufWritten += valueString.size();
+      this_ptr->valueBuffer[valueBufWritten] = 0;
+
+      // reallocate both the textid and stringinfo buffers
+      this_ptr->numberOfStrings++;
+      char** tmp = new char* [this_ptr->numberOfStrings]{};
+      std::memcpy(tmp, this_ptr->textIdPointers, (this_ptr->numberOfStrings - 1) * sizeof(char*));
+      this_ptr->textIdPointers = tmp;
+      this_ptr->textIdPointers[this_ptr->numberOfStrings - 1] = const_cast<char*>("STR_HI_OCTANE_VER");
+      
+      StringInfo* tmpInfo = new StringInfo[this_ptr->numberOfStrings];
+      std::memcpy(tmpInfo, this_ptr->stringInfos, (this_ptr->numberOfStrings - 1) * sizeof(StringInfo));
+      this_ptr->stringInfos = tmpInfo;
+      this_ptr->stringInfos[this_ptr->numberOfStrings - 1] = versionStringInfo;
+
+      // push the textid into the hashmap
+      ContainerHashTable__charptrToint__CHTAdd(
+          this_ptr->CHTMap, this_ptr->textIdPointers[this_ptr->numberOfStrings - 1], this_ptr->numberOfStrings - 1, nullptr, 0);
+  }
+
   Logging::Log("[GameText::CreateFromJSON] Returning...\n", name);
   return this_ptr;
 }
