@@ -74,8 +74,6 @@ void HiOctaneExit() {
   PluginManager::ExitAllPlugins();
 
   Logging::Deinit();
-
-  FreeLibraryAndExitThread(GetModuleHandleA(NULL), 0);
 }
 
 // Initialization and de-initialization is now placed inside this thin WinMain wrapper.
