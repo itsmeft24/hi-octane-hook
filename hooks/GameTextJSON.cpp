@@ -1,13 +1,17 @@
 #include <fstream>
 #include <iostream>
+#include <string>
 #include <rapidjson/document.h>
 
+#include "../ConfigManager.h"
 #include "../FileSystem.h"
 #include "../Globals.h"
 #include "../HookFunction.h"
 #include "../Logging.h"
 
 #include "GameTextJSON.h"
+#include "WidescreenPatch.h"
+
 
 DeclareFunction(void *, __thiscall, GameText_Create, 0x006074E0, void *,
                 char *);
@@ -109,15 +113,45 @@ GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
   jsonFile.seekg(0, std::ios::end);
   unsigned int jsonSize = jsonFile.tellg();
 
-  char *json_buffer = new char[jsonSize];
+  char *jsonBuffer = new char[jsonSize];
   jsonFile.seekg(0, std::ios::beg);
-  jsonFile.read(json_buffer, jsonSize);
+  jsonFile.read(jsonBuffer, jsonSize);
   jsonFile.close();
 
   rapidjson::Document doc;
-  doc.Parse<rapidjson::kParseStopWhenDoneFlag>(json_buffer);
+  doc.Parse<rapidjson::kParseStopWhenDoneFlag>(jsonBuffer);
 
-  delete[] json_buffer;
+  if (stricmp(name, "commonui") == 0) {
+      std::string formattedStr = "Hi-Octane Version: " + std::string(VERSION);
+      rapidjson::Value v(rapidjson::kObjectType);
+      v.AddMember("TextID", "STR_HI_OCTANE_VER", doc.GetAllocator());
+      v.AddMember("Value", rapidjson::Value(formattedStr.c_str(), doc.GetAllocator()), doc.GetAllocator());
+      v.AddMember("MaxSize", rapidjson::Value(formattedStr.size() * 2), doc.GetAllocator());
+      v.AddMember("IsDynamic", rapidjson::Value(0), doc.GetAllocator());
+      doc.GetArray().PushBack(v, doc.GetAllocator());
+      jsonSize += formattedStr.size() + 18;
+  }
+  if (ConfigManager::IsWidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
+      for (int x = 0; x < (int)WideScreenPatch::SDResolution::Max; x++) {
+          const auto& sd = WideScreenPatch::ResolveSD((WideScreenPatch::SDResolution)x);
+          const auto& hd = WideScreenPatch::ResolveHD((WideScreenPatch::SDResolution)x);
+          const auto textId = "STR_" + std::to_string(sd.first) + "X" + std::to_string(sd.second);
+          const auto value = std::to_string(hd.first) + "X" + std::to_string(hd.second);
+          const auto& array = doc.GetArray();
+          std::size_t foundIndex = 0;
+          for (std::size_t index = 0; index < array.Size(); index++) {
+              if (textId == array[index].GetObject()["TextID"].GetString()) {
+                  foundIndex = index;
+                  break;
+              }
+          }
+          jsonSize = jsonSize - doc.GetArray()[foundIndex].GetObject()["Value"].GetStringLength() + value.size() + 1;
+          doc.GetArray()[foundIndex].GetObject()["Value"].SetString(value.c_str(), value.size(), doc.GetAllocator());
+          doc.GetArray()[foundIndex].GetObject()["MaxSize"].SetInt(value.size() * 2);
+      }
+  }
+
+  delete[] jsonBuffer;
 
   size_t textIdBufWritten = 0;
   size_t valueBufWritten = 0;
@@ -137,7 +171,7 @@ GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
   ContainerHashTable__charptrToint__CHTCreateFull(
       this_ptr->CHTMap, this_ptr->numberOfStrings, 100, StringHashValueFunction,
       StringHashCompareFunction, nullptr, 0);
-
+ 
   for (int x = 0; x < this_ptr->numberOfStrings; x++) {
 
     auto &currentInfo = this_ptr->stringInfos[x];
@@ -203,46 +237,6 @@ GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
 
     ContainerHashTable__charptrToint__CHTAdd(
         this_ptr->CHTMap, this_ptr->textIdPointers[x], x, nullptr, 0);
-  }
-
-  if (stricmp(name, "commonui") == 0) {
-      std::string valueString = "Hi-Octane Version: " + std::string(VERSION);
-
-      // reallocate the value buffer so the version string can fit, then strcpy it in
-      if (jsonSize < valueBufWritten + valueString.size() + 1) {
-          this_ptr->valueBuffer = reinterpret_cast<char*>(realloc(this_ptr->valueBuffer, valueBufWritten + valueString.size() + 1));
-      }
-      strcpy(this_ptr->valueBuffer + valueBufWritten, valueString.c_str());
-
-      // build stringinfo
-      StringInfo versionStringInfo = {};
-      versionStringInfo.maxSize = valueString.size();
-      versionStringInfo.isDynamic = false;
-      versionStringInfo.flags = 1;
-      versionStringInfo.value = this_ptr->valueBuffer + valueBufWritten;
-      versionStringInfo.appensionInfo = nullptr;
-      versionStringInfo.isAppendedToCount = 0;
-      versionStringInfo.isAppendedTo = nullptr;
-
-      // add nul terminator to the value buffer (realloc doesnt zero-initialize the buffer)
-      valueBufWritten += valueString.size();
-      this_ptr->valueBuffer[valueBufWritten] = 0;
-
-      // reallocate both the textid and stringinfo buffers
-      this_ptr->numberOfStrings++;
-      char** tmp = new char* [this_ptr->numberOfStrings]{};
-      std::memcpy(tmp, this_ptr->textIdPointers, (this_ptr->numberOfStrings - 1) * sizeof(char*));
-      this_ptr->textIdPointers = tmp;
-      this_ptr->textIdPointers[this_ptr->numberOfStrings - 1] = const_cast<char*>("STR_HI_OCTANE_VER");
-      
-      StringInfo* tmpInfo = new StringInfo[this_ptr->numberOfStrings];
-      std::memcpy(tmpInfo, this_ptr->stringInfos, (this_ptr->numberOfStrings - 1) * sizeof(StringInfo));
-      this_ptr->stringInfos = tmpInfo;
-      this_ptr->stringInfos[this_ptr->numberOfStrings - 1] = versionStringInfo;
-
-      // push the textid into the hashmap
-      ContainerHashTable__charptrToint__CHTAdd(
-          this_ptr->CHTMap, this_ptr->textIdPointers[this_ptr->numberOfStrings - 1], this_ptr->numberOfStrings - 1, nullptr, 0);
   }
 
   Logging::Log("[GameText::CreateFromJSON] Returning...\n", name);

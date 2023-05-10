@@ -11,8 +11,8 @@
 
 namespace HDRPatch {
 
-    DeclareFunction(void*, __cdecl, Cars_OperatorNew, 0x0063eb87, size_t);
-    DeclareFunction(void, __cdecl, Cars_Free, 0x0063f514, void*);
+    DeclareFunction(void*, __cdecl, operator_new, 0x0063eb87, size_t);
+    DeclareFunction(void, __cdecl, operator_delete, 0x0063f514, void*);
     // the base class's constructor.
     DeclareFunction(X360FilterAlgorithm*, __thiscall, X360FilterAlgorithm_Constructor, 0x0040ce10, X360FilterAlgorithm*);
     DeclareFunction(X360FilterAlgorithm*, __thiscall, X360FilterAlgorithm_Destructor, 0x0040d190, X360FilterAlgorithm*);
@@ -55,14 +55,14 @@ namespace HDRPatch {
 	}
 
 	inline void* InitVertexShader(const std::string& shader_label) {
-		void* memory = Cars_OperatorNew(0x10C);
+		void* memory = operator_new(0x10C);
 		*reinterpret_cast<unsigned long long*>(memory) = 0;
 		Unk_GetVertexShader(memory, const_cast<char*>(shader_label.c_str()), 0);
 		return memory;
 	}
 
 	inline void* InitPixelShader(const std::string& shader_label) {
-		void* memory = Cars_OperatorNew(0x4);
+		void* memory = operator_new(0x4);
 		*reinterpret_cast<unsigned int*>(memory) = 0;
 		Unk_GetPixelShader(memory, const_cast<char*>(shader_label.c_str()), 0);
 		return memory;
@@ -88,7 +88,7 @@ namespace HDRPatch {
 		strcpy(this_algorithm, algorithm_label);
 		if (stricmp(algorithm_label, "Null") == 0 || !X360VideoCard_IsFXEnabled(*reinterpret_cast<void**>(0x006ff394))) {
 			strcpy(this_algorithm, "Null");
-			memory = Cars_OperatorNew(100);
+			memory = operator_new(100);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterNull_Constructor(memory);
 			}
@@ -97,7 +97,7 @@ namespace HDRPatch {
 			}
 		}
 		else if (stricmp(algorithm_label, "FrameBufferToTexture") == 0) {
-			memory = Cars_OperatorNew(0x68);
+			memory = operator_new(0x68);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterFrameBufferToTexture_Constructor(memory);
 			}
@@ -106,7 +106,7 @@ namespace HDRPatch {
 			}
 		}
 		else if (stricmp(algorithm_label, "MotionBlur") == 0) {
-			memory = Cars_OperatorNew(0x84);
+			memory = operator_new(0x84);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterMotionBlur_Constructor(memory);
 			}
@@ -115,7 +115,7 @@ namespace HDRPatch {
 			}
 		}
 		else if (stricmp(algorithm_label, "HighDynamicRange") == 0) {
-			memory = Cars_OperatorNew(sizeof(X360FilterHighDynamicRange));
+			memory = operator_new(sizeof(X360FilterHighDynamicRange));
 			if (memory != nullptr) {
 				filter_algorithm = reinterpret_cast<X360FilterAlgorithm*>(X360FilterHighDynamicRange::Constructor(reinterpret_cast<X360FilterHighDynamicRange*>(memory)));
 			}
@@ -124,7 +124,7 @@ namespace HDRPatch {
 			}
 		}
 		else if (stricmp(algorithm_label, "NightVision") == 0) {
-			memory = Cars_OperatorNew(0xc0);
+			memory = operator_new(0xc0);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterNightVision_Constructor(memory);
 			}
@@ -133,7 +133,7 @@ namespace HDRPatch {
 			}
 		}
 		else if (stricmp(algorithm_label, "GhostImage") == 0) {
-			memory = Cars_OperatorNew(0x80);
+			memory = operator_new(0x80);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterGhostImage_Constructor(memory);
 			}
@@ -142,7 +142,7 @@ namespace HDRPatch {
 			}
 		}
 		else if (stricmp(algorithm_label, "Sunflare") == 0) {
-			memory = Cars_OperatorNew(0x78);
+			memory = operator_new(0x78);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterSunflare_Constructor(memory);
 			}
@@ -151,7 +151,7 @@ namespace HDRPatch {
 			}
 		}
 		else if (stricmp(algorithm_label, "Noise") == 0) {
-			memory = Cars_OperatorNew(0x84);
+			memory = operator_new(0x84);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterNoise_Constructor(memory);
 			}
@@ -161,7 +161,7 @@ namespace HDRPatch {
 		}
 		else {
 			strcpy(this_algorithm, "Null");
-			memory = Cars_OperatorNew(100);
+			memory = operator_new(100);
 			if (memory != nullptr) {
 				filter_algorithm = X360FilterNull_Constructor(memory);
 			}
@@ -199,7 +199,7 @@ namespace HDRPatch {
         // call the base destructor
         X360FilterAlgorithm_Destructor(&_this->base);
         if ((param_2 & 1) != 0) {
-            Cars_Free(_this);
+            operator_delete(_this);
         }
 		return _this;
 	}

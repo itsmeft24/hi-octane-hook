@@ -1,5 +1,7 @@
 
 #include <Windows.h>
+#include <filesystem>
+#include <fstream>
 
 #include "../ConfigManager.h"
 #include "../HookFunction.h"
@@ -23,61 +25,16 @@ __declspec(naked) void CMPPatch() { // Force the game to compare against an
   }
 }
 
-enum class SDResolution : int {
-    _640x480 = 0,
-    _800x600,
-    _1024x768,
-    _1152x864,
-    _1280x768,
-    _1280x800,
-    _1280x1024,
-    _1440x900,
-    _1600x1200
-};
-
-BOOL __stdcall GetDimensionsFromSelectedResolutionHook(SDResolution selected, unsigned int* width, unsigned int* height) {
+BOOL __stdcall GetDimensionsFromSelectedResolutionHook(WideScreenPatch::SDResolution selected, unsigned int* width, unsigned int* height) {
     if (ConfigManager::IsWidescreenEnabled) {
-        *width = ConfigManager::DesiredWindowWidth;
-        *height = ConfigManager::DesiredWindowHeight;
-        return TRUE;
+        const auto& [selected_width, selected_height] =  ResolveHD(selected);
+        *width = selected_width;
+        *height = selected_height;
     }
-    switch (selected) {
-    case SDResolution::_640x480:
-        *width = 640;
-        *height = 480;
-        break;
-    case SDResolution::_800x600:
-        *width = 800;
-        *height = 600;
-        break;
-    case SDResolution::_1024x768:
-        *width = 1024;
-        *height = 768;
-        break;
-    case SDResolution::_1152x864:
-        *width = 1152;
-        *height = 864;
-        break;
-    case SDResolution::_1280x768:
-        *width = 1280;
-        *height = 768;
-        break;
-    case SDResolution::_1280x800:
-        *width = 1280;
-        *height = 800;
-        break;
-    case SDResolution::_1280x1024:
-        *width = 1280;
-        *height = 1024;
-        break;
-    case SDResolution::_1440x900:
-        *width = 1440;
-        *height = 900;
-        break;
-    case SDResolution::_1600x1200:
-        *width = 1600;
-        *height = 1200;
-        break;
+    else {
+        const auto& [selected_width, selected_height] = ResolveSD(selected);
+        *width = selected_width;
+        *height = selected_height;
     }
     return TRUE;
 }
@@ -90,11 +47,16 @@ void WideScreenPatch::Install() {
     HookFunction(0x00421E22, &CMPPatch, 6, FunctionHookType::InlineReplacement);
     HookFunction((void*&)GetDimensionsFromSelectedResolution, &GetDimensionsFromSelectedResolutionHook, 7, FunctionHookType::EntireReplacement);
 
+    std::filesystem::path save = ConfigManager::GetSaveDir();
+    save.concat("GlobalData");
+    std::ifstream save_file(save, std::ios::in | std::ios::binary);
+    save_file.seekg(0x18);
+    std::uint8_t i = 0;
+    save_file.read((char*)&i, 1);
+    GetDimensionsFromSelectedResolutionHook((SDResolution)i, (unsigned int*)pWindowWidth, (unsigned int*)pWindowHeight);
+    save_file.close();
+
     *pScreenMode = 2;
-
-    *pWindowWidth = ConfigManager::DesiredWindowWidth;
-    *pWindowHeight = ConfigManager::DesiredWindowHeight;
-
     SetExecuteReadWritePermission((DWORD *)(0x00421DEF), 4);
     *(DWORD *)(0x00421DEF) = 2; // (mov edi, 2) instead of (mov edi, 1)
   }
