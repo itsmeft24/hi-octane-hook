@@ -15,17 +15,17 @@ DeclareFunction(int, __thiscall, DataAccess_FindVirtualFile, 0x00580FD0, void *,
 // Prevent compiler from removing the in_EDX arguments.
 #pragma optimize("", off)
 int __fastcall DataAccess_FOpenHook(void *this_ptr, void *in_EDX,
-                                    char *FileName, char *Access) {
+                                    char *file_name, char *access) {
 
-  if (DataAccess_FindVirtualFile(this_ptr, FileName) == -1)
-    Logging::Log(
-        "[DataAccess::FOpen] Attempting to open file from disk: %s...\n",
-        FileName);
+  if (DataAccess_FindVirtualFile(this_ptr, file_name) == -1)
+    Logging::log(
+        "[DataAccess::FOpen] Attempting to open file from disk: {}...",
+        file_name);
   else
-    Logging::Log("[DataAccess::FOpen] Attempting to open virtual file: %s...\n",
-                 FileName);
+    Logging::log("[DataAccess::FOpen] Attempting to open virtual file: {}...",
+                 file_name);
 
-  return DataAccess_FOpen(this_ptr, FileName, Access);
+  return DataAccess_FOpen(this_ptr, file_name, access);
 }
 
 int __fastcall DataAccess_LoadResourceFileHook(
@@ -34,8 +34,8 @@ int __fastcall DataAccess_LoadResourceFileHook(
     int bytesOfUserDataRead, int forceLoad, int forceRead, int param_10,
     int param_11) {
 
-  Logging::Log(
-      "[DataAccess::LoadResourceFile] Attempting to load ResourceFile: %s...\n",
+  Logging::log(
+      "[DataAccess::LoadResourceFile] Attempting to load ResourceFile: {}...",
       filename);
 
   return DataAccess_LoadResourceFile(
@@ -45,7 +45,7 @@ int __fastcall DataAccess_LoadResourceFileHook(
 }
 #pragma optimize("", on)
 
-void DataAccessLogging::Install() {
+void DataAccessLogging::install() {
     HookedFunctionInfo fopen_finfo = HookFunction((void *&)DataAccess_FOpen, &DataAccess_FOpenHook,
                              6, FunctionHookType::EntireReplacement);
 
@@ -55,6 +55,6 @@ void DataAccessLogging::Install() {
 
   if (fopen_finfo.type != FunctionHookType::Invalid &&
       loadresourcefile_finfo.type != FunctionHookType::Invalid)
-    Logging::Log(
-        "[DataAccessLogging::Install] Successfully installed patch!\n");
+    Logging::log(
+        "[DataAccessLogging::Install] Successfully installed patch!");
 }

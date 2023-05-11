@@ -2,5 +2,5 @@
 
 namespace CarsDialogueEx {
 
-void Install();
+void install();
 };

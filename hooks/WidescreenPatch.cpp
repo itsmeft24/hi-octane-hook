@@ -7,8 +7,10 @@
 #include "../HookFunction.h"
 #include "../Logging.h"
 #include "../Utils.h"
+#include "../FileSystem.h"
 
 #include "WidescreenPatch.h"
+
 
 DWORD *pWindowWidth = (DWORD *)0x006FAA54;
 DWORD *pWindowHeight = (DWORD *)0x006FAA58;
@@ -27,27 +29,27 @@ __declspec(naked) void CMPPatch() { // Force the game to compare against an
 
 BOOL __stdcall GetDimensionsFromSelectedResolutionHook(WideScreenPatch::SDResolution selected, unsigned int* width, unsigned int* height) {
     if (ConfigManager::IsWidescreenEnabled) {
-        const auto& [selected_width, selected_height] =  ResolveHD(selected);
+        const auto& [selected_width, selected_height] =  resolve_hd(selected);
         *width = selected_width;
         *height = selected_height;
     }
     else {
-        const auto& [selected_width, selected_height] = ResolveSD(selected);
+        const auto& [selected_width, selected_height] = resolve_sd(selected);
         *width = selected_width;
         *height = selected_height;
     }
     return TRUE;
 }
 
-void WideScreenPatch::Install() {
+void WideScreenPatch::install() {
   if (ConfigManager::IsWidescreenEnabled) {
-    Logging::Log(
-        "[WideScreenPatches::Install] Setting screen mode to widescreen...\n");
+    Logging::log(
+        "[WideScreenPatches::Install] Setting screen mode to widescreen...");
 
     HookFunction(0x00421E22, &CMPPatch, 6, FunctionHookType::InlineReplacement);
     HookFunction((void*&)GetDimensionsFromSelectedResolution, &GetDimensionsFromSelectedResolutionHook, 7, FunctionHookType::EntireReplacement);
 
-    std::filesystem::path save = ConfigManager::GetSaveDir();
+    std::filesystem::path save = FileSystem::save_dir();
     save.concat("GlobalData");
     std::ifstream save_file(save, std::ios::in | std::ios::binary);
     save_file.seekg(0x18);

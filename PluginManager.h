@@ -4,18 +4,18 @@
 namespace PluginManager {
 
 struct Plugin {
-  std::string Name;
-  HMODULE ModuleHandle;
+  std::string name;
+  HMODULE handle;
 
-  void ExecuteEntryPoint();
+  void start();
 
-  void ExecuteExitPoint();
+  void exit();
 };
 
-void LoadAllPlugins();
+void load_plugins();
 
-void StartAllPlugins();
+void start_plugins();
 
-void ExitAllPlugins();
+void exit_plugins();
 
 }; // namespace PluginManager

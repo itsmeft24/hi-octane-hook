@@ -30,11 +30,11 @@ __declspec(naked) void CarsActivityExplore_MusicReEnabled() {
     }
 }
 
-void ExploreMusic::Install() {
+void ExploreMusic::install() {
     HookedFunctionInfo info =
         HookFunction(0x004eb861, &CarsActivityExplore_MusicReEnabled, 0x18, FunctionHookType::InlineReplacementJMP);
     if (info.type != FunctionHookType::Invalid) {
-        Logging::Log(
-            "[ExploreMusic::Install] Successfully installed patch!\n");
+        Logging::log(
+            "[ExploreMusic::Install] Successfully installed patch!");
     }
 };

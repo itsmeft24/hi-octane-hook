@@ -20,7 +20,7 @@ struct HookedFunctionInfo {
   FunctionHookType type;
   size_t code_size;
 
-  static constexpr inline HookedFunctionInfo Default() {
+  static constexpr inline HookedFunctionInfo invalid() {
     return {(void *)(0xFFFFFFFF), (void *)(0xFFFFFFFF), (void *)(0xFFFFFFFF),
             FunctionHookType::Invalid, 0xFFFFFFFF};
   }

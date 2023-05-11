@@ -2,5 +2,5 @@
 
 namespace DialogueListEx {
 
-void Install();
+void install();
 }; // namespace DialogueListEx

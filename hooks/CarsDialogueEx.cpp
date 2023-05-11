@@ -4,7 +4,7 @@
 #include "../Logging.h"
 #include "../Utils.h"
 
-constexpr unsigned char MAX_NUMBER_OF_CARS = 255;
+constexpr unsigned char kMaxNumberOfCars = 255;
 
 __declspec(naked) void CarsDialogue_CarsDialogue_LEA_PATCH() {
   __asm {
@@ -135,21 +135,21 @@ void __fastcall func(void* carsdialogue, uintptr_t in_edx, char* param_1) {
     std::memset(reinterpret_cast<char*>(carsdialogue) + 0x114, 69, 0x1C * 80);
 }
 
-void CarsDialogueEx::Install() {
-  Logging::Log("[CarsDialogueEx] Patching CarsDialogue class...\n");
+void CarsDialogueEx::install() {
+  Logging::log("[CarsDialogueEx] Patching CarsDialogue class...");
 
   SetExecuteReadWritePermission(AsVoidPtr(0x00482B6F), 1);
   SetExecuteReadWritePermission(AsVoidPtr(0x00482CCD), 1);
   SetExecuteReadWritePermission(AsVoidPtr(0x004C1FDE), 1);
   SetExecuteReadWritePermission(AsVoidPtr(0x004C1FE3), 1);
 
-  *(unsigned char *)(0x00482B6F) = MAX_NUMBER_OF_CARS;
-  *(unsigned char *)(0x00482CCD) = MAX_NUMBER_OF_CARS;
-  *(unsigned char *)(0x004C1FDE) = MAX_NUMBER_OF_CARS;
-  *(unsigned char *)(0x004C1FE3) = MAX_NUMBER_OF_CARS;
+  *(unsigned char *)(0x00482B6F) = kMaxNumberOfCars;
+  *(unsigned char *)(0x00482CCD) = kMaxNumberOfCars;
+  *(unsigned char *)(0x004C1FDE) = kMaxNumberOfCars;
+  *(unsigned char *)(0x004C1FE3) = kMaxNumberOfCars;
 
   WritePUSH(AsVoidPtr(0x004F32C8),
-            AsVoidPtr(0xA40 + (0x1C * MAX_NUMBER_OF_CARS))); // patch class size
+            AsVoidPtr(0xA40 + (0x1C * kMaxNumberOfCars))); // patch class size
 
   HookFunction((void*&)carsdialogue_create, &func, 7,
       FunctionHookType::EntireReplacement);
@@ -197,6 +197,6 @@ void CarsDialogueEx::Install() {
   HookFunction(0x004E9EE3, &CarsDialogue_UNK7_LEA_PATCH, 6, FunctionHookType::InlineReplacement); // UNK12
   HookFunction(0x004E9D6B, &CarsDialogue_UNK7_LEA_PATCH, 6, FunctionHookType::InlineReplacement); // UNK13
 
-  Logging::Log("[CarsDialogueEX::Install] Succesfully moved "
-               "CarsCharacterDialogue array!\n");
+  Logging::log("[CarsDialogueEX::Install] Succesfully moved "
+               "CarsCharacterDialogue array!");
 }

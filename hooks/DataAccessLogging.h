@@ -2,5 +2,5 @@
 
 namespace DataAccessLogging {
 
-void Install();
+void install();
 }; // namespace DataAccessLogging

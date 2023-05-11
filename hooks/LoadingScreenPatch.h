@@ -2,5 +2,5 @@
 
 namespace LoadingScreenPatch {
 
-void Install();
+void install();
 }; // namespace LoadingScreenPatch

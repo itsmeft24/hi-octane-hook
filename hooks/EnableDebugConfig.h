@@ -2,5 +2,5 @@
 
 namespace EnableDebugConfig {
 
-void Install();
+void install();
 };

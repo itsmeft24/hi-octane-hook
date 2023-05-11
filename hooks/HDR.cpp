@@ -299,7 +299,7 @@ namespace HDRPatch {
 		_this->base.isEnabled = 1;
 	}
 
-	void Install() {
+	void install() {
 		HookFunction((void*&)X360FilterStream_ReadFromFile, X360FilterStream_ReadFromFileHook, 7, FunctionHookType::EntireReplacement);
 	}
 };

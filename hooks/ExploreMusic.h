@@ -2,5 +2,5 @@
 
 namespace ExploreMusic {
 
-void Install();
+void install();
 }

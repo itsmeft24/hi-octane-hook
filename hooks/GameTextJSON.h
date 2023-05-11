@@ -2,5 +2,5 @@
 
 namespace GameTextJSON {
 
-void Install();
+void install();
 };

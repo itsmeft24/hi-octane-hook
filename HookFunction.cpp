@@ -14,7 +14,7 @@ void RelocateCodeSegment(void *src, void *dst, const size_t size) {
 HookedFunctionInfo HookFunction(void *&src, void *dst, const size_t code_size,
                                 FunctionHookType type) {
 
-  HookedFunctionInfo info = HookedFunctionInfo::Default();
+  HookedFunctionInfo info = HookedFunctionInfo::invalid();
 
   if (code_size < 5)
     return info; // You cannot hook at code segments smaller than 5 bytes.
@@ -77,7 +77,7 @@ HookedFunctionInfo HookFunction(void *&src, void *dst, const size_t code_size,
 HookedFunctionInfo HookFunction(unsigned long src, void *dst,
                                 const size_t code_size, FunctionHookType type) {
 
-  HookedFunctionInfo info = HookedFunctionInfo::Default();
+  HookedFunctionInfo info = HookedFunctionInfo::invalid();
 
   if (code_size < 5 && (type == FunctionHookType::InlineReplacement ||
                         type == FunctionHookType::InlineReplacementJMP))

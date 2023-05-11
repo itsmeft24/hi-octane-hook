@@ -2,5 +2,5 @@
 
 namespace LargeVehiclePatch {
 
-void Install();
+void install();
 }; // namespace LargeVehiclePatch

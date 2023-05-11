@@ -1,10 +1,11 @@
 #pragma once
 
 #include <iostream>
+#include <filesystem>
 
-extern std::string CURRENT_DIRECTORY;
+extern std::filesystem::path g_InstallDir;
 
-extern std::string DATA_DIR_PATH;
+extern std::filesystem::path g_DataDir;
 
 extern "C" __declspec(dllexport) const char* VERSION;
 

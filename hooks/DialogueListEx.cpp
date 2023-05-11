@@ -23,15 +23,15 @@ std::vector<std::string> dialogue_list = {
 void __fastcall RequestDialogue(void *this_ptr) {
   for (size_t x = 0; x < dialogue_list.size(); x++) {
     CarsActivity_AddNameToDialogueList(this_ptr, dialogue_list[x].c_str());
-    Logging::Log("[DialogueListEx::CarsActivityUI::RequestDialogue] Added %s "
-                 "to the Dialogue List!\n",
-                 dialogue_list[x].c_str());
+    Logging::log("[DialogueListEx::CarsActivityUI::RequestDialogue] Added {} "
+                 "to the Dialogue List!",
+                 dialogue_list[x]);
   }
 }
 
 bool DL_CollectCharactersToPatch() {
   std::ifstream file(
-      FileSystem::GetPathForFile("c\\global\\chars\\dialoguelist.ini"),
+      FileSystem::resolve_path("c\\global\\chars\\dialoguelist.ini"),
       std::ios::in);
   if (!file)
     return false;
@@ -55,11 +55,11 @@ HIOCTANE_API bool RegisterDialogueListAddition(const char *character) {
   return false;
 }
 
-void DialogueListEx::Install() {
+void DialogueListEx::install() {
   HookedFunctionInfo info =
       HookFunction((void *&)CarsActivityUI_RequestDialogue, &RequestDialogue,
                    0x110, FunctionHookType::EntireReplacement);
   if (info.type != FunctionHookType::Invalid)
-    Logging::Log("[DialogueListEx::Install] Successfully installed patch!\n");
+    Logging::log("[DialogueListEx::Install] Successfully installed patch!");
   DL_CollectCharactersToPatch();
 };

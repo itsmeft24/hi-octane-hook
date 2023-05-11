@@ -25,8 +25,8 @@ void __fastcall SetConfigArgumentsHook(void *this_ptr) {
   ParameterBlock_Ctor(pBlock);
   ParameterBlock_OpenFile(pBlock, "c\\debug\\config.txt", 0, -1, nullptr, -1);
 
-  Logging::Log("[EnableDebugConfig::SetConfigArguments] Loading configuration "
-               "data from C\\Debug\\config.txt...\n");
+  Logging::log("[EnableDebugConfig::SetConfigArguments] Loading configuration "
+               "data from C\\Debug\\config.txt...");
 
   CarsGame_LoadConfigFile(this_ptr, pBlock);
   // Destroy the ParameterBlock and free the memory.
@@ -34,13 +34,13 @@ void __fastcall SetConfigArgumentsHook(void *this_ptr) {
   free(pBlock);
 }
 
-void EnableDebugConfig::Install() {
+void EnableDebugConfig::install() {
   if (ConfigManager::EnableDebugTxtConfig) {
       HookedFunctionInfo info = HookFunction(
         (void *&)CarsGame_SetConfigArguments, &SetConfigArgumentsHook, 5,
         FunctionHookType::EntireReplacement);
     if (info.type != FunctionHookType::Invalid)
-      Logging::Log(
-          "[EnableDebugConfig::Install] Successfully installed patch!\n");
+      Logging::log(
+          "[EnableDebugConfig::Install] Successfully installed patch!");
   }
 }

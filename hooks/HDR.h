@@ -60,5 +60,5 @@ namespace HDRPatch {
 		static unsigned int __fastcall SendData(X360FilterHighDynamicRange* _this);
 		static void __fastcall Initialize(X360FilterHighDynamicRange* _this, uintptr_t edx, char*, uintptr_t parameterBlock);
 	};
-	void Install();
+	void install();
 };

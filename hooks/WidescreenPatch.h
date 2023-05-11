@@ -15,7 +15,7 @@ enum class SDResolution : int {
     Max
 };
 
-constexpr std::pair<unsigned int, unsigned int> ResolveSD(SDResolution res) {
+constexpr std::pair<unsigned int, unsigned int> resolve_sd(SDResolution res) {
     switch (res) {
     case SDResolution::_640x480:
         return std::make_pair(640, 480);
@@ -39,7 +39,7 @@ constexpr std::pair<unsigned int, unsigned int> ResolveSD(SDResolution res) {
     return std::make_pair(640, 480);
 }
 
-constexpr std::pair<unsigned int, unsigned int> ResolveHD(SDResolution res) {
+constexpr std::pair<unsigned int, unsigned int> resolve_hd(SDResolution res) {
     switch (res) {
     case SDResolution::_640x480:
         return std::make_pair(960, 540);
@@ -62,5 +62,5 @@ constexpr std::pair<unsigned int, unsigned int> ResolveHD(SDResolution res) {
     }
     return std::make_pair(1280, 720);
 }
-void Install();
+void install();
 }; // namespace WideScreenPatch

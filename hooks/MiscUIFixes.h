@@ -1,5 +1,5 @@
 #pragma once
 
 namespace MiscUIFixes {
-void Install();
+void install();
 }

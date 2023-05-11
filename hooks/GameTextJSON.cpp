@@ -102,13 +102,13 @@ static_assert(sizeof(GameText) == 0x2C);
 GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
                                           char *name) {
 
-  Logging::Log("[GameText::CreateFromJSON] Reading %s strings from JSON...\n",
+  Logging::log("[GameText::CreateFromJSON] Reading {} strings from JSON...",
                name);
 
   strcpy(this_ptr->name, name);
 
   std::ifstream jsonFile(
-      FileSystem::GetPathForFile("c\\loc\\" + std::string(name) + ".json"),
+      FileSystem::resolve_path("c\\loc\\" + std::string(name) + ".json"),
       std::ios::in | std::ios::binary);
   jsonFile.seekg(0, std::ios::end);
   unsigned int jsonSize = jsonFile.tellg();
@@ -133,8 +133,8 @@ GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
   }
   if (ConfigManager::IsWidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
       for (int x = 0; x < (int)WideScreenPatch::SDResolution::Max; x++) {
-          const auto& sd = WideScreenPatch::ResolveSD((WideScreenPatch::SDResolution)x);
-          const auto& hd = WideScreenPatch::ResolveHD((WideScreenPatch::SDResolution)x);
+          const auto& sd = WideScreenPatch::resolve_sd((WideScreenPatch::SDResolution)x);
+          const auto& hd = WideScreenPatch::resolve_hd((WideScreenPatch::SDResolution)x);
           const auto textId = "STR_" + std::to_string(sd.first) + "X" + std::to_string(sd.second);
           const auto value = std::to_string(hd.first) + "X" + std::to_string(hd.second);
           const auto& array = doc.GetArray();
@@ -238,8 +238,6 @@ GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
     ContainerHashTable__charptrToint__CHTAdd(
         this_ptr->CHTMap, this_ptr->textIdPointers[x], x, nullptr, 0);
   }
-
-  Logging::Log("[GameText::CreateFromJSON] Returning...\n", name);
   return this_ptr;
 }
 
@@ -269,7 +267,7 @@ void __fastcall GameText_Destructor_Hook(GameText *this_ptr, void *in_EDX) {
 
 #pragma optimize("", on)
 
-void GameTextJSON::Install() {
+void GameTextJSON::install() {
     HookedFunctionInfo gametext_create_finfo =
       HookFunction((void *&)GameText_Create, &GameText_Create_Hook, 7,
                    FunctionHookType::EntireReplacement);
@@ -287,5 +285,5 @@ void GameTextJSON::Install() {
   if (gametext_create_finfo.type != FunctionHookType::Invalid &&
       gametext_dtor_finfo.type != FunctionHookType::Invalid &&
       gametext_loadgametext_finfo.type != FunctionHookType::Invalid)
-    Logging::Log("[GameTextJSON::Install] Successfully installed patch!\n");
+    Logging::log("[GameTextJSON::Install] Successfully installed patch!");
 }

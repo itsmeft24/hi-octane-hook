@@ -20,7 +20,7 @@ int LastSetCameraAnimIndex = 0;
 
 bool LV_CollectCharactersToPatch() {
     std::ifstream file(
-        FileSystem::GetPathForFile("c\\global\\chars\\largevehicles.ini"),
+        FileSystem::resolve_path("c\\global\\chars\\largevehicles.ini"),
         std::ios::in);
     if (!file)
         return false;
@@ -74,13 +74,13 @@ void __declspec(naked) HandleCharacter() {
     }
 }
 
-void LargeVehiclePatch::Install() {
+void LargeVehiclePatch::install() {
     LV_CollectCharactersToPatch();
     HookedFunctionInfo info =
         HookFunction(0x0050FB1F, &HandleCharacter, 0x3B,
             FunctionHookType::InlineReplacementJMP);
     if (info.type != FunctionHookType::Invalid) {
-        Logging::Log(
-            "[LargeVehiclePatch::Install] Successfully installed patch!\n");
+        Logging::log(
+            "[LargeVehiclePatch::Install] Successfully installed patch!");
     }
 };

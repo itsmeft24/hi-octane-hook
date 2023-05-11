@@ -47,10 +47,10 @@ void __fastcall UnkLayer_HandleOK_Hook(uintptr_t layer) {
   }
 }
 
-void MiscUIFixes::Install() {
+void MiscUIFixes::install() {
   HookedFunctionInfo info =
       HookFunction((void *&)UnkLayer_HandleOK, UnkLayer_HandleOK_Hook, 6,
                    FunctionHookType::EntireReplacement);
   if (info.type != FunctionHookType::Invalid)
-    Logging::Log("[MiscUIFixes::Install] Successfully installed patch!\n");
+    Logging::log("[MiscUIFixes::Install] Successfully installed patch!");
 }

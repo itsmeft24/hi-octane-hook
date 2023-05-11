@@ -27,11 +27,11 @@ __declspec(naked) void CalculateLoadingScreenPath() {
   }
 }
 
-void LoadingScreenPatch::Install() {
+void LoadingScreenPatch::install() {
 	HookedFunctionInfo info =
       HookFunction(0x0040538e, &CalculateLoadingScreenPath, 0x14,
                    FunctionHookType::InlineReplacementJMP);
   if (info.type != FunctionHookType::Invalid)
-    Logging::Log(
-        "[LoadingScreenPatch::Install] Successfully installed patch!\n");
+    Logging::log(
+        "[LoadingScreenPatch::Install] Successfully installed patch!");
 }

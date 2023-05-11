@@ -7,20 +7,23 @@
 namespace FileSystem {
 
 struct CallbackContext {
-  const char *FilePath;
-  void *DataPtr;
-  unsigned long MaxFileSize;
-  unsigned long FileSize;
+  const char *file_path;
+  void *data_ptr;
+  unsigned long max_file_size;
+  unsigned long file_size;
 };
 
 struct CallbackInfo {
-  unsigned long MaxFileSize;
-  void *CallBackFunction;
+  unsigned long max_file_size;
+  void *callback;
 };
 
 typedef int (*CarsFileCallback)(CallbackContext *);
 
-std::filesystem::path GetPathForFile(std::string path);
+std::filesystem::path resolve_path(std::string path);
 
-void Init();
+void init();
+
+std::filesystem::path save_dir();
+
 }; // namespace FileSystem
