@@ -89,17 +89,17 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
     <TargetName>Cars-Hi-Octane</TargetName>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>dependencies\zydis\include;$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>dependencies\zydis\lib\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Cars-Hi-Octane</TargetName>
     <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>dependencies\zydis\include;$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>dependencies\zydis\lib\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>false</VcpkgEnableManifest>
@@ -116,7 +116,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Zycore.lib;Zydis.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -135,7 +135,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Zycore.lib;Zydis.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
