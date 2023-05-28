@@ -4,7 +4,7 @@
 #include "../Logging.h"
 #include "../Utils.h"
 
-constexpr unsigned char kMaxNumberOfCars = 255;
+constexpr unsigned char kMaxNumberOfCars = 127;
 
 __declspec(naked) void CarsDialogue_CarsDialogue_LEA_PATCH() {
   __asm {

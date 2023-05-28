@@ -170,9 +170,7 @@ namespace HDRPatch {
 			}
 		}
 		if (filter_algorithm != nullptr) {
-			auto init = filter_algorithm->vtbl->Initialize;
-			auto init_fastcall = reinterpret_cast<void(__fastcall*)(X360FilterAlgorithm*, uintptr_t, char*, uintptr_t)>(init);
-			init_fastcall(filter_algorithm, 0, this_algorithm, pBlock);
+			filter_algorithm->vtbl->Initialize(filter_algorithm, this_algorithm, pBlock);
 			*reinterpret_cast<X360FilterAlgorithm**>(reinterpret_cast<uintptr_t>(filter_stream) + 0x4) = filter_algorithm;
 		}
 		return;

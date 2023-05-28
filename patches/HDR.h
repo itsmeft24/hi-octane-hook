@@ -16,11 +16,11 @@ namespace HDRPatch {
 	// the struct layout of the base class
 	struct X360FilterAlgorithm {
 		struct VTable {
-			X360FilterAlgorithm*(*__thiscall Deleter)(X360FilterAlgorithm*, unsigned long long);
-			unsigned int(*__thiscall SendData)(X360FilterAlgorithm*);
-			unsigned int(*__thiscall ReadFromFile)(X360FilterAlgorithm*, uintptr_t);
-			void(*__thiscall Initialize)(X360FilterAlgorithm*, char*, uintptr_t);
-			void(*__thiscall Enable)(X360FilterAlgorithm*, unsigned int);
+			X360FilterAlgorithm*(__thiscall* Deleter)(X360FilterAlgorithm*, unsigned long long);
+			unsigned int(__thiscall* SendData)(X360FilterAlgorithm*);
+			unsigned int(__thiscall* ReadFromFile)(X360FilterAlgorithm*, uintptr_t);
+			void(__thiscall* Initialize)(X360FilterAlgorithm*, char*, uintptr_t);
+			void(__thiscall* Enable)(X360FilterAlgorithm*, unsigned int);
 		} *vtbl;
 		char padding[0x54];
 		unsigned int isEnabled;

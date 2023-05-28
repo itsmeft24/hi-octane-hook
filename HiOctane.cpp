@@ -65,6 +65,10 @@ void HiOctaneEntry() {
   MiscUIFixes::install();
   
   ExploreMusic::install();
+
+  // HDRPatch::install();
+
+  CarsDialogueEx::install();
   
   PluginManager::load_plugins();
   
