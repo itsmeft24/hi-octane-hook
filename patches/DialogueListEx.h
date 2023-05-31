@@ -1,6 +1,6 @@
 #pragma once
 
-namespace DialogueListEx {
+namespace dialogue_list {
 
 void install();
 }; // namespace DialogueListEx

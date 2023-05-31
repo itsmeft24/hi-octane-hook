@@ -1,9 +1,14 @@
 #pragma once
 
-#include "relocate_code.hpp"
-#include <cstdint>
+#include <iostream>
 #include <format>
+#include <cstdint>
+#include <Windows.h>
 #include <detours/detours.h>
+
+#undef GetObject
+
+#include "relocate_code.hpp"
 
 #define DefineReplacementHook(name) \
 struct name : public hooking::impl::ReplacementHook<name>
@@ -95,8 +100,8 @@ namespace hooking {
 		Register ecx;
 		Register eax;
 
-        inline void print() {
-            std::cout << std::format("eax: {:#X}\necx: {:#X}\nedx: {:#X}\nebx: {:#X}\nesp: {:#X}\nebp: {:#X}\nesi: {:#X}\nedi: {:#X}\neflags: {:#X}\n",
+        inline std::string to_string() {
+            return std::format("eax: {:#X}\necx: {:#X}\nedx: {:#X}\nebx: {:#X}\nesp: {:#X}\nebp: {:#X}\nesi: {:#X}\nedi: {:#X}\neflags: {:#X}\n",
                 eax.unsigned_integer,
                 ecx.unsigned_integer,
                 edx.unsigned_integer,
@@ -106,7 +111,7 @@ namespace hooking {
                 esi.unsigned_integer,
                 edi.unsigned_integer,
                 eflags.unsigned_integer
-            ) << std::endl;
+            );
         }
     };
 

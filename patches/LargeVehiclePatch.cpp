@@ -5,30 +5,30 @@
 
 #include "../ConfigManager.h"
 #include "../FileSystem.h"
-#include "../HookFunction.h"
 #include "../Logging.h"
-#include "../Utils.h"
+#include "../framework.hpp"
+#include "../utils.hpp"
 
 #include "LargeVehiclePatch.h"
 
 DeclareFunction(void, __thiscall, PlayCameraAnimByIndex, 0x004bd1f0, uintptr_t,
     int);
 
-std::vector<std::string> large_vehicles = { "mcqm", "matm", "sulm" };
+std::vector<std::string> large_vehicles_vec = { "mcqm", "matm", "sulm" };
 
 int LastSetCameraAnimIndex = 0;
 
 bool LV_CollectCharactersToPatch() {
     std::ifstream file(
-        FileSystem::resolve_path("c\\global\\chars\\largevehicles.ini"),
+        fs::resolve_path("c\\global\\chars\\largevehicles.ini"),
         std::ios::in);
     if (!file)
         return false;
 
     std::string line;
     while (std::getline(file, line)) {
-        make_lowercase(line);
-        large_vehicles.push_back(line);
+        utils::make_lowercase(line);
+        large_vehicles_vec.push_back(line);
     }
     file.close();
     return true;
@@ -36,10 +36,10 @@ bool LV_CollectCharactersToPatch() {
 
 BOOL __stdcall GetCameraAnimIndex(char* character) {
     auto string = std::string(character);
-    make_lowercase(string);
+    utils::make_lowercase(string);
     auto is_large_vehicle =
-        std::find(large_vehicles.begin(), large_vehicles.end(), string) !=
-        large_vehicles.end();
+        std::find(large_vehicles_vec.begin(), large_vehicles_vec.end(), string) !=
+        large_vehicles_vec.end();
 
     if (!is_large_vehicle && !ConfigManager::IsWidescreenEnabled) {
         return 0;
@@ -74,13 +74,9 @@ void __declspec(naked) HandleCharacter() {
     }
 }
 
-void LargeVehiclePatch::install() {
+void large_vehicles::install() {
     LV_CollectCharactersToPatch();
-    HookedFunctionInfo info =
-        HookFunction(0x0050FB1F, &HandleCharacter, 0x3B,
-            FunctionHookType::InlineReplacementJMP);
-    if (info.type != FunctionHookType::Invalid) {
-        Logging::log(
-            "[LargeVehiclePatch::Install] Successfully installed patch!");
-    }
+    hooking::write_nop(0x0050FB1F, 0x3B);
+    hooking::write_jmp(0x0050FB1F, HandleCharacter);
+    logging::log("[LargeVehiclePatch::Install] Successfully installed patch!");
 };

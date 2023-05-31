@@ -34,12 +34,12 @@ std::optional<int> read_int(const std::string &str) {
     try {
       int num = std::stoi(stripped);
     } catch (std::invalid_argument &error) {
-      Logging::log(
+      logging::log(
           "[ConfigManager::ReadInt] Failed to parse string: {}. Error: {}",
           str, error.what());
       return std::nullopt;
     } catch (std::out_of_range &error) {
-      Logging::log(
+      logging::log(
           "[ConfigManager::ReadInt] Failed to parse string: {}. Error: {}",
           str, error.what());
       return std::nullopt;

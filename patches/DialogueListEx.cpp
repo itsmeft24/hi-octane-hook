@@ -5,61 +5,43 @@
 #include <vector>
 
 #include "../FileSystem.h"
-#include "../Globals.h"
-#include "../HookFunction.h"
+#include "../framework.hpp"
 #include "../Logging.h"
 
 #include "DialogueListEx.h"
 
-DeclareFunction(void, __thiscall, CarsActivity_AddNameToDialogueList,
-                0x004B68B0, void *, const char *);
-DeclareFunction(void, __thiscall, CarsActivityUI_RequestDialogue, 0x004BD360,
-                void *);
+struct CarsActivity;
+struct CarsActivityUI;
 
-std::vector<std::string> dialogue_list = {
+DeclareFunction(void, __thiscall, CarsActivity_AddNameToDialogueList, 0x004B68B0, CarsActivity*, const char *);
+
+std::vector<std::string> dialogue_list_vec = {
     "mcq",  "mat",  "hud", "ram",  "flo",  "sar",  "fil",  "lui", "sven",
     "otto", "hiro", "gio", "emma", "mcqm", "matm", "sulm", "mike"};
 
-void __fastcall RequestDialogue(void *this_ptr) {
-  for (size_t x = 0; x < dialogue_list.size(); x++) {
-    CarsActivity_AddNameToDialogueList(this_ptr, dialogue_list[x].c_str());
-    Logging::log("[DialogueListEx::CarsActivityUI::RequestDialogue] Added {} "
-                 "to the Dialogue List!",
-                 dialogue_list[x]);
+
+DefineReplacementHook(CarsActivityUIRequestDialogue) {
+    static void __fastcall callback(CarsActivityUI* _this) {
+        for (size_t x = 0; x < dialogue_list_vec.size(); x++) {
+            CarsActivity_AddNameToDialogueList(reinterpret_cast<CarsActivity*>(_this), dialogue_list_vec[x].c_str());
+            logging::log("[DialogueListEx::CarsActivityUI::RequestDialogue] Added {} to the Dialogue List!", dialogue_list_vec[x]);
+        }
+    }
+};
+
+void dialogue_list::install() {
+    CarsActivityUIRequestDialogue::install_at_ptr(0x004BD360);
+
+  std::ifstream file(fs::resolve_path("c\\global\\chars\\dialoguelist.ini"), std::ios::in);
+  if (file) {
+      std::string line;
+      while (std::getline(file, line)) {
+          if (std::find(dialogue_list_vec.begin(), dialogue_list_vec.end(), line) ==
+              dialogue_list_vec.end())
+              dialogue_list_vec.push_back(line);
+      }
+      file.close();
   }
-}
 
-bool DL_CollectCharactersToPatch() {
-  std::ifstream file(
-      FileSystem::resolve_path("c\\global\\chars\\dialoguelist.ini"),
-      std::ios::in);
-  if (!file)
-    return false;
-
-  std::string line;
-  while (std::getline(file, line)) {
-    if (std::find(dialogue_list.begin(), dialogue_list.end(), line) ==
-        dialogue_list.end())
-      dialogue_list.push_back(line);
-  }
-  file.close();
-  return true;
-}
-
-HIOCTANE_API bool RegisterDialogueListAddition(const char *character) {
-  if (std::find(dialogue_list.begin(), dialogue_list.end(), character) ==
-      dialogue_list.end()) {
-    dialogue_list.push_back(character);
-    return true;
-  }
-  return false;
-}
-
-void DialogueListEx::install() {
-  HookedFunctionInfo info =
-      HookFunction((void *&)CarsActivityUI_RequestDialogue, &RequestDialogue,
-                   0x110, FunctionHookType::EntireReplacement);
-  if (info.type != FunctionHookType::Invalid)
-    Logging::log("[DialogueListEx::Install] Successfully installed patch!");
-  DL_CollectCharactersToPatch();
+  logging::log("[DialogueListEx::Install] Successfully installed patch!");
 };

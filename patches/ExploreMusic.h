@@ -1,6 +1,6 @@
 #pragma once
 
-namespace ExploreMusic {
+namespace explore_music {
 
 void install();
 }

@@ -7,9 +7,9 @@
 #include "Globals.h"
 #include "Logging.h"
 #include "PluginManager.h"
-#include "Utils.h"
+#include "utils.hpp"
 
-void PluginManager::Plugin::start() {
+void plugin_manager::Plugin::start() {
   auto pEntryPoint = GetProcAddress(handle, "Plugin_HiOctaneEntry");
   if (pEntryPoint != nullptr) {
     auto EntryPoint = (void(__stdcall *)())(pEntryPoint);
@@ -17,7 +17,7 @@ void PluginManager::Plugin::start() {
   }
 }
 
-void PluginManager::Plugin::exit() {
+void plugin_manager::Plugin::exit() {
   auto pExitPoint = GetProcAddress(handle, "Plugin_HiOctaneExit");
   if (pExitPoint != nullptr) {
     auto ExitPoint = (void(__stdcall *)())(pExitPoint);
@@ -25,9 +25,9 @@ void PluginManager::Plugin::exit() {
   }
 }
 
-std::vector<PluginManager::Plugin> loaded_plugins;
+std::vector<plugin_manager::Plugin> loaded_plugins;
 
-void PluginManager::load_plugins() {
+void plugin_manager::load_plugins() {
 
   std::filesystem::path c_modules = g_DataDir / "C\\Modules";
 
@@ -35,7 +35,7 @@ void PluginManager::load_plugins() {
     if (entry.is_regular_file()) {
 
       auto base_name = entry.path().filename().string();
-      make_lowercase(base_name);
+      utils::make_lowercase(base_name);
 
       if (base_name == "cars-hi-octane.dll")
         continue;
@@ -43,34 +43,34 @@ void PluginManager::load_plugins() {
       if (entry.path().extension().string() == ".dll") {
         loaded_plugins.push_back(
             Plugin{base_name, LoadLibraryA(entry.path().string().c_str())});
-        Logging::log("[PluginManager::LoadAllPlugins] Loading plugin: {}...",
+        logging::log("[PluginManager::LoadAllPlugins] Loading plugin: {}...",
                      base_name);
       }
     }
   }
 }
 
-void PluginManager::start_plugins() {
+void plugin_manager::start_plugins() {
 
   for (auto &plugin : loaded_plugins) {
-    Logging::log("[PluginManager::StartAllPlugins] Running HiOctaneEntry for "
+    logging::log("[PluginManager::StartAllPlugins] Running HiOctaneEntry for "
                  "plugin: {}...",
                  plugin.name.c_str());
     plugin.start();
-    Logging::log("[PluginManager::StartAllPlugins] Finished running "
+    logging::log("[PluginManager::StartAllPlugins] Finished running "
                  "HiOctaneEntry for plugin: {}.",
                  plugin.name);
   }
 }
 
-void PluginManager::exit_plugins() {
+void plugin_manager::exit_plugins() {
 
   for (auto &plugin : loaded_plugins) {
-    Logging::log("[PluginManager::ExitAllPlugins] Running HiOctaneExit for "
+    logging::log("[PluginManager::ExitAllPlugins] Running HiOctaneExit for "
                  "plugin: {}...",
                  plugin.name);
     plugin.exit();
-    Logging::log("[PluginManager::ExitAllPlugins] Finished running "
+    logging::log("[PluginManager::ExitAllPlugins] Finished running "
                  "HiOctaneExit for plugin: {}.",
                  plugin.name);
     FreeLibrary(plugin.handle);

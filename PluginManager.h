@@ -1,7 +1,7 @@
 #pragma once
 #include <Windows.h>
 
-namespace PluginManager {
+namespace plugin_manager {
 
 struct Plugin {
   std::string name;

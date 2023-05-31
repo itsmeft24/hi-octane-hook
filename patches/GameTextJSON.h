@@ -1,6 +1,6 @@
 #pragma once
 
-namespace GameTextJSON {
+namespace game_text_json {
 
 void install();
 };

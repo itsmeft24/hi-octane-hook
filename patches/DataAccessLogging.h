@@ -1,6 +1,6 @@
 #pragma once
 
-namespace DataAccessLogging {
+namespace data_access_logging {
 
 void install();
 }; // namespace DataAccessLogging

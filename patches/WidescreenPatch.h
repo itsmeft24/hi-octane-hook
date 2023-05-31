@@ -1,6 +1,6 @@
 #pragma once
 
-namespace WideScreenPatch {
+namespace widescreen {
 
 enum class SDResolution : int {
     _640x480 = 0,

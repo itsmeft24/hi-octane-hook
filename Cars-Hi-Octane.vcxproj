@@ -14,8 +14,6 @@
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="HiOctane.cpp" />
-    <ClCompile Include="HookFunction.cpp" />
-    <ClCompile Include="patches\CarsDialogueEx.cpp" />
     <ClCompile Include="patches\DataAccessLogging.cpp" />
     <ClCompile Include="patches\DialogueListEx.cpp" />
     <ClCompile Include="patches\EnableDebugConfig.cpp" />
@@ -28,29 +26,28 @@
     <ClCompile Include="patches\WidescreenPatch.cpp" />
     <ClCompile Include="Logging.cpp" />
     <ClCompile Include="PluginManager.cpp" />
-    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ConfigManager.h" />
     <ClInclude Include="FileSystem.h" />
+    <ClInclude Include="framework.hpp" />
     <ClInclude Include="Globals.h" />
-    <ClInclude Include="HookFunction.h" />
     <ClInclude Include="Hooks.h" />
-    <ClInclude Include="hooks\CarsDialogueEx.h" />
-    <ClInclude Include="hooks\DataAccessLogging.h" />
-    <ClInclude Include="hooks\DialogueListEx.h" />
-    <ClInclude Include="hooks\EnableDebugConfig.h" />
-    <ClInclude Include="hooks\ExploreMusic.h" />
-    <ClInclude Include="hooks\GameTextJSON.h" />
-    <ClInclude Include="hooks\HDR.h" />
-    <ClInclude Include="hooks\LargeVehiclePatch.h" />
-    <ClInclude Include="hooks\LoadingScreenPatch.h" />
-    <ClInclude Include="hooks\MiscUIFixes.h" />
-    <ClInclude Include="hooks\WidescreenPatch.h" />
+    <ClInclude Include="patches\DataAccessLogging.h" />
+    <ClInclude Include="patches\DialogueListEx.h" />
+    <ClInclude Include="patches\EnableDebugConfig.h" />
+    <ClInclude Include="patches\ExploreMusic.h" />
+    <ClInclude Include="patches\GameTextJSON.h" />
+    <ClInclude Include="patches\HDR.h" />
+    <ClInclude Include="patches\LargeVehiclePatch.h" />
+    <ClInclude Include="patches\LoadingScreenPatch.h" />
+    <ClInclude Include="patches\MiscUIFixes.h" />
+    <ClInclude Include="patches\WidescreenPatch.h" />
     <ClInclude Include="InlineContext.h" />
     <ClInclude Include="Logging.h" />
     <ClInclude Include="PluginManager.h" />
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="relocate_code.hpp" />
+    <ClInclude Include="utils.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -116,7 +113,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Zycore.lib;Zydis.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Zydis.lib;Zycore.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -135,7 +132,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Zycore.lib;Zydis.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Zydis.lib;Zycore.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

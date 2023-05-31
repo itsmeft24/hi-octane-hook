@@ -1,6 +1,6 @@
 #pragma once
 
-namespace EnableDebugConfig {
+namespace debug_txt_support {
 
 void install();
 };

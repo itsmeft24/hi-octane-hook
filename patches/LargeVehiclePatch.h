@@ -1,6 +1,6 @@
 #pragma once
 
-namespace LargeVehiclePatch {
+namespace large_vehicles {
 
 void install();
 }; // namespace LargeVehiclePatch

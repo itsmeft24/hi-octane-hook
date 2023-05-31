@@ -2,7 +2,7 @@
 #include "Globals.h"
 #include <format>
 
-namespace Logging {
+namespace logging {
 
 bool init();
 

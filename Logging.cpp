@@ -11,7 +11,7 @@ FILE *log_file = nullptr;
 FILE *console_handle = nullptr;
 bool log_file_initialized = false;
 
-bool Logging::init() {
+bool logging::init() {
   if (ConfigManager::EnableConsoleWindow) {
     AllocConsole();
     freopen_s(&console_handle, "CONOUT$", "w", stdout);
@@ -26,7 +26,7 @@ bool Logging::init() {
   return log_file_initialized && console_handle != nullptr;
 }
 
-void Logging::deinit() {
+void logging::deinit() {
   if (log_file_initialized) {
     fclose(log_file);
   }

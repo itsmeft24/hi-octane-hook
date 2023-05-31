@@ -1,5 +1,5 @@
 #pragma once
 
-namespace MiscUIFixes {
+namespace fix_ui_sounds {
 void install();
 }

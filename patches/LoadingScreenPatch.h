@@ -1,6 +1,6 @@
 #pragma once
 
-namespace LoadingScreenPatch {
+namespace loading_screen_fix {
 
 void install();
 }; // namespace LoadingScreenPatch

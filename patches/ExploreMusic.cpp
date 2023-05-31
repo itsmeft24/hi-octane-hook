@@ -1,40 +1,37 @@
-#include "../HookFunction.h"
+#include "../framework.hpp"
 #include "../Logging.h"
-#include "../Utils.h"
 
 #include "ExploreMusic.h"
 
-DeclareFunction(void, __thiscall, Music_SetCurrentPlaylist, 0x00574af0, void*, int);
+struct Music {
+    struct {
+        void* f[41];
+        std::uint32_t(__thiscall* Shuffle)(Music*, int);
+    } *vtbl;
+};
+struct CarsAudioManager {
+    char padding[0x40];
+    Music* music;
+};
 
-BYTE* LpCarsGame = (BYTE*)0x00718a74;
-DWORD* sret_address = (DWORD*)0x004eb879;
+struct X360Game {
+    char padding[0x440];
+    CarsAudioManager* carsAudioManager;
+};
 
-__declspec(naked) void CarsActivityExplore_MusicReEnabled() {
+DeclareFunction(void, __thiscall, Music_SetCurrentPlaylist, 0x00574af0, Music*, int);
 
-    __asm {
-        mov eax, [LpCarsGame]
-        mov eax, [eax]
-        mov ecx, dword ptr[eax + 0x440]
-        mov ecx, dword ptr[ecx + 0x40]
-        push 0xd
-        Call Music_SetCurrentPlaylist
-        mov edx, [LpCarsGame]
-        mov edx, [edx]
-        mov eax, dword ptr[edx + 0x440]
-        mov ecx, dword ptr[eax + 0x40]
-        mov edx, dword ptr[ecx]
-        mov eax, dword ptr[edx + 0xa4]
-        push 0x1
-        call eax
-        jmp sret_address
+X360Game** lpCarsGame = (X360Game**)0x00718a74;
+
+DefineInlineHook(SetExplorePlaylist) {
+    static void __cdecl callback(hooking::InlineContext ctx) {
+        Music* music = (*lpCarsGame)->carsAudioManager->music;
+        Music_SetCurrentPlaylist(music, 13);
+        music->vtbl->Shuffle(music, 1);
     }
-}
+};
 
-void ExploreMusic::install() {
-    HookedFunctionInfo info =
-        HookFunction(0x004eb861, &CarsActivityExplore_MusicReEnabled, 0x18, FunctionHookType::InlineReplacementJMP);
-    if (info.type != FunctionHookType::Invalid) {
-        Logging::log(
-            "[ExploreMusic::Install] Successfully installed patch!");
-    }
+void explore_music::install() {
+	SetExplorePlaylist::install_at_ptr(0x004eb861);
+	logging::log("[ExploreMusic::Install] Successfully installed patch!");
 };

@@ -7,7 +7,7 @@
 
 #include "HDR.h"
 #include "../Logging.h"
-#include "../HookFunction.h"
+#include "../framework.hpp"
 
 namespace HDRPatch {
 
@@ -75,106 +75,108 @@ namespace HDRPatch {
 	}
 
 	// a reimplementation of X360FilterStream::ReadFromFile that adds a case for our HDR filter pass.
-	void __fastcall X360FilterStream_ReadFromFileHook(void* filter_stream, uintptr_t edx, uintptr_t pBlock, uintptr_t param_2)
-	{
-		X360FilterAlgorithm* filter_algorithm = nullptr;
-		void* memory = nullptr;
-		char algorithm_label[0x40]{};
+	DefineReplacementHook(X360FilterStreamReadFromFileHook) {
+		static void __fastcall callback(void* filter_stream, uintptr_t edx, uintptr_t pBlock, uintptr_t param_2)
+		{
+			X360FilterAlgorithm* filter_algorithm = nullptr;
+			void* memory = nullptr;
+			char algorithm_label[0x40]{};
 
-		uintptr_t test = *reinterpret_cast<uintptr_t*>(pBlock + 0x3C);
+			uintptr_t test = *reinterpret_cast<uintptr_t*>(pBlock + 0x3C);
 
-		ParameterBlock_GetParameterDefaultStr(pBlock, "FilterAlgorithm", "", algorithm_label, 0x40);
-		char* this_algorithm = reinterpret_cast<char*>(reinterpret_cast<uintptr_t>(filter_stream) + 0xC);
-		strcpy(this_algorithm, algorithm_label);
-		if (stricmp(algorithm_label, "Null") == 0 || !X360VideoCard_IsFXEnabled(*reinterpret_cast<void**>(0x006ff394))) {
-			strcpy(this_algorithm, "Null");
-			memory = operator_new(100);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterNull_Constructor(memory);
+			ParameterBlock_GetParameterDefaultStr(pBlock, "FilterAlgorithm", "", algorithm_label, 0x40);
+			char* this_algorithm = reinterpret_cast<char*>(reinterpret_cast<uintptr_t>(filter_stream) + 0xC);
+			strcpy(this_algorithm, algorithm_label);
+			if (stricmp(algorithm_label, "Null") == 0 || !X360VideoCard_IsFXEnabled(*reinterpret_cast<void**>(0x006ff394))) {
+				strcpy(this_algorithm, "Null");
+				memory = operator_new(100);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterNull_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
+			}
+			else if (stricmp(algorithm_label, "FrameBufferToTexture") == 0) {
+				memory = operator_new(0x68);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterFrameBufferToTexture_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
+			}
+			else if (stricmp(algorithm_label, "MotionBlur") == 0) {
+				memory = operator_new(0x84);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterMotionBlur_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
+			}
+			else if (stricmp(algorithm_label, "HighDynamicRange") == 0) {
+				memory = operator_new(sizeof(X360FilterHighDynamicRange));
+				if (memory != nullptr) {
+					filter_algorithm = reinterpret_cast<X360FilterAlgorithm*>(X360FilterHighDynamicRange::Constructor(reinterpret_cast<X360FilterHighDynamicRange*>(memory)));
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
+			}
+			else if (stricmp(algorithm_label, "NightVision") == 0) {
+				memory = operator_new(0xc0);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterNightVision_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
+			}
+			else if (stricmp(algorithm_label, "GhostImage") == 0) {
+				memory = operator_new(0x80);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterGhostImage_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
+			}
+			else if (stricmp(algorithm_label, "Sunflare") == 0) {
+				memory = operator_new(0x78);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterSunflare_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
+			}
+			else if (stricmp(algorithm_label, "Noise") == 0) {
+				memory = operator_new(0x84);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterNoise_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
 			}
 			else {
-				filter_algorithm = nullptr;
+				strcpy(this_algorithm, "Null");
+				memory = operator_new(100);
+				if (memory != nullptr) {
+					filter_algorithm = X360FilterNull_Constructor(memory);
+				}
+				else {
+					filter_algorithm = nullptr;
+				}
 			}
+			if (filter_algorithm != nullptr) {
+				filter_algorithm->vtbl->Initialize(filter_algorithm, this_algorithm, pBlock);
+				*reinterpret_cast<X360FilterAlgorithm**>(reinterpret_cast<uintptr_t>(filter_stream) + 0x4) = filter_algorithm;
+			}
+			return;
 		}
-		else if (stricmp(algorithm_label, "FrameBufferToTexture") == 0) {
-			memory = operator_new(0x68);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterFrameBufferToTexture_Constructor(memory);
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		else if (stricmp(algorithm_label, "MotionBlur") == 0) {
-			memory = operator_new(0x84);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterMotionBlur_Constructor(memory);
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		else if (stricmp(algorithm_label, "HighDynamicRange") == 0) {
-			memory = operator_new(sizeof(X360FilterHighDynamicRange));
-			if (memory != nullptr) {
-				filter_algorithm = reinterpret_cast<X360FilterAlgorithm*>(X360FilterHighDynamicRange::Constructor(reinterpret_cast<X360FilterHighDynamicRange*>(memory)));
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		else if (stricmp(algorithm_label, "NightVision") == 0) {
-			memory = operator_new(0xc0);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterNightVision_Constructor(memory);
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		else if (stricmp(algorithm_label, "GhostImage") == 0) {
-			memory = operator_new(0x80);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterGhostImage_Constructor(memory);
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		else if (stricmp(algorithm_label, "Sunflare") == 0) {
-			memory = operator_new(0x78);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterSunflare_Constructor(memory);
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		else if (stricmp(algorithm_label, "Noise") == 0) {
-			memory = operator_new(0x84);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterNoise_Constructor(memory);
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		else {
-			strcpy(this_algorithm, "Null");
-			memory = operator_new(100);
-			if (memory != nullptr) {
-				filter_algorithm = X360FilterNull_Constructor(memory);
-			}
-			else {
-				filter_algorithm = nullptr;
-			}
-		}
-		if (filter_algorithm != nullptr) {
-			filter_algorithm->vtbl->Initialize(filter_algorithm, this_algorithm, pBlock);
-			*reinterpret_cast<X360FilterAlgorithm**>(reinterpret_cast<uintptr_t>(filter_stream) + 0x4) = filter_algorithm;
-		}
-		return;
-	}
+	};
 
 	X360FilterAlgorithm::VTable HDR_VTable = {
 		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::Deleter)>(X360FilterHighDynamicRange::Deleter),
@@ -298,6 +300,6 @@ namespace HDRPatch {
 	}
 
 	void install() {
-		HookFunction((void*&)X360FilterStream_ReadFromFile, X360FilterStream_ReadFromFileHook, 7, FunctionHookType::EntireReplacement);
+		X360FilterStreamReadFromFileHook::install_at_ptr(0x0040b5b0);
 	}
 };

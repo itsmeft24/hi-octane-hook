@@ -2,9 +2,7 @@
 
 #include <filesystem>
 
-#include "HookFunction.h"
-
-namespace FileSystem {
+namespace fs {
 
 struct CallbackContext {
   const char *file_path;

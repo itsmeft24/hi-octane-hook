@@ -4,9 +4,7 @@
 #include <fstream>
 
 #include "../ConfigManager.h"
-//#include "../HookFunction.h"
 #include "../Logging.h"
-#include "../Utils.h"
 #include "../FileSystem.h"
 
 #include "WidescreenPatch.h"
@@ -17,15 +15,7 @@ DWORD *pWindowWidth = (DWORD *)0x006FAA54;
 DWORD *pWindowHeight = (DWORD *)0x006FAA58;
 DWORD *pScreenMode = (DWORD *)0x006F72CC;
 
-//__declspec(naked) void CMPPatch() { // Force the game to compare against an
-//                                    // intermediate 1, rather than the contents
-//                                    // of register EDI.
-//  __asm {
-//		cmp [pScreenMode], 1
-//		ret
-//  }
-//}
-
+// Undoes a compiler optimization by the game that always resulted in pScreenMode being compared against itself.
 DefineInlineHook(CMPPatch) {
     static void __cdecl callback(hooking::InlineContext ctx) {
         ctx.edi.unsigned_integer = 1;
@@ -33,7 +23,7 @@ DefineInlineHook(CMPPatch) {
 };
 
 DefineReplacementHook(SelectDimensionsFromSaveIndex) {
-    static BOOL __stdcall callback(WideScreenPatch::SDResolution selected, unsigned int* width, unsigned int* height) {
+    static BOOL __stdcall callback(widescreen::SDResolution selected, unsigned int* width, unsigned int* height) {
         if (ConfigManager::IsWidescreenEnabled) {
             const auto& [selected_width, selected_height] = resolve_hd(selected);
             *width = selected_width;
@@ -48,27 +38,36 @@ DefineReplacementHook(SelectDimensionsFromSaveIndex) {
     }
 };
 
-void WideScreenPatch::install() {
+void widescreen::install() {
   if (ConfigManager::IsWidescreenEnabled) {
-    Logging::log("[WideScreenPatches::Install] Setting screen mode to widescreen...");
+    logging::log("[WideScreenPatches::Install] Setting screen mode to widescreen...");
 
 
     SelectDimensionsFromSaveIndex::install_at_ptr(0x00414ce0);
     CMPPatch::install_at_ptr(0x00421e22);
 
-    std::filesystem::path save = FileSystem::save_dir();
-    save.concat("GlobalData");
-    std::ifstream save_file(save, std::ios::in | std::ios::binary);
-    save_file.seekg(0x18);
-    std::uint8_t i = 0;
-    save_file.read((char*)&i, 1);
-    save_file.close();
 
-    const auto& [selected_width, selected_height] = resolve_hd((SDResolution)i);
-    *pWindowWidth = selected_width;
-    *pWindowHeight = selected_height;
-
+    // Set the resolution to the default for widescreen, (1280x720)
+    *pWindowWidth = 1280;
+    *pWindowHeight = 720;
     *pScreenMode = 2;
+
+    // Attempt to find the first save file to override the default with a user-selected resolution.
+    std::filesystem::path save = fs::save_dir();
+    for (std::size_t index = 0; index < 5; index++) {
+        std::ifstream save_file(save / std::format("PSLOT{}.dat", index), std::ios::in | std::ios::binary);
+        if (save_file) {
+            std::uint8_t raw_resolution_index = 0;
+            save_file.seekg(0x70);
+            save_file.read(reinterpret_cast<char*>(&raw_resolution_index), 1);
+
+            const auto& [selected_width, selected_height] = resolve_hd(static_cast<SDResolution>(raw_resolution_index));
+            *pWindowWidth = selected_width;
+            *pWindowHeight = selected_height;
+
+            break;
+        }
+    }
     
     winapi::set_permission(0x00421DEF, 4, winapi::Perm::ExecuteReadWrite);
     *reinterpret_cast<std::uint32_t*>(0x00421DEF) = 2; // (mov edi, 2) instead of (mov edi, 1)

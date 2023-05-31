@@ -13,7 +13,7 @@
 #include "Hooks.h"
 #include "Logging.h"
 #include "PluginManager.h"
-#include "Utils.h"
+#include "framework.hpp"
 
 std::filesystem::path g_DataDir;
 std::filesystem::path g_InstallDir;
@@ -25,84 +25,76 @@ static std::string data_dir_fmt = std::format("%s\\{}\\", kDataDirName);
 
 extern "C" __declspec(dllexport) const char *VERSION = "1.9.2.3";
 
-void HiOctaneEntry() {
-  WritePUSH(AsVoidPtr(0x00619929), AsVoidPtr(data_dir_fmt.c_str()));
-  // Set the games' DataPC path to our own.
+void init() {
+    hooking::write_push(0x00619929, data_dir_fmt.c_str());
+    // Set the games' DataPC path to our own.
 
-  wchar_t CURR_DIR_BUF[260];
-  GetModuleFileNameW(NULL, CURR_DIR_BUF, 260);
-  PathRemoveFileSpecW(CURR_DIR_BUF);
-  CharLowerW(CURR_DIR_BUF);
-  g_InstallDir = CURR_DIR_BUF;
-  g_DataDir = g_InstallDir;
-  g_DataDir.append(kDataDirName);
+    wchar_t CURR_DIR_BUF[260];
+    GetModuleFileNameW(NULL, CURR_DIR_BUF, 260);
+    PathRemoveFileSpecW(CURR_DIR_BUF);
+    CharLowerW(CURR_DIR_BUF);
+    g_InstallDir = CURR_DIR_BUF;
+    g_DataDir = g_InstallDir;
+    g_DataDir.append(kDataDirName);
 
-  // Get current directory and store it in a global variable. (Used for File IO
-  // stuff.)
+    // Get current directory and store it in a global variable. (Used for File IO
+    // stuff.)
   
-  ConfigManager::read();
+    ConfigManager::read();
   
-  Logging::init();
+    logging::init();
 
-  Logging::log("[HiOctaneEntry] Installing hooks...");
+    logging::log("[HiOctaneEntry] Installing hooks...");
   
-  FileSystem::init();
+    fs::init();
 
-  WideScreenPatch::install();
+    widescreen::install();
   
-  DialogueListEx::install();
+    dialogue_list::install();
   
-  DataAccessLogging::install();
+    data_access_logging::install();
   
-  LargeVehiclePatch::install();
+    large_vehicles::install();
   
-  LoadingScreenPatch::install();
+    loading_screen_fix::install();
   
-  GameTextJSON::install();
+    game_text_json::install();
   
-  EnableDebugConfig::install();
+    debug_txt_support::install();
   
-  MiscUIFixes::install();
+    fix_ui_sounds::install();
   
-  ExploreMusic::install();
+    explore_music::install();
 
-  // HDRPatch::install();
-
-  CarsDialogueEx::install();
+    // HDRPatch::install();
   
-  PluginManager::load_plugins();
+    plugin_manager::load_plugins();
   
-  PluginManager::start_plugins();
+    plugin_manager::start_plugins();
 }
 
-void HiOctaneExit() {
+void deinit() {
+    logging::log("[HiOctaneExit] Exiting...");
 
-  Logging::log("[HiOctaneExit] Exiting...");
+    plugin_manager::exit_plugins();
 
-  PluginManager::exit_plugins();
-
-  Logging::deinit();
+    logging::deinit();
 }
 
 // Initialization and de-initialization is now placed inside this thin WinMain wrapper.
 // This enables us to call MN's std library functions on HiOctaneEntry.
-DeclareFunction(int, __stdcall, _WinMain, 0x006196a0, HINSTANCE, HINSTANCE, PSTR, int);
-
-int __stdcall WinMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
-    HiOctaneEntry();
-    int result = _WinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-    HiOctaneExit();
-    return result;
-}
-
-HookedFunctionInfo winmain_info;
+DefineReplacementHook(WinMainHook) {
+    static int __stdcall callback(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
+        init();
+        int result = original(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+        deinit();
+        return result;
+    }
+};
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-
-  if (reason == DLL_PROCESS_ATTACH) {
-      winmain_info = HookFunction((void*&)_WinMain, WinMainHook, 6, FunctionHookType::EntireReplacement);
-  } else if (reason == DLL_PROCESS_DETACH) {
-      UninstallFunctionHook(winmain_info);
-  }
-  return TRUE;
+    if (reason == DLL_PROCESS_ATTACH) {
+        WinMainHook::install_at_ptr(0x006196a0);
+    }
+    return TRUE;
 }

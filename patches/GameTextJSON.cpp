@@ -5,19 +5,11 @@
 
 #include "../ConfigManager.h"
 #include "../FileSystem.h"
-#include "../Globals.h"
-#include "../HookFunction.h"
+#include "../framework.hpp"
 #include "../Logging.h"
 
 #include "GameTextJSON.h"
 #include "WidescreenPatch.h"
-
-
-DeclareFunction(void *, __thiscall, GameText_Create, 0x006074E0, void *,
-                char *);
-DeclareFunction(void, __thiscall, GameText_Destructor, 0x00607c40, void *);
-DeclareFunction(void, __thiscall, GameText_LoadGameText, 0x00607820, void *,
-                int, int);
 
 DeclareFunction(int, __cdecl, StringHashValueFunction, 0x00547f90, char *);
 DeclareFunction(bool, __cdecl, StringHashCompareFunction, 0x00547fb0, char *,
@@ -97,193 +89,186 @@ struct GameText {
 
 static_assert(sizeof(GameText) == 0x2C);
 
-// Prevent compiler from removing the in_EDX arguments.
-#pragma optimize("", off)
-GameText *__fastcall GameText_Create_Hook(GameText *this_ptr, void *in_EDX,
-                                          char *name) {
+DefineReplacementHook(GameTextCreate) {
+    static GameText* __fastcall callback(GameText* this_ptr, void* in_EDX, char* name) {
 
-  Logging::log("[GameText::CreateFromJSON] Reading {} strings from JSON...",
-               name);
+        logging::log("[GameText::CreateFromJSON] Reading {} strings from JSON...",
+            name);
 
-  strcpy(this_ptr->name, name);
+        strcpy(this_ptr->name, name);
 
-  std::ifstream jsonFile(
-      FileSystem::resolve_path("c\\loc\\" + std::string(name) + ".json"),
-      std::ios::in | std::ios::binary);
-  jsonFile.seekg(0, std::ios::end);
-  unsigned int jsonSize = jsonFile.tellg();
+        std::ifstream jsonFile(
+            fs::resolve_path("c\\loc\\" + std::string(name) + ".json"),
+            std::ios::in | std::ios::binary);
+        jsonFile.seekg(0, std::ios::end);
+        unsigned int jsonSize = jsonFile.tellg();
 
-  char *jsonBuffer = new char[jsonSize];
-  jsonFile.seekg(0, std::ios::beg);
-  jsonFile.read(jsonBuffer, jsonSize);
-  jsonFile.close();
+        char* jsonBuffer = new char[jsonSize];
+        jsonFile.seekg(0, std::ios::beg);
+        jsonFile.read(jsonBuffer, jsonSize);
+        jsonFile.close();
 
-  rapidjson::Document doc;
-  doc.Parse<rapidjson::kParseStopWhenDoneFlag>(jsonBuffer);
+        rapidjson::Document doc;
+        doc.Parse<rapidjson::kParseStopWhenDoneFlag>(jsonBuffer);
 
-  if (stricmp(name, "commonui") == 0) {
-      std::string formattedStr = "Hi-Octane Version: " + std::string(VERSION);
-      rapidjson::Value v(rapidjson::kObjectType);
-      v.AddMember("TextID", "STR_HI_OCTANE_VER", doc.GetAllocator());
-      v.AddMember("Value", rapidjson::Value(formattedStr.c_str(), doc.GetAllocator()), doc.GetAllocator());
-      v.AddMember("MaxSize", rapidjson::Value(formattedStr.size() * 2), doc.GetAllocator());
-      v.AddMember("IsDynamic", rapidjson::Value(0), doc.GetAllocator());
-      doc.GetArray().PushBack(v, doc.GetAllocator());
-      jsonSize += formattedStr.size() + 18;
-  }
-  if (ConfigManager::IsWidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
-      for (int x = 0; x < (int)WideScreenPatch::SDResolution::Max; x++) {
-          const auto& sd = WideScreenPatch::resolve_sd((WideScreenPatch::SDResolution)x);
-          const auto& hd = WideScreenPatch::resolve_hd((WideScreenPatch::SDResolution)x);
-          const auto textId = "STR_" + std::to_string(sd.first) + "X" + std::to_string(sd.second);
-          const auto value = std::to_string(hd.first) + "X" + std::to_string(hd.second);
-          const auto& array = doc.GetArray();
-          std::size_t foundIndex = 0;
-          for (std::size_t index = 0; index < array.Size(); index++) {
-              if (textId == array[index].GetObject()["TextID"].GetString()) {
-                  foundIndex = index;
-                  break;
-              }
-          }
-          jsonSize = jsonSize - doc.GetArray()[foundIndex].GetObject()["Value"].GetStringLength() + value.size() + 1;
-          doc.GetArray()[foundIndex].GetObject()["Value"].SetString(value.c_str(), value.size(), doc.GetAllocator());
-          doc.GetArray()[foundIndex].GetObject()["MaxSize"].SetInt(value.size() * 2);
-      }
-  }
+        if (stricmp(name, "commonui") == 0) {
+            std::string formattedStr = "Hi-Octane Version: " + std::string(VERSION);
+            rapidjson::Value v(rapidjson::kObjectType);
+            v.AddMember("TextID", "STR_HI_OCTANE_VER", doc.GetAllocator());
+            v.AddMember("Value", rapidjson::Value(formattedStr.c_str(), doc.GetAllocator()), doc.GetAllocator());
+            v.AddMember("MaxSize", rapidjson::Value(formattedStr.size() * 2), doc.GetAllocator());
+            v.AddMember("IsDynamic", rapidjson::Value(0), doc.GetAllocator());
+            doc.GetArray().PushBack(v, doc.GetAllocator());
+            jsonSize += formattedStr.size() + 18;
+        }
+        if (ConfigManager::IsWidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
+            for (int x = 0; x < (int)widescreen::SDResolution::Max; x++) {
+                const auto& sd = widescreen::resolve_sd((widescreen::SDResolution)x);
+                const auto& hd = widescreen::resolve_hd((widescreen::SDResolution)x);
+                const auto textId = "STR_" + std::to_string(sd.first) + "X" + std::to_string(sd.second);
+                const auto value = std::to_string(hd.first) + "X" + std::to_string(hd.second);
+                const auto& array = doc.GetArray();
+                std::size_t foundIndex = 0;
+                for (std::size_t index = 0; index < array.Size(); index++) {
+                    if (textId == array[index].GetObject()["TextID"].GetString()) {
+                        foundIndex = index;
+                        break;
+                    }
+                }
+                jsonSize = jsonSize - doc.GetArray()[foundIndex].GetObject()["Value"].GetStringLength() + value.size() + 1;
+                doc.GetArray()[foundIndex].GetObject()["Value"].SetString(value.c_str(), value.size(), doc.GetAllocator());
+                doc.GetArray()[foundIndex].GetObject()["MaxSize"].SetInt(value.size() * 2);
+            }
+        }
 
-  delete[] jsonBuffer;
+        delete[] jsonBuffer;
 
-  size_t textIdBufWritten = 0;
-  size_t valueBufWritten = 0;
+        size_t textIdBufWritten = 0;
+        size_t valueBufWritten = 0;
 
-  this_ptr->textIDBuffer = (char *)calloc(
-      1, jsonSize); // technically this is larger than we need but its fine
-  this_ptr->valueBuffer = (char *)calloc(
-      1, jsonSize); // technically this is larger than we need but its fine
+        this_ptr->textIDBuffer = (char*)calloc(
+            1, jsonSize); // technically this is larger than we need but its fine
+        this_ptr->valueBuffer = (char*)calloc(
+            1, jsonSize); // technically this is larger than we need but its fine
 
-  this_ptr->numberOfStrings = doc.GetArray().Size();
-  this_ptr->textIdPointers = new char *[this_ptr->numberOfStrings];
-  this_ptr->stringInfos = new StringInfo[this_ptr->numberOfStrings];
+        this_ptr->numberOfStrings = doc.GetArray().Size();
+        this_ptr->textIdPointers = new char* [this_ptr->numberOfStrings];
+        this_ptr->stringInfos = new StringInfo[this_ptr->numberOfStrings];
 
-  this_ptr->CHTMap = malloc(0x18);
-  memset(this_ptr->CHTMap, 0, 0x18);
+        this_ptr->CHTMap = malloc(0x18);
+        memset(this_ptr->CHTMap, 0, 0x18);
 
-  ContainerHashTable__charptrToint__CHTCreateFull(
-      this_ptr->CHTMap, this_ptr->numberOfStrings, 100, StringHashValueFunction,
-      StringHashCompareFunction, nullptr, 0);
- 
-  for (int x = 0; x < this_ptr->numberOfStrings; x++) {
+        ContainerHashTable__charptrToint__CHTCreateFull(
+            this_ptr->CHTMap, this_ptr->numberOfStrings, 100, StringHashValueFunction,
+            StringHashCompareFunction, nullptr, 0);
 
-    auto &currentInfo = this_ptr->stringInfos[x];
+        for (int x = 0; x < this_ptr->numberOfStrings; x++) {
 
-    const auto &elem = doc.GetArray()[x];
+            auto& currentInfo = this_ptr->stringInfos[x];
 
-    auto textid = elem.GetObject()["TextID"].GetString();
-    strcpy(this_ptr->textIDBuffer + textIdBufWritten, textid);
-    this_ptr->textIdPointers[x] = this_ptr->textIDBuffer + textIdBufWritten;
-    textIdBufWritten += strlen(textid) + 1;
+            const auto& elem = doc.GetArray()[x];
 
-    currentInfo.maxSize = elem.GetObject()["MaxSize"].GetInt();
-    currentInfo.isDynamic = elem.GetObject()["IsDynamic"].GetInt();
-    currentInfo.flags = !currentInfo.isDynamic;
+            auto textid = elem.GetObject()["TextID"].GetString();
+            strcpy(this_ptr->textIDBuffer + textIdBufWritten, textid);
+            this_ptr->textIdPointers[x] = this_ptr->textIDBuffer + textIdBufWritten;
+            textIdBufWritten += strlen(textid) + 1;
 
-    auto value = elem.GetObject()["Value"].GetString();
-    strcpy(this_ptr->valueBuffer + valueBufWritten, value);
-    currentInfo.value = this_ptr->valueBuffer + valueBufWritten;
-    valueBufWritten += currentInfo.maxSize + 1;
+            currentInfo.maxSize = elem.GetObject()["MaxSize"].GetInt();
+            currentInfo.isDynamic = elem.GetObject()["IsDynamic"].GetInt();
+            currentInfo.flags = !currentInfo.isDynamic;
 
-    currentInfo.appensionInfo = nullptr;
-    currentInfo.isAppendedToCount = 0;
-    currentInfo.isAppendedTo = nullptr;
+            auto value = elem.GetObject()["Value"].GetString();
+            strcpy(this_ptr->valueBuffer + valueBufWritten, value);
+            currentInfo.value = this_ptr->valueBuffer + valueBufWritten;
+            valueBufWritten += currentInfo.maxSize + 1;
 
-    if (elem.HasMember("Appends") && elem.HasMember("AtPositions") &&
-        elem.HasMember("CopiedToEnd")) {
-      const auto &appends = elem["Appends"].GetArray();
-      const auto &positions = elem["AtPositions"].GetArray();
+            currentInfo.appensionInfo = nullptr;
+            currentInfo.isAppendedToCount = 0;
+            currentInfo.isAppendedTo = nullptr;
 
-      currentInfo.appensionInfo = new AppensionInfo();
-      currentInfo.appensionInfo->appensionCount = appends.Size();
-      currentInfo.appensionInfo->appends = new int[appends.Size()]();
-      currentInfo.appensionInfo->atPositions = new short[appends.Size()]();
+            if (elem.HasMember("Appends") && elem.HasMember("AtPositions") &&
+                elem.HasMember("CopiedToEnd")) {
+                const auto& appends = elem["Appends"].GetArray();
+                const auto& positions = elem["AtPositions"].GetArray();
 
-      auto copiedToEnd = elem.GetObject()["CopiedToEnd"].GetString();
-      strcpy(this_ptr->valueBuffer + valueBufWritten, copiedToEnd);
-      currentInfo.appensionInfo->copiedToEnd =
-          this_ptr->valueBuffer + valueBufWritten;
-      valueBufWritten += strlen(copiedToEnd) + 1;
+                currentInfo.appensionInfo = new AppensionInfo();
+                currentInfo.appensionInfo->appensionCount = appends.Size();
+                currentInfo.appensionInfo->appends = new int[appends.Size()]();
+                currentInfo.appensionInfo->atPositions = new short[appends.Size()]();
 
-      for (int appensionIndex = 0;
-           appensionIndex < currentInfo.appensionInfo->appensionCount;
-           appensionIndex++) {
-        currentInfo.appensionInfo->appends[appensionIndex] =
-            appends[appensionIndex].GetInt();
-        currentInfo.appensionInfo->atPositions[appensionIndex] =
-            positions[appensionIndex].GetInt();
-      }
+                auto copiedToEnd = elem.GetObject()["CopiedToEnd"].GetString();
+                strcpy(this_ptr->valueBuffer + valueBufWritten, copiedToEnd);
+                currentInfo.appensionInfo->copiedToEnd =
+                    this_ptr->valueBuffer + valueBufWritten;
+                valueBufWritten += strlen(copiedToEnd) + 1;
+
+                for (int appensionIndex = 0;
+                    appensionIndex < currentInfo.appensionInfo->appensionCount;
+                    appensionIndex++) {
+                    currentInfo.appensionInfo->appends[appensionIndex] =
+                        appends[appensionIndex].GetInt();
+                    currentInfo.appensionInfo->atPositions[appensionIndex] =
+                        positions[appensionIndex].GetInt();
+                }
+            }
+
+            if (elem.HasMember("IsAppendedTo")) {
+                const auto& appendedTo = elem["IsAppendedTo"].GetArray();
+
+                currentInfo.isAppendedToCount = appendedTo.Size();
+                currentInfo.isAppendedTo = new int[currentInfo.isAppendedToCount]();
+
+                for (int appendedToIndex = 0;
+                    appendedToIndex < currentInfo.isAppendedToCount; appendedToIndex++) {
+                    currentInfo.isAppendedTo[appendedToIndex] =
+                        appendedTo[appendedToIndex].GetInt();
+                }
+            }
+
+            ContainerHashTable__charptrToint__CHTAdd(
+                this_ptr->CHTMap, this_ptr->textIdPointers[x], x, nullptr, 0);
+        }
+        return this_ptr;
     }
+};
 
-    if (elem.HasMember("IsAppendedTo")) {
-      const auto &appendedTo = elem["IsAppendedTo"].GetArray();
-
-      currentInfo.isAppendedToCount = appendedTo.Size();
-      currentInfo.isAppendedTo = new int[currentInfo.isAppendedToCount]();
-
-      for (int appendedToIndex = 0;
-           appendedToIndex < currentInfo.isAppendedToCount; appendedToIndex++) {
-        currentInfo.isAppendedTo[appendedToIndex] =
-            appendedTo[appendedToIndex].GetInt();
-      }
+DefineReplacementHook(GameTextLoadGameText) {
+    static void __fastcall callback(GameText* this_ptr, void* in_EDX, int param_1, int param_2) {
+        return;
     }
+};
 
-    ContainerHashTable__charptrToint__CHTAdd(
-        this_ptr->CHTMap, this_ptr->textIdPointers[x], x, nullptr, 0);
-  }
-  return this_ptr;
-}
-
-void __fastcall GameText_LoadGameText_Hook(GameText *this_ptr, void *in_EDX,
-                                           int param_1, int param_2) {
-  return;
-}
-
-void __fastcall GameText_Destructor_Hook(GameText *this_ptr, void *in_EDX) {
-  if (this_ptr->textIdPointers != nullptr) {
-    delete[] this_ptr->textIdPointers;
-  }
-  if (this_ptr->CHTMap != nullptr) {
-    ContainerHashTable__charptrToint__Destructor(this_ptr->CHTMap);
-    free(this_ptr->CHTMap);
-  }
-  if (this_ptr->stringInfos != nullptr) {
-    delete[] this_ptr->stringInfos;
-  }
-  if (this_ptr->textIDBuffer != nullptr) {
-    free(this_ptr->textIDBuffer);
-  }
-  if (this_ptr->valueBuffer != nullptr) {
-    free(this_ptr->valueBuffer);
-  }
-}
+DefineReplacementHook(GameTextDtor) {
+    static void __fastcall callback(GameText* this_ptr, void* in_EDX) {
+        if (this_ptr->textIdPointers != nullptr) {
+            delete[] this_ptr->textIdPointers;
+        }
+        if (this_ptr->CHTMap != nullptr) {
+            ContainerHashTable__charptrToint__Destructor(this_ptr->CHTMap);
+            free(this_ptr->CHTMap);
+        }
+        if (this_ptr->stringInfos != nullptr) {
+            delete[] this_ptr->stringInfos;
+        }
+        if (this_ptr->textIDBuffer != nullptr) {
+            free(this_ptr->textIDBuffer);
+        }
+        if (this_ptr->valueBuffer != nullptr) {
+            free(this_ptr->valueBuffer);
+        }
+    }
+};
 
 #pragma optimize("", on)
 
-void GameTextJSON::install() {
-    HookedFunctionInfo gametext_create_finfo =
-      HookFunction((void *&)GameText_Create, &GameText_Create_Hook, 7,
-                   FunctionHookType::EntireReplacement);
-  // Since we end up allocating memory ourselves, we need to hook the destructor
-  // so the memory is freed properly.
-    HookedFunctionInfo gametext_dtor_finfo =
-      HookFunction((void *&)GameText_Destructor, &GameText_Destructor_Hook, 6,
-                   FunctionHookType::EntireReplacement);
-  // All class initialization now happens in GameText::Create, so LoadGameText
-  // can just be stubbed out.
-    HookedFunctionInfo gametext_loadgametext_finfo =
-      HookFunction((void *&)GameText_LoadGameText, &GameText_LoadGameText_Hook,
-                   6, FunctionHookType::EntireReplacement);
+void game_text_json::install() {
+    GameTextCreate::install_at_ptr(0x006074E0);
+    // Since we end up allocating memory ourselves, we need to hook the destructor
+    // so the memory is freed properly.
+    GameTextDtor::install_at_ptr(0x00607c40);
+    // All class initialization now happens in GameText::Create, so LoadGameText
+    // can just be stubbed out.
+    GameTextLoadGameText::install_at_ptr(0x00607820);
 
-  if (gametext_create_finfo.type != FunctionHookType::Invalid &&
-      gametext_dtor_finfo.type != FunctionHookType::Invalid &&
-      gametext_loadgametext_finfo.type != FunctionHookType::Invalid)
-    Logging::log("[GameTextJSON::Install] Successfully installed patch!");
+    logging::log("[GameTextJSON::Install] Successfully installed patch!");
 }

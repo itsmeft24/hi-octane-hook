@@ -1,6 +1,5 @@
 #pragma once
 
-#include "patches/CarsDialogueEx.h"
 #include "patches/DataAccessLogging.h"
 #include "patches/DialogueListEx.h"
 #include "patches/HDR.h"

@@ -2,36 +2,25 @@
 #include <Windows.h>
 #include <iostream>
 
-#include "../HookFunction.h"
 #include "../Logging.h"
+#include "../framework.hpp"
 #include "LoadingScreenPatch.h"
 
-BYTE *lpCarsGame = (BYTE *)0x00718A74;
+DefineInlineHook(FixLoadingScreenPath) {
+	static void callback(hooking::InlineContext ctx) {
+		uintptr_t lpCarsGame = *reinterpret_cast<uintptr_t*>(0x00718A74);
+		const char* loading_screen_name = reinterpret_cast<const char*>(lpCarsGame + 0x764);
+		std::string calculated_path = std::format("e\\ui\\tex\\{}", loading_screen_name);
 
-DWORD *ret_address = (DWORD *)0x004053A2;
+		if (calculated_path.size() < 0x103) {
+			char* buffer = *reinterpret_cast<char**>(ctx.esp.pointer);
+			std::memset(buffer, 0, 0x104);
+			std::memcpy(buffer, calculated_path.data(), calculated_path.size());
+		}
+	}
+};
 
-const char E_UI_Tex_[] = "e\\ui\\tex\\%s";
-
-__declspec(naked) void CalculateLoadingScreenPath() {
-
-  __asm {
-		mov eax, [lpCarsGame]
-		mov eax, [eax]
-		add eax, 0x764 // lpCarsGame->LoadingScreenPath
-		push eax
-		push OFFSET [E_UI_Tex_]
-		lea eax, [esp + 0x10]
-		push 0x104
-		push eax
-		jmp ret_address
-  }
-}
-
-void LoadingScreenPatch::install() {
-	HookedFunctionInfo info =
-      HookFunction(0x0040538e, &CalculateLoadingScreenPath, 0x14,
-                   FunctionHookType::InlineReplacementJMP);
-  if (info.type != FunctionHookType::Invalid)
-    Logging::log(
-        "[LoadingScreenPatch::Install] Successfully installed patch!");
+void loading_screen_fix::install() {
+	FixLoadingScreenPath::install_at_ptr(0x004053a7);
+    logging::log("[LoadingScreenPatch::Install] Successfully installed patch!");
 }
