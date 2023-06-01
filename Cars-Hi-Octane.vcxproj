@@ -11,44 +11,44 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConfigManager.cpp" />
-    <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="core\config.cpp" />
+    <ClCompile Include="core\fs.cpp" />
+    <ClCompile Include="core\logging.cpp" />
+    <ClCompile Include="core\plugin_manager.cpp" />
+    <ClCompile Include="patches\cars_dialogue_ex.cpp" />
+    <ClCompile Include="patches\data_access_logging.cpp" />
+    <ClCompile Include="patches\debug_txt_support.cpp" />
+    <ClCompile Include="patches\dialogue_list.cpp" />
+    <ClCompile Include="patches\explore_music.cpp" />
+    <ClCompile Include="patches\game_text_json.cpp" />
+    <ClCompile Include="patches\hdr.cpp" />
+    <ClCompile Include="patches\large_vehicles.cpp" />
+    <ClCompile Include="patches\loading_screen_name.cpp" />
+    <ClCompile Include="patches\ui_sounds_fix.cpp" />
+    <ClCompile Include="patches\widescreen.cpp" />
     <ClCompile Include="HiOctane.cpp" />
-    <ClCompile Include="HookFunction.cpp" />
-    <ClCompile Include="hooks\CarsDialogueEx.cpp" />
-    <ClCompile Include="hooks\DataAccessLogging.cpp" />
-    <ClCompile Include="hooks\DialogueListEx.cpp" />
-    <ClCompile Include="hooks\EnableDebugConfig.cpp" />
-    <ClCompile Include="hooks\ExploreMusic.cpp" />
-    <ClCompile Include="hooks\GameTextJSON.cpp" />
-    <ClCompile Include="hooks\LargeVehiclePatch.cpp" />
-    <ClCompile Include="hooks\LoadingScreenPatch.cpp" />
-    <ClCompile Include="hooks\MiscUIFixes.cpp" />
-    <ClCompile Include="hooks\WidescreenPatch.cpp" />
-    <ClCompile Include="Logging.cpp" />
-    <ClCompile Include="PluginManager.cpp" />
-    <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConfigManager.h" />
-    <ClInclude Include="FileSystem.h" />
-    <ClInclude Include="Globals.h" />
-    <ClInclude Include="HookFunction.h" />
-    <ClInclude Include="Hooks.h" />
-    <ClInclude Include="hooks\CarsDialogueEx.h" />
-    <ClInclude Include="hooks\DataAccessLogging.h" />
-    <ClInclude Include="hooks\DialogueListEx.h" />
-    <ClInclude Include="hooks\EnableDebugConfig.h" />
-    <ClInclude Include="hooks\ExploreMusic.h" />
-    <ClInclude Include="hooks\GameTextJSON.h" />
-    <ClInclude Include="hooks\LargeVehiclePatch.h" />
-    <ClInclude Include="hooks\LoadingScreenPatch.h" />
-    <ClInclude Include="hooks\MiscUIFixes.h" />
-    <ClInclude Include="hooks\WidescreenPatch.h" />
-    <ClInclude Include="InlineContext.h" />
-    <ClInclude Include="Logging.h" />
-    <ClInclude Include="PluginManager.h" />
-    <ClInclude Include="Utils.h" />
+    <ClInclude Include="core\config.hpp" />
+    <ClInclude Include="core\fs.hpp" />
+    <ClInclude Include="core\globals.hpp" />
+    <ClInclude Include="core\logging.hpp" />
+    <ClInclude Include="core\plugin_manager.hpp" />
+    <ClInclude Include="core\utils.hpp" />
+    <ClInclude Include="core\hooking\framework.hpp" />
+    <ClInclude Include="core\hooking\relocate_code.hpp" />
+    <ClInclude Include="patches\cars_dialogue_ex.hpp" />
+    <ClInclude Include="patches\data_access_logging.hpp" />
+    <ClInclude Include="patches\debug_txt_support.hpp" />
+    <ClInclude Include="patches\dialogue_list.hpp" />
+    <ClInclude Include="patches\explore_music.hpp" />
+    <ClInclude Include="patches\game_text_json.hpp" />
+    <ClInclude Include="patches\hdr.hpp" />
+    <ClInclude Include="patches\large_vehicles.hpp" />
+    <ClInclude Include="patches\loading_screen_name.hpp" />
+    <ClInclude Include="patches\ui_sounds_fix.hpp" />
+    <ClInclude Include="patches\widescreen.hpp" />
+    <ClInclude Include="patches\patches.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -85,19 +85,19 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)\bin</OutDir>
+    <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
     <TargetName>Cars-Hi-Octane</TargetName>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <IncludePath>dependencies\zydis\include;$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>dependencies\zydis\lib\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>Cars-Hi-Octane</TargetName>
-    <OutDir>$(ProjectDir)\bin</OutDir>
-    <IncludePath>$(IncludePath)</IncludePath>
+    <OutDir>D:\SteamLibrary\steamapps\common\Cars Mater-National\Hi-Octane\C\Modules</OutDir>
+    <IncludePath>dependencies\zydis\include;$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
-    <LibraryPath>$(LibraryPath)</LibraryPath>
+    <LibraryPath>dependencies\zydis\lib\release;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>false</VcpkgEnableManifest>
@@ -108,13 +108,14 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;WIN32;_DEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Zydis.lib;Zycore.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -125,15 +126,16 @@
       <SDLCheck>false</SDLCheck>
       <PreprocessorDefinitions>NOMINMAX;WIN32;NDEBUG;_CONSOLE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Zydis.lib;Zycore.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

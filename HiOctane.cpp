@@ -5,96 +5,96 @@
 #include <fstream>
 #include <iostream>
 #include <vector>
+#include <format>
 
-#include "ConfigManager.h"
-#include "FileSystem.h"
-#include "Globals.h"
-#include "Hooks.h"
-#include "Logging.h"
-#include "PluginManager.h"
-#include "Utils.h"
+#include "core/config.hpp"
+#include "core/fs.hpp"
+#include "core/globals.hpp"
+#include "patches/patches.hpp"
+#include "core/logging.hpp"
+#include "core/plugin_manager.hpp"
+#include "core/hooking/framework.hpp"
 
-std::string DATA_DIR_PATH;// = "";
-std::string CURRENT_DIRECTORY;// = "";
+std::filesystem::path g_DataDir;
+std::filesystem::path g_InstallDir;
 
-constexpr auto DATA_DIR = "hi-octane";
+constexpr std::string_view kDataDirName = "hi-octane";
 
-const char *DATA_DIR_PATCH = "%s\\Hi-Octane\\"; // Replaces DataPC.
+// This string needs to have a static lifetime as a pointer to it will be given to the game.
+static std::string data_dir_fmt = std::format("%s\\{}\\", kDataDirName);
 
 extern "C" __declspec(dllexport) const char *VERSION = "1.9.2.3";
 
-void HiOctaneEntry() {
-  WritePUSH(AsVoidPtr(0x00619929), AsVoidPtr(DATA_DIR_PATCH));
-  // Set the games' DataPC path to our own.
+void init() {
+    hooking::write_push(0x00619929, data_dir_fmt.c_str());
+    // Set the games' DataPC path to our own.
 
-  char CURR_DIR_BUF[260];
-  GetModuleFileNameA(NULL, CURR_DIR_BUF, 260);
-  PathRemoveFileSpecA(CURR_DIR_BUF);
-  CharLowerA(CURR_DIR_BUF);
-  CURRENT_DIRECTORY = CURR_DIR_BUF;
-  DATA_DIR_PATH = CURRENT_DIRECTORY + "\\" + DATA_DIR;
-  // Get current directory and store it in a global variable. (Used for File IO
-  // stuff.)
+    wchar_t CURR_DIR_BUF[260];
+    GetModuleFileNameW(NULL, CURR_DIR_BUF, 260);
+    PathRemoveFileSpecW(CURR_DIR_BUF);
+    CharLowerW(CURR_DIR_BUF);
+    g_InstallDir = CURR_DIR_BUF;
+    g_DataDir = g_InstallDir;
+    g_DataDir.append(kDataDirName);
+
+    // Get current directory and store it in a global variable. (Used for File IO
+    // stuff.)
   
-  ConfigManager::ReadConfigFile();
+    config::read();
   
-  Logging::Init();
+    logging::init();
 
-  Logging::Log("[HiOctaneEntry] Installing hooks...\n");
+    logging::log("[hi-octane::init] Installing hooks...");
   
-  FileSystem::Init();
+    fs::init();
 
-  WideScreenPatch::Install();
+    widescreen::install();
+  
+    dialogue_list::install();
+  
+    data_access_logging::install();
+  
+    large_vehicles::install();
+  
+    loading_screen_name::install();
+  
+    game_text_json::install();
+  
+    debug_txt_support::install();
+  
+    ui_sounds_fix::install();
+  
+    explore_music::install();
 
-  DialogueListEx::Install();
-
-  DataAccessLogging::Install();
-
-  LargeVehiclePatch::Install();
-
-  LoadingScreenPatch::Install();
-
-  GameTextJSON::Install();
-
-  EnableDebugConfig::Install();
-
-  MiscUIFixes::Install();
-
-  ExploreMusic::Install();
-
-  PluginManager::LoadAllPlugins();
-
-  PluginManager::StartAllPlugins();
+    // HDRPatch::install();
+  
+    plugin_manager::load_plugins();
+  
+    plugin_manager::start_plugins();
 }
 
-void HiOctaneExit() {
+void deinit() {
+    logging::log("[hi-octane::deinit] Exiting...");
 
-  Logging::Log("[HiOctaneExit] Exiting...\n");
+    plugin_manager::exit_plugins();
 
-  PluginManager::ExitAllPlugins();
-
-  Logging::Deinit();
+    logging::deinit();
 }
 
 // Initialization and de-initialization is now placed inside this thin WinMain wrapper.
 // This enables us to call MN's std library functions on HiOctaneEntry.
-DeclareFunction(int, __stdcall, _WinMain, 0x006196a0, HINSTANCE, HINSTANCE, PSTR, int);
-
-int __stdcall WinMainHook(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
-    HiOctaneEntry();
-    int result = _WinMain(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-    HiOctaneExit();
-    return result;
-}
-
-HookedFunctionInfo mainInfo;
+DefineReplacementHook(WinMainHook) {
+    static int __stdcall callback(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
+        init();
+        int result = original(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+        deinit();
+        return result;
+    }
+};
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
-
-  if (reason == DLL_PROCESS_ATTACH) {
-      mainInfo = HookFunction((void*&)_WinMain, WinMainHook, 6, FunctionHookType::EntireReplacement);
-  } else if (reason == DLL_PROCESS_DETACH) {
-      UninstallFunctionHook(mainInfo);
-  }
-  return TRUE;
+    if (reason == DLL_PROCESS_ATTACH) {
+        WinMainHook::install_at_ptr(0x006196a0);
+    }
+    return TRUE;
 }
