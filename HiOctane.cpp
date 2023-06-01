@@ -7,13 +7,13 @@
 #include <vector>
 #include <format>
 
-#include "ConfigManager.h"
-#include "FileSystem.h"
-#include "Globals.h"
-#include "patches.h"
-#include "Logging.h"
-#include "PluginManager.h"
-#include "framework.hpp"
+#include "core/config.hpp"
+#include "core/fs.hpp"
+#include "core/globals.hpp"
+#include "patches/patches.hpp"
+#include "core/logging.hpp"
+#include "core/plugin_manager.hpp"
+#include "core/hooking/framework.hpp"
 
 std::filesystem::path g_DataDir;
 std::filesystem::path g_InstallDir;
@@ -56,13 +56,13 @@ void init() {
   
     large_vehicles::install();
   
-    loading_screen_fix::install();
+    loading_screen_name::install();
   
     game_text_json::install();
   
     debug_txt_support::install();
   
-    fix_ui_sounds::install();
+    ui_sounds_fix::install();
   
     explore_music::install();
 

@@ -4,10 +4,10 @@
 #include <iostream>
 #include <vector>
 
-#include "Globals.h"
-#include "Logging.h"
-#include "PluginManager.h"
-#include "utils.hpp"
+#include "core/globals.hpp"
+#include "core/logging.hpp"
+#include "core/plugin_manager.hpp"
+#include "core/utils.hpp"
 
 void plugin_manager::Plugin::start() {
     auto pEntryPoint = GetProcAddress(handle, "Plugin_HiOctaneEntry");

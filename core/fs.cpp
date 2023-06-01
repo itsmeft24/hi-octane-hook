@@ -7,12 +7,12 @@
 #include <unordered_map>
 #include <shlobj.h>
 
-#include "ConfigManager.h"
-#include "FileSystem.h"
-#include "Globals.h"
-#include "Logging.h"
-#include "framework.hpp"
-#include "utils.hpp"
+#include "core/config.hpp"
+#include "core/fs.hpp"
+#include "core/globals.hpp"
+#include "core/logging.hpp"
+#include "hooking/framework.hpp"
+#include "core/utils.hpp"
 
 DeclareFunction(void*, __cdecl, __fsopen, 0x0063FBFB, char*, char*, int); // VS2005 CRT function
 

@@ -1,5 +1,5 @@
 #pragma once
-#include "Globals.h"
+#include "core/globals.hpp"
 #include <format>
 
 namespace logging {

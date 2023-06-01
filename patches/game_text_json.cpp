@@ -3,13 +3,13 @@
 #include <string>
 #include <rapidjson/document.h>
 
-#include "../ConfigManager.h"
-#include "../FileSystem.h"
-#include "../framework.hpp"
-#include "../Logging.h"
+#include "core/config.hpp"
+#include "core/fs.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/logging.hpp"
 
-#include "GameTextJSON.h"
-#include "WidescreenPatch.h"
+#include "game_text_json.hpp"
+#include "widescreen.hpp"
 
 DeclareFunction(int, __cdecl, StringHashValueFunction, 0x00547f90, char *);
 DeclareFunction(bool, __cdecl, StringHashCompareFunction, 0x00547fb0, char *, char *);
@@ -102,7 +102,7 @@ DefineReplacementHook(GameTextCreate) {
         rapidjson::Document doc;
         doc.Parse<rapidjson::kParseStopWhenDoneFlag>(jsonBuffer);
 
-        if (stricmp(name, "commonui") == 0) {
+        if (_stricmp(name, "commonui") == 0) {
             std::string formattedStr = "Hi-Octane Version: " + std::string(VERSION);
             rapidjson::Value v(rapidjson::kObjectType);
             v.AddMember("TextID", "STR_HI_OCTANE_VER", doc.GetAllocator());
@@ -112,7 +112,7 @@ DefineReplacementHook(GameTextCreate) {
             doc.GetArray().PushBack(v, doc.GetAllocator());
             jsonSize += formattedStr.size() + 18;
         }
-        if (config::g_WidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
+        if (config::g_WidescreenEnabled && _stricmp(name, "pcfrontendui") == 0) {
             for (int x = 0; x < (int)widescreen::SDResolution::Max; x++) {
                 const auto& sd = widescreen::resolve_sd((widescreen::SDResolution)x);
                 const auto& hd = widescreen::resolve_hd((widescreen::SDResolution)x);

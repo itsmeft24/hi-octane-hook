@@ -1,7 +1,8 @@
-#include "../framework.hpp"
-#include "../Logging.h"
+#include "core/globals.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/logging.hpp"
 
-#include "ExploreMusic.h"
+#include "explore_music.hpp"
 
 struct Music {
     struct {

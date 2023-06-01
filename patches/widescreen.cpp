@@ -3,12 +3,12 @@
 #include <filesystem>
 #include <fstream>
 
-#include "../ConfigManager.h"
-#include "../Logging.h"
-#include "../FileSystem.h"
+#include "core/config.hpp"
+#include "core/logging.hpp"
+#include "core/fs.hpp"
 
-#include "WidescreenPatch.h"
-#include "../framework.hpp"
+#include "widescreen.hpp"
+#include "core/hooking/framework.hpp"
 
 DWORD *pWindowWidth = (DWORD *)0x006FAA54;
 DWORD *pWindowHeight = (DWORD *)0x006FAA58;

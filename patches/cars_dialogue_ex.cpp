@@ -1,7 +1,7 @@
 
-#include "CarsDialogueEx.h"
-#include "../framework.hpp"
-#include "../Logging.h"
+#include "patches/cars_dialogue_ex.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/logging.hpp"
 
 constexpr unsigned char kMaxNumberOfCars = 127;
 

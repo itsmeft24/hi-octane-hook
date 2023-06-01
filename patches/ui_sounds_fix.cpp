@@ -1,7 +1,9 @@
 
-#include "MiscUIFixes.h"
-#include "../framework.hpp"
-#include "../Logging.h"
+#include "ui_sounds_fix.hpp"
+
+#include "core/globals.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/logging.hpp"
 
 DeclareFunction(int, __thiscall, CarsUIManager_PlaySoundEvent, 0x005c9760, uintptr_t, int, int, int);
 
@@ -46,7 +48,7 @@ DefineReplacementHook(PlaySelectAndBackSnds) {
 	}
 };
 
-void fix_ui_sounds::install() {
+void ui_sounds_fix::install() {
 	PlaySelectAndBackSnds::install_at_ptr(0x00511e00);
-    logging::log("[fix_ui_sounds::install] Successfully installed patch!");
+    logging::log("[ui_sounds_fix::install] Successfully installed patch!");
 }

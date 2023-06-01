@@ -1,9 +1,9 @@
 
-#include "../Globals.h"
-#include "../framework.hpp"
-#include "../Logging.h"
+#include "core/globals.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/logging.hpp"
 
-#include "DataAccessLogging.h"
+#include "data_access_logging.hpp"
 
 struct DataAccess;
 

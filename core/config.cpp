@@ -5,9 +5,9 @@
 #include <optional>
 #include <string>
 
-#include "ConfigManager.h"
-#include "Globals.h"
-#include "Logging.h"
+#include "core/config.hpp"
+#include "core/globals.hpp"
+#include "core/logging.hpp"
 
 bool config::g_ConsoleWindowEnabled = true;
 bool config::g_DebugTxtConfigEnabled = false;

@@ -3,8 +3,6 @@
 #include <algorithm>
 #include <iostream>
 
-#include "Globals.h"
-
 namespace utils {
     const inline void make_lowercase(std::string& str) {
         std::transform(str.begin(), str.end(), str.begin(), [](unsigned char c) { return std::tolower(c); });

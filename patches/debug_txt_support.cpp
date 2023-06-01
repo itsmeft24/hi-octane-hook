@@ -1,10 +1,10 @@
 
-#include "../ConfigManager.h"
-#include "../Globals.h"
-#include "../framework.hpp"
-#include "../Logging.h"
+#include "core/config.hpp"
+#include "core/globals.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/logging.hpp"
 
-#include "EnableDebugConfig.h"
+#include "debug_txt_support.hpp"
 
 struct ParameterBlock;
 struct CarsGame;

@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 namespace HDRPatch {
 
 #pragma pack(push, 1)

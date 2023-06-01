@@ -3,9 +3,9 @@
 #include <cstdarg>
 #include <cstdio>
 
-#include "Globals.h"
-#include "Logging.h"
-#include "ConfigManager.h"
+#include "core/globals.hpp"
+#include "core/logging.hpp"
+#include "core/config.hpp"
 
 FILE *log_file = nullptr;
 FILE *console_handle = nullptr;

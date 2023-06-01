@@ -2,12 +2,12 @@
 #include <iostream>
 #include <d3d9.h>
 #include <directxmath.h>
-#include "../Globals.h"
-#include "../ConfigManager.h"
+#include "core/globals.hpp"
+#include "core/config.hpp"
 
-#include "HDR.h"
-#include "../Logging.h"
-#include "../framework.hpp"
+#include "hdr.hpp"
+#include "core/logging.hpp"
+#include "core/hooking/framework.hpp"
 
 namespace HDRPatch {
 
@@ -87,7 +87,7 @@ namespace HDRPatch {
 			ParameterBlock_GetParameterDefaultStr(pBlock, "FilterAlgorithm", "", algorithm_label, 0x40);
 			char* this_algorithm = reinterpret_cast<char*>(reinterpret_cast<uintptr_t>(filter_stream) + 0xC);
 			strcpy(this_algorithm, algorithm_label);
-			if (stricmp(algorithm_label, "Null") == 0 || !X360VideoCard_IsFXEnabled(*reinterpret_cast<void**>(0x006ff394))) {
+			if (_stricmp(algorithm_label, "Null") == 0 || !X360VideoCard_IsFXEnabled(*reinterpret_cast<void**>(0x006ff394))) {
 				strcpy(this_algorithm, "Null");
 				memory = operator_new(100);
 				if (memory != nullptr) {
@@ -97,7 +97,7 @@ namespace HDRPatch {
 					filter_algorithm = nullptr;
 				}
 			}
-			else if (stricmp(algorithm_label, "FrameBufferToTexture") == 0) {
+			else if (_stricmp(algorithm_label, "FrameBufferToTexture") == 0) {
 				memory = operator_new(0x68);
 				if (memory != nullptr) {
 					filter_algorithm = X360FilterFrameBufferToTexture_Constructor(memory);
@@ -106,7 +106,7 @@ namespace HDRPatch {
 					filter_algorithm = nullptr;
 				}
 			}
-			else if (stricmp(algorithm_label, "MotionBlur") == 0) {
+			else if (_stricmp(algorithm_label, "MotionBlur") == 0) {
 				memory = operator_new(0x84);
 				if (memory != nullptr) {
 					filter_algorithm = X360FilterMotionBlur_Constructor(memory);
@@ -115,7 +115,7 @@ namespace HDRPatch {
 					filter_algorithm = nullptr;
 				}
 			}
-			else if (stricmp(algorithm_label, "HighDynamicRange") == 0) {
+			else if (_stricmp(algorithm_label, "HighDynamicRange") == 0) {
 				memory = operator_new(sizeof(X360FilterHighDynamicRange));
 				if (memory != nullptr) {
 					filter_algorithm = reinterpret_cast<X360FilterAlgorithm*>(X360FilterHighDynamicRange::Constructor(reinterpret_cast<X360FilterHighDynamicRange*>(memory)));
@@ -124,7 +124,7 @@ namespace HDRPatch {
 					filter_algorithm = nullptr;
 				}
 			}
-			else if (stricmp(algorithm_label, "NightVision") == 0) {
+			else if (_stricmp(algorithm_label, "NightVision") == 0) {
 				memory = operator_new(0xc0);
 				if (memory != nullptr) {
 					filter_algorithm = X360FilterNightVision_Constructor(memory);
@@ -133,7 +133,7 @@ namespace HDRPatch {
 					filter_algorithm = nullptr;
 				}
 			}
-			else if (stricmp(algorithm_label, "GhostImage") == 0) {
+			else if (_stricmp(algorithm_label, "GhostImage") == 0) {
 				memory = operator_new(0x80);
 				if (memory != nullptr) {
 					filter_algorithm = X360FilterGhostImage_Constructor(memory);
@@ -142,7 +142,7 @@ namespace HDRPatch {
 					filter_algorithm = nullptr;
 				}
 			}
-			else if (stricmp(algorithm_label, "Sunflare") == 0) {
+			else if (_stricmp(algorithm_label, "Sunflare") == 0) {
 				memory = operator_new(0x78);
 				if (memory != nullptr) {
 					filter_algorithm = X360FilterSunflare_Constructor(memory);
@@ -151,7 +151,7 @@ namespace HDRPatch {
 					filter_algorithm = nullptr;
 				}
 			}
-			else if (stricmp(algorithm_label, "Noise") == 0) {
+			else if (_stricmp(algorithm_label, "Noise") == 0) {
 				memory = operator_new(0x84);
 				if (memory != nullptr) {
 					filter_algorithm = X360FilterNoise_Constructor(memory);

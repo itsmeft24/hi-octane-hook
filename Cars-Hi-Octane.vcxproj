@@ -11,45 +11,44 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ConfigManager.cpp" />
-    <ClCompile Include="FileSystem.cpp" />
+    <ClCompile Include="core\config.cpp" />
+    <ClCompile Include="core\fs.cpp" />
+    <ClCompile Include="core\logging.cpp" />
+    <ClCompile Include="core\plugin_manager.cpp" />
+    <ClCompile Include="patches\cars_dialogue_ex.cpp" />
+    <ClCompile Include="patches\data_access_logging.cpp" />
+    <ClCompile Include="patches\debug_txt_support.cpp" />
+    <ClCompile Include="patches\dialogue_list.cpp" />
+    <ClCompile Include="patches\explore_music.cpp" />
+    <ClCompile Include="patches\game_text_json.cpp" />
+    <ClCompile Include="patches\hdr.cpp" />
+    <ClCompile Include="patches\large_vehicles.cpp" />
+    <ClCompile Include="patches\loading_screen_name.cpp" />
+    <ClCompile Include="patches\ui_sounds_fix.cpp" />
+    <ClCompile Include="patches\widescreen.cpp" />
     <ClCompile Include="HiOctane.cpp" />
-    <ClCompile Include="patches\CarsDialogueEx.cpp" />
-    <ClCompile Include="patches\DataAccessLogging.cpp" />
-    <ClCompile Include="patches\DialogueListEx.cpp" />
-    <ClCompile Include="patches\EnableDebugConfig.cpp" />
-    <ClCompile Include="patches\ExploreMusic.cpp" />
-    <ClCompile Include="patches\GameTextJSON.cpp" />
-    <ClCompile Include="patches\HDR.cpp" />
-    <ClCompile Include="patches\LargeVehiclePatch.cpp" />
-    <ClCompile Include="patches\LoadingScreenPatch.cpp" />
-    <ClCompile Include="patches\MiscUIFixes.cpp" />
-    <ClCompile Include="patches\WidescreenPatch.cpp" />
-    <ClCompile Include="Logging.cpp" />
-    <ClCompile Include="PluginManager.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ConfigManager.h" />
-    <ClInclude Include="FileSystem.h" />
-    <ClInclude Include="framework.hpp" />
-    <ClInclude Include="Globals.h" />
-    <ClInclude Include="patches.h" />
-    <ClInclude Include="patches\CarsDialogueEx.h" />
-    <ClInclude Include="patches\DataAccessLogging.h" />
-    <ClInclude Include="patches\DialogueListEx.h" />
-    <ClInclude Include="patches\EnableDebugConfig.h" />
-    <ClInclude Include="patches\ExploreMusic.h" />
-    <ClInclude Include="patches\GameTextJSON.h" />
-    <ClInclude Include="patches\HDR.h" />
-    <ClInclude Include="patches\LargeVehiclePatch.h" />
-    <ClInclude Include="patches\LoadingScreenPatch.h" />
-    <ClInclude Include="patches\MiscUIFixes.h" />
-    <ClInclude Include="patches\WidescreenPatch.h" />
-    <ClInclude Include="InlineContext.h" />
-    <ClInclude Include="Logging.h" />
-    <ClInclude Include="PluginManager.h" />
-    <ClInclude Include="relocate_code.hpp" />
-    <ClInclude Include="utils.hpp" />
+    <ClInclude Include="core\config.hpp" />
+    <ClInclude Include="core\fs.hpp" />
+    <ClInclude Include="core\globals.hpp" />
+    <ClInclude Include="core\logging.hpp" />
+    <ClInclude Include="core\plugin_manager.hpp" />
+    <ClInclude Include="core\utils.hpp" />
+    <ClInclude Include="core\hooking\framework.hpp" />
+    <ClInclude Include="core\hooking\relocate_code.hpp" />
+    <ClInclude Include="patches\cars_dialogue_ex.hpp" />
+    <ClInclude Include="patches\data_access_logging.hpp" />
+    <ClInclude Include="patches\debug_txt_support.hpp" />
+    <ClInclude Include="patches\dialogue_list.hpp" />
+    <ClInclude Include="patches\explore_music.hpp" />
+    <ClInclude Include="patches\game_text_json.hpp" />
+    <ClInclude Include="patches\hdr.hpp" />
+    <ClInclude Include="patches\large_vehicles.hpp" />
+    <ClInclude Include="patches\loading_screen_name.hpp" />
+    <ClInclude Include="patches\ui_sounds_fix.hpp" />
+    <ClInclude Include="patches\widescreen.hpp" />
+    <ClInclude Include="patches\patches.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -111,6 +110,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -128,6 +128,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

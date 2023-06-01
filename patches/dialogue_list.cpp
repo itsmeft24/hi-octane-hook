@@ -4,11 +4,12 @@
 #include <string>
 #include <vector>
 
-#include "../FileSystem.h"
-#include "../framework.hpp"
-#include "../Logging.h"
+#include "core/globals.hpp"
+#include "core/fs.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/logging.hpp"
 
-#include "DialogueListEx.h"
+#include "dialogue_list.hpp"
 
 struct CarsActivity;
 struct CarsActivityUI;

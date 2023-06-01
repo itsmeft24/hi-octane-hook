@@ -3,13 +3,14 @@
 #include <string>
 #include <vector>
 
-#include "../ConfigManager.h"
-#include "../FileSystem.h"
-#include "../Logging.h"
-#include "../framework.hpp"
-#include "../utils.hpp"
+#include "core/globals.hpp"
+#include "core/config.hpp"
+#include "core/fs.hpp"
+#include "core/logging.hpp"
+#include "core/hooking/framework.hpp"
+#include "core/utils.hpp"
 
-#include "LargeVehiclePatch.h"
+#include "large_vehicles.hpp"
 
 DeclareFunction(void, __thiscall, PlayCameraAnimByIndex, 0x004bd1f0, uintptr_t, int);
 

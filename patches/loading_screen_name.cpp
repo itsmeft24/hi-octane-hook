@@ -2,9 +2,9 @@
 #include <Windows.h>
 #include <iostream>
 
-#include "../Logging.h"
-#include "../framework.hpp"
-#include "LoadingScreenPatch.h"
+#include "core/logging.hpp"
+#include "core/hooking/framework.hpp"
+#include "loading_screen_name.hpp"
 
 DefineInlineHook(FixLoadingScreenPath) {
 	static void callback(hooking::InlineContext ctx) {
@@ -20,7 +20,7 @@ DefineInlineHook(FixLoadingScreenPath) {
 	}
 };
 
-void loading_screen_fix::install() {
+void loading_screen_name::install() {
 	FixLoadingScreenPath::install_at_ptr(0x004053a7);
-    logging::log("[loading_screen_fix::install] Successfully installed patch!");
+    logging::log("[loading_screen_name::install] Successfully installed patch!");
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include <iostream>
 #include <Windows.h>
 
 namespace plugin_manager {
