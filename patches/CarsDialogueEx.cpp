@@ -145,7 +145,7 @@ DefineReplacementHook(CarsDialogueCreate) {
 };
 
 void cars_dialogue_ex::install() {
-	logging::log("[CarsDialogueEx] Patching CarsDialogue class...\n");
+	logging::log("[cars_dialogue_ex::install] Patching CarsDialogue class...\n");
 
 	winapi::set_permission(0x00482B6F, 1, winapi::Perm::ExecuteReadWrite);
 	winapi::set_permission(0x00482CCD, 1, winapi::Perm::ExecuteReadWrite);
@@ -205,6 +205,6 @@ void cars_dialogue_ex::install() {
 	hooking::legacy::inline_replace(0x004E9D6B, &CarsDialogue_UNK7_LEA_PATCH, 6); // UNK13
 	hooking::legacy::inline_replace(0x0043E06C, &CarsDialogue_UNK8_LEA_PATCH, 6); // UNK14
 
-	logging::log("[CarsDialogueEX::Install] Succesfully moved "
+	logging::log("[cars_dialogue_ex::install] Succesfully moved "
 		"CarsCharacterDialogue array!\n");
 }

@@ -10,7 +10,7 @@
 #include "ConfigManager.h"
 #include "FileSystem.h"
 #include "Globals.h"
-#include "Hooks.h"
+#include "patches.h"
 #include "Logging.h"
 #include "PluginManager.h"
 #include "framework.hpp"
@@ -40,11 +40,11 @@ void init() {
     // Get current directory and store it in a global variable. (Used for File IO
     // stuff.)
   
-    ConfigManager::read();
+    config::read();
   
     logging::init();
 
-    logging::log("[HiOctaneEntry] Installing hooks...");
+    logging::log("[hi-octane::init] Installing hooks...");
   
     fs::init();
 
@@ -74,7 +74,7 @@ void init() {
 }
 
 void deinit() {
-    logging::log("[HiOctaneExit] Exiting...");
+    logging::log("[hi-octane::deinit] Exiting...");
 
     plugin_manager::exit_plugins();
 

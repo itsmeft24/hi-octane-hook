@@ -33,5 +33,5 @@ DefineReplacementHook(LogDataAccessLoadResFile) {
 void data_access_logging::install() {
     LogDataAccessFOpen::install_at_ptr(0x005D34F0);
     LogDataAccessLoadResFile::install_at_ptr(0x005D2FC0);
-    logging::log("[DataAccessLogging::Install] Successfully installed patch!");
+    logging::log("[data_access_logging::install] Successfully installed patch!");
 }

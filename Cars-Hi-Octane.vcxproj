@@ -33,7 +33,7 @@
     <ClInclude Include="FileSystem.h" />
     <ClInclude Include="framework.hpp" />
     <ClInclude Include="Globals.h" />
-    <ClInclude Include="Hooks.h" />
+    <ClInclude Include="patches.h" />
     <ClInclude Include="patches\CarsDialogueEx.h" />
     <ClInclude Include="patches\DataAccessLogging.h" />
     <ClInclude Include="patches\DialogueListEx.h" />

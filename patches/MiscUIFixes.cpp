@@ -48,5 +48,5 @@ DefineReplacementHook(PlaySelectAndBackSnds) {
 
 void fix_ui_sounds::install() {
 	PlaySelectAndBackSnds::install_at_ptr(0x00511e00);
-    logging::log("[MiscUIFixes::Install] Successfully installed patch!");
+    logging::log("[fix_ui_sounds::install] Successfully installed patch!");
 }

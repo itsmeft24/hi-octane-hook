@@ -22,5 +22,5 @@ DefineInlineHook(FixLoadingScreenPath) {
 
 void loading_screen_fix::install() {
 	FixLoadingScreenPath::install_at_ptr(0x004053a7);
-    logging::log("[LoadingScreenPatch::Install] Successfully installed patch!");
+    logging::log("[loading_screen_fix::install] Successfully installed patch!");
 }

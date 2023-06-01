@@ -25,7 +25,7 @@ DefineReplacementHook(CarsGameSetConfigArguments) {
         ParameterBlock_Ctor(pBlock);
         ParameterBlock_OpenFile(pBlock, "c\\debug\\config.txt", 0, -1, nullptr, -1);
 
-        logging::log("[EnableDebugConfig::SetConfigArguments] Loading configuration "
+        logging::log("[CarsGame::SetConfigArguments] Loading configuration "
             "data from C\\Debug\\config.txt...");
 
         CarsGame_LoadConfigFile(this_ptr, pBlock);
@@ -36,8 +36,8 @@ DefineReplacementHook(CarsGameSetConfigArguments) {
 };
 
 void debug_txt_support::install() {
-  if (ConfigManager::g_DebugTxtConfigEnabled) {
+  if (config::g_DebugTxtConfigEnabled) {
       CarsGameSetConfigArguments::install_at_ptr(0x004416b0);
-      logging::log("[EnableDebugConfig::Install] Successfully installed patch!");
+      logging::log("[debug_txt_support::install] Successfully installed patch!");
   }
 }

@@ -121,7 +121,7 @@ DefineReplacementHook(GameTextCreate) {
             doc.GetArray().PushBack(v, doc.GetAllocator());
             jsonSize += formattedStr.size() + 18;
         }
-        if (ConfigManager::g_WidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
+        if (config::g_WidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
             for (int x = 0; x < (int)widescreen::SDResolution::Max; x++) {
                 const auto& sd = widescreen::resolve_sd((widescreen::SDResolution)x);
                 const auto& hd = widescreen::resolve_hd((widescreen::SDResolution)x);
@@ -270,5 +270,5 @@ void game_text_json::install() {
     // can just be stubbed out.
     GameTextLoadGameText::install_at_ptr(0x00607820);
 
-    logging::log("[GameTextJSON::Install] Successfully installed patch!");
+    logging::log("[game_text_json::install] Successfully installed patch!");
 }

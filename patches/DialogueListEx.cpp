@@ -24,7 +24,7 @@ DefineReplacementHook(CarsActivityUIRequestDialogue) {
     static void __fastcall callback(CarsActivityUI* _this) {
         for (size_t x = 0; x < dialogue_list_vec.size(); x++) {
             CarsActivity_AddNameToDialogueList(reinterpret_cast<CarsActivity*>(_this), dialogue_list_vec[x].c_str());
-            logging::log("[DialogueListEx::CarsActivityUI::RequestDialogue] Added {} to the Dialogue List!", dialogue_list_vec[x]);
+            logging::log("[CarsActivityUI::RequestDialogue] Added {} to the Dialogue List!", dialogue_list_vec[x]);
         }
     }
 };
@@ -43,5 +43,5 @@ void dialogue_list::install() {
       file.close();
   }
 
-  logging::log("[DialogueListEx::Install] Successfully installed patch!");
+  logging::log("[dialogue_list::install] Successfully installed patch!");
 };

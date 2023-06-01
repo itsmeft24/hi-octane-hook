@@ -24,7 +24,7 @@ DefineInlineHook(CMPPatch) {
 
 DefineReplacementHook(SelectDimensionsFromSaveIndex) {
     static BOOL __stdcall callback(widescreen::SDResolution selected, unsigned int* width, unsigned int* height) {
-        if (ConfigManager::g_WidescreenEnabled) {
+        if (config::g_WidescreenEnabled) {
             const auto& [selected_width, selected_height] = resolve_hd(selected);
             *width = selected_width;
             *height = selected_height;
@@ -39,7 +39,7 @@ DefineReplacementHook(SelectDimensionsFromSaveIndex) {
 };
 
 void widescreen::install() {
-  if (ConfigManager::g_WidescreenEnabled) {
+  if (config::g_WidescreenEnabled) {
 
     SelectDimensionsFromSaveIndex::install_at_ptr(0x00414ce0);
     CMPPatch::install_at_ptr(0x00421e22);
@@ -67,7 +67,7 @@ void widescreen::install() {
         }
     }
     
-    logging::log("[WideScreenPatches::Install] Setting screen mode to widescreen, selected resolution is: {}x{}...", *pWindowWidth, *pWindowHeight);
+    logging::log("[widescreen::install] Setting screen mode to widescreen, selected resolution is: {}x{}...", *pWindowWidth, *pWindowHeight);
 
     winapi::set_permission(0x00421DEF, 4, winapi::Perm::ExecuteReadWrite);
     *reinterpret_cast<std::uint32_t*>(0x00421DEF) = 2; // (mov edi, 2) instead of (mov edi, 1)

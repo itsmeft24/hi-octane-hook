@@ -12,7 +12,7 @@ FILE *console_handle = nullptr;
 bool log_file_initialized = false;
 
 bool logging::init() {
-  if (ConfigManager::g_ConsoleWindowEnabled) {
+  if (config::g_ConsoleWindowEnabled) {
     AllocConsole();
     freopen_s(&console_handle, "CONOUT$", "w", stdout);
     SetConsoleTitleA("Cars: Hi-Octane Console");
@@ -30,13 +30,13 @@ void logging::deinit() {
   if (log_file_initialized) {
     fclose(log_file);
   }
-  if (ConfigManager::g_ConsoleWindowEnabled) {
+  if (config::g_ConsoleWindowEnabled) {
     fclose(console_handle);
   }
 }
 
 HIOCTANE_API void _API_Logging_Log(const char *format, ...) {
-  if (ConfigManager::g_ConsoleWindowEnabled) {
+  if (config::g_ConsoleWindowEnabled) {
     va_list args;
     va_start(args, format);
     vprintf(format, args);

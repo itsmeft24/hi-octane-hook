@@ -1,7 +1,7 @@
 #pragma once
 #include <fstream>
 
-namespace ConfigManager {
+namespace config {
 
 extern bool g_ConsoleWindowEnabled;
 extern bool g_DebugTxtConfigEnabled;

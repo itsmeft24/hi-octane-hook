@@ -41,13 +41,13 @@ BOOL __stdcall GetCameraAnimIndex(char* character) {
         std::find(large_vehicles_vec.begin(), large_vehicles_vec.end(), string) !=
         large_vehicles_vec.end();
 
-    if (!is_large_vehicle && !ConfigManager::g_WidescreenEnabled) {
+    if (!is_large_vehicle && !config::g_WidescreenEnabled) {
         return 0;
     }
-    else if (!is_large_vehicle && ConfigManager::g_WidescreenEnabled) {
+    else if (!is_large_vehicle && config::g_WidescreenEnabled) {
         return 2;
     }
-    else if (is_large_vehicle && !ConfigManager::g_WidescreenEnabled) {
+    else if (is_large_vehicle && !config::g_WidescreenEnabled) {
         return 1;
     }
     else { // is_large_vehicle && ConfigManager::IsWidescreenEnabled
@@ -78,5 +78,5 @@ void large_vehicles::install() {
     LV_CollectCharactersToPatch();
     hooking::write_nop(0x0050FB1F, 0x3B);
     hooking::write_jmp(0x0050FB1F, HandleCharacter);
-    logging::log("[LargeVehiclePatch::Install] Successfully installed patch!");
+    logging::log("[large_vehicles::install] Successfully installed patch!");
 };

@@ -33,5 +33,5 @@ DefineInlineHook(SetExplorePlaylist) {
 
 void explore_music::install() {
 	SetExplorePlaylist::install_at_ptr(0x004eb861);
-	logging::log("[ExploreMusic::Install] Successfully installed patch!");
+	logging::log("[explore_music::install] Successfully installed patch!");
 };

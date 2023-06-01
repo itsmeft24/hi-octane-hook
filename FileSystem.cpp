@@ -101,7 +101,7 @@ inline void* handle_callback(fs::CallbackInfo& info,
 											info.max_file_size, 0 };
 
 	logging::log(
-		"[FileSystem::HandleCallback] Executing file callback for: {}...",
+		"[fs::handle_callback] Executing file callback for: {}...",
 		base_filepath);
 
 	fs::CarsFileCallback clbk =
@@ -204,7 +204,7 @@ bool discover_files() {
 								if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(),
 									line) == MARK_AS_DELETED.end()) {
 									MARK_AS_DELETED.push_back(line);
-									logging::log("[FileSystem::FileDiscovery] Added {} to the "
+									logging::log("[fs::discover_files] Added {} to the "
 										"deletion queue.",
 										line);
 								}
@@ -230,7 +230,7 @@ bool discover_files() {
 							// the extension before adding .ogg to the end.
 
 							if (MAP.find(base_filename) != MAP.end()) {
-								logging::log("[FileSystem::FileDiscovery] File: {} in mod: {} "
+								logging::log("[fs::discover_files] File: {} in mod: {} "
 									"overwrites existing mod file in: {}",
 									base_filename,
 									mod.path().filename().string(),
@@ -239,7 +239,7 @@ bool discover_files() {
 							}
 							else {
 								logging::log(
-									"[FileSystem::FileDiscovery] Found file: {} in mod: {}",
+									"[fs::discover_files] Found file: {} in mod: {}",
 									base_filename,
 									mod.path().filename().string());
 								MAP.insert_or_assign(base_filename, entry.path());
@@ -251,7 +251,7 @@ bool discover_files() {
 							utils::make_lowercase(base_filename);
 
 							if (MAP.find(base_filename) != MAP.end()) {
-								logging::log("[FileSystem::FileDiscovery] File: {} in mod: {} "
+								logging::log("[fs::discover_files] File: {} in mod: {} "
 									"overwrites existing mod file in: {}",
 									base_filename,
 									mod.path().filename().string(),
@@ -260,7 +260,7 @@ bool discover_files() {
 							}
 							else {
 								logging::log(
-									"[FileSystem::FileDiscovery] Found file: {} in mod: {}",
+									"[fs::discover_files] Found file: {} in mod: {}",
 									base_filename,
 									mod.path().filename().string());
 								MAP.insert_or_assign(base_filename, entry.path());
@@ -287,7 +287,7 @@ DWORD* __stdcall BinkOpenHook(char* file, DWORD flags) {
 		MAP.end()) { // if we have a modfile for the file
 		const auto& out_path = MAP.at(base_filepath);
 
-		logging::log("[FileSystem::BinkW32::BinkOpen] Loading Bink file: {} from "
+		logging::log("[fs::BinkW32::BinkOpen] Loading Bink file: {} from "
 			"mod: {}...",
 			base_filepath, get_mod_for_file(base_filepath));
 
@@ -318,7 +318,7 @@ DWORD __stdcall BASS_StreamCreateFileHook(BOOL mem, char* file, DWORD offset,
 		MAP.end()) { // if we have a modfile for the file
 		const auto& out_path = MAP.at(base_filepath);
 
-		logging::log("[FileSystem::BASS::StreamCreateFile] Loading stream file: "
+		logging::log("[fs::BASS::StreamCreateFile] Loading stream file: "
 			"{} from mod: {}...",
 			base_filepath, get_mod_for_file(base_filepath));
 
@@ -328,7 +328,7 @@ DWORD __stdcall BASS_StreamCreateFileHook(BOOL mem, char* file, DWORD offset,
 	}
 	else {
 		logging::log(
-			"[FileSystem::BASS::StreamCreateFile] Loading stream file: {}...",
+			"[fs::BASS::StreamCreateFile] Loading stream file: {}...",
 			base_filepath);
 	}
 
@@ -356,7 +356,7 @@ DWORD __stdcall BASS_SampleLoadHook(BOOL mem, char* file, DWORD offset,
 		MAP.end()) { // if we have a modfile for the file
 		const auto& out_path = MAP.at(base_filepath);
 
-		logging::log("[FileSystem::BASS::SampleLoad] Loading stream file: {} "
+		logging::log("[fs::BASS::SampleLoad] Loading stream file: {} "
 			"from mod: {}...",
 			base_filepath, MAP.at(base_filepath).string());
 
@@ -366,7 +366,7 @@ DWORD __stdcall BASS_SampleLoadHook(BOOL mem, char* file, DWORD offset,
 	}
 	else {
 		logging::log(
-			"[FileSystem::BASS::SampleLoad] Loading stream file: {}...",
+			"[fs::BASS::SampleLoad] Loading stream file: {}...",
 			base_filepath);
 	}
 
@@ -396,7 +396,7 @@ DefineReplacementHook(fopenHook) {
 
 				if (_strnicmp(_Filename + g_DataDir.string().size() + 2, "\\ui\\tex\\", 8) ==
 					0 &&
-					ConfigManager::g_WidescreenEnabled) {
+					config::g_WidescreenEnabled) {
 					// If the file is a UI texture AND we are running in widescreen, use
 					// UI\Tex_HD instead of UI\Tex
 					std::string new_filepath =
@@ -429,7 +429,7 @@ DefineReplacementHook(fopenHook) {
 
 					const auto& out_path = MAP.at(base_filepath);
 
-					logging::log("[FileSystem::FOpen] Loading file: {} from mod: {}...",
+					logging::log("[fs::fopen] Loading file: {} from mod: {}...",
 						base_filepath,
 						get_mod_for_file(base_filepath));
 
@@ -486,7 +486,7 @@ void fs::init() {
 	winapi::set_permission(0x00674040, 4, winapi::Perm::ReadWrite);
 	*reinterpret_cast<void**>(0x00674040) = BASS_StreamCreateFileHook;
 
-	logging::log("[FileSystem::Init] Filesystem successfully initialized!");
+	logging::log("[fs::init] Filesystem successfully initialized!");
 }
 
 std::filesystem::path fs::save_dir()
