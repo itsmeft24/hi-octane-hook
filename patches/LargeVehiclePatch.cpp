@@ -11,8 +11,7 @@
 
 #include "LargeVehiclePatch.h"
 
-DeclareFunction(void, __thiscall, PlayCameraAnimByIndex, 0x004bd1f0, uintptr_t,
-    int);
+DeclareFunction(void, __thiscall, PlayCameraAnimByIndex, 0x004bd1f0, uintptr_t, int);
 
 std::vector<std::string> large_vehicles_vec = { "mcqm", "matm", "sulm" };
 
@@ -37,9 +36,7 @@ bool LV_CollectCharactersToPatch() {
 BOOL __stdcall GetCameraAnimIndex(char* character) {
     auto string = std::string(character);
     utils::make_lowercase(string);
-    auto is_large_vehicle =
-        std::find(large_vehicles_vec.begin(), large_vehicles_vec.end(), string) !=
-        large_vehicles_vec.end();
+    auto is_large_vehicle = std::find(large_vehicles_vec.begin(), large_vehicles_vec.end(), string) != large_vehicles_vec.end();
 
     if (!is_large_vehicle && !config::g_WidescreenEnabled) {
         return 0;
