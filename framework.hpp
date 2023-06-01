@@ -47,6 +47,7 @@ namespace winapi {
 
 namespace hooking {
 
+
     template <typename T1, typename std::enable_if_t<is_ptr<T1>>* = nullptr, typename T2, typename std::enable_if_t<is_ptr<T2>>* = nullptr>
     inline void write_jmp(T1 src, T2 dst) {
         uintptr_t relativeAddress = (uintptr_t)((std::uint8_t*)dst - (uintptr_t)src) - 5;
@@ -73,7 +74,7 @@ namespace hooking {
     }
 
     template <typename T, typename std::enable_if_t<is_ptr<T>>* = nullptr>
-    inline bool write_nop(T addr, size_t code_size) {
+    inline bool write_nop(T addr, std::size_t code_size) {
         const auto& [original_protection, success] = winapi::set_permission(addr, code_size, winapi::Perm::ExecuteReadWrite);
         if (success) {
             std::memset(reinterpret_cast<void*>(addr), 0x90, code_size);
@@ -81,6 +82,14 @@ namespace hooking {
         }
         return false;
     }
+
+    namespace legacy {
+        template <typename T1, typename std::enable_if_t<is_ptr<T1>>* = nullptr, typename T2, typename std::enable_if_t<is_ptr<T2>>* = nullptr>
+        inline void inline_replace(T1 src, T2 dst, std::size_t size) {
+            write_nop(src, size);
+            write_call(src, dst);
+        }
+    };
 
     union Register {
         void* pointer;

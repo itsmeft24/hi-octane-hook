@@ -396,7 +396,7 @@ DefineReplacementHook(fopenHook) {
 
 				if (_strnicmp(_Filename + g_DataDir.string().size() + 2, "\\ui\\tex\\", 8) ==
 					0 &&
-					ConfigManager::IsWidescreenEnabled) {
+					ConfigManager::g_WidescreenEnabled) {
 					// If the file is a UI texture AND we are running in widescreen, use
 					// UI\Tex_HD instead of UI\Tex
 					std::string new_filepath =

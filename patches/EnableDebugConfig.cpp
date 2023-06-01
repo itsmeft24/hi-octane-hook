@@ -36,7 +36,7 @@ DefineReplacementHook(CarsGameSetConfigArguments) {
 };
 
 void debug_txt_support::install() {
-  if (ConfigManager::EnableDebugTxtConfig) {
+  if (ConfigManager::g_DebugTxtConfigEnabled) {
       CarsGameSetConfigArguments::install_at_ptr(0x004416b0);
       logging::log("[EnableDebugConfig::Install] Successfully installed patch!");
   }

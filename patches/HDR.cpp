@@ -215,8 +215,13 @@ namespace HDRPatch {
 			SetShaders(_this->DownsampleVert, _this->DownsamplePixel);
 
 			// Set shader constants.
-			auto window_width = ConfigManager::IsWidescreenEnabled ? 640 : ConfigManager::DesiredWindowWidth;
-			auto window_height = ConfigManager::IsWidescreenEnabled ? 480 : ConfigManager::DesiredWindowHeight;
+			D3DDEVICE_CREATION_PARAMETERS cparams{};
+			RECT rect{};
+			d3d9()->GetCreationParameters(&cparams);
+			GetClientRect(cparams.hFocusWindow, &rect);
+
+			std::int32_t window_width = rect.left - rect.right;
+			std::int32_t window_height = rect.top - rect.bottom;
 
 			float OnePixelOffset[] = { 1.0 / window_width, 1.0 / window_height, 0, 0 };
 			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_OnePixelOffset, OnePixelOffset, 1);

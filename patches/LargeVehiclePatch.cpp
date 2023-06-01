@@ -41,13 +41,13 @@ BOOL __stdcall GetCameraAnimIndex(char* character) {
         std::find(large_vehicles_vec.begin(), large_vehicles_vec.end(), string) !=
         large_vehicles_vec.end();
 
-    if (!is_large_vehicle && !ConfigManager::IsWidescreenEnabled) {
+    if (!is_large_vehicle && !ConfigManager::g_WidescreenEnabled) {
         return 0;
     }
-    else if (!is_large_vehicle && ConfigManager::IsWidescreenEnabled) {
+    else if (!is_large_vehicle && ConfigManager::g_WidescreenEnabled) {
         return 2;
     }
-    else if (is_large_vehicle && !ConfigManager::IsWidescreenEnabled) {
+    else if (is_large_vehicle && !ConfigManager::g_WidescreenEnabled) {
         return 1;
     }
     else { // is_large_vehicle && ConfigManager::IsWidescreenEnabled

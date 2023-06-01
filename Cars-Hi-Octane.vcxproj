@@ -14,6 +14,7 @@
     <ClCompile Include="ConfigManager.cpp" />
     <ClCompile Include="FileSystem.cpp" />
     <ClCompile Include="HiOctane.cpp" />
+    <ClCompile Include="patches\CarsDialogueEx.cpp" />
     <ClCompile Include="patches\DataAccessLogging.cpp" />
     <ClCompile Include="patches\DialogueListEx.cpp" />
     <ClCompile Include="patches\EnableDebugConfig.cpp" />
@@ -33,6 +34,7 @@
     <ClInclude Include="framework.hpp" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="Hooks.h" />
+    <ClInclude Include="patches\CarsDialogueEx.h" />
     <ClInclude Include="patches\DataAccessLogging.h" />
     <ClInclude Include="patches\DialogueListEx.h" />
     <ClInclude Include="patches\EnableDebugConfig.h" />

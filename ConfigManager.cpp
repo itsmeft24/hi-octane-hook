@@ -9,11 +9,9 @@
 #include "Globals.h"
 #include "Logging.h"
 
-bool ConfigManager::EnableConsoleWindow = true;
-bool ConfigManager::EnableDebugTxtConfig = false;
-bool ConfigManager::IsWidescreenEnabled = false;
-unsigned int ConfigManager::DesiredWindowWidth = 1920;
-unsigned int ConfigManager::DesiredWindowHeight = 1080;
+bool ConfigManager::g_ConsoleWindowEnabled = true;
+bool ConfigManager::g_DebugTxtConfigEnabled = false;
+bool ConfigManager::g_WidescreenEnabled = false;
 
 std::optional<bool> read_bool(const std::string &str) {
   size_t equal = str.find('=');
@@ -55,19 +53,13 @@ void ConfigManager::read() {
   std::string line;
   while (std::getline(conf_file, line)) {
     if (line.find("EnableConsoleWindow") != std::string::npos) {
-      EnableConsoleWindow = read_bool(line).value_or(true);
+      g_ConsoleWindowEnabled = read_bool(line).value_or(true);
     }
     if (line.find("EnableWidescreen") != std::string::npos) {
-      IsWidescreenEnabled = read_bool(line).value_or(false);
+        g_WidescreenEnabled = read_bool(line).value_or(false);
     }
     if (line.find("EnableDebugTxtConfig") != std::string::npos) {
-      EnableDebugTxtConfig = read_bool(line).value_or(false);
-    }
-    if (line.find("DesiredWindowWidth") != std::string::npos) {
-      DesiredWindowWidth = read_int(line).value_or(1920);
-    }
-    if (line.find("DesiredWindowHeight") != std::string::npos) {
-      DesiredWindowHeight = read_int(line).value_or(1080);
+      g_DebugTxtConfigEnabled = read_bool(line).value_or(false);
     }
   }
   conf_file.close();

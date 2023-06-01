@@ -121,7 +121,7 @@ DefineReplacementHook(GameTextCreate) {
             doc.GetArray().PushBack(v, doc.GetAllocator());
             jsonSize += formattedStr.size() + 18;
         }
-        if (ConfigManager::IsWidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
+        if (ConfigManager::g_WidescreenEnabled && stricmp(name, "pcfrontendui") == 0) {
             for (int x = 0; x < (int)widescreen::SDResolution::Max; x++) {
                 const auto& sd = widescreen::resolve_sd((widescreen::SDResolution)x);
                 const auto& hd = widescreen::resolve_hd((widescreen::SDResolution)x);
