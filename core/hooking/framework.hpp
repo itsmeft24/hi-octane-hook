@@ -47,7 +47,6 @@ namespace winapi {
 
 namespace hooking {
 
-
     template <typename T1, typename std::enable_if_t<is_ptr<T1>>* = nullptr, typename T2, typename std::enable_if_t<is_ptr<T2>>* = nullptr>
     inline void write_jmp(T1 src, T2 dst) {
         uintptr_t relativeAddress = (uintptr_t)((std::uint8_t*)dst - (uintptr_t)src) - 5;
@@ -224,6 +223,9 @@ namespace hooking {
                     // Ensure original function has the trampoline area nop'd out.
                     write_jmp(ptr, jit_area - (9 + relocated.value().size() + 5));
                     winapi::set_permission(ptr, original_code_len, old_perm);
+                }
+                else {
+                    throw std::exception();
                 }
             }
         };
