@@ -12,3 +12,4 @@ Currently implemented features include:
 - [x] The old .bin and .loc files are gone, and in their place are standard JSON files, in order to make creating and testing localization edits significantly easier.
 - [x] The FE_Select_Continue and FE_Back sounds now play in the Main Menu, just as they do on the Xbox 360 and PS3 versions of the game.
 - [x] Music now plays during the Explore activities in the game. [Thanks [Jordon](https://github.com/Jordon87)!]
+- [x] The *NumberOfCars* limit in C\Audio\Dialogue.txt has been raised to 127, allowing for 127 characters to be fully voiced.
