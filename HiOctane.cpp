@@ -49,6 +49,8 @@ void init() {
     fs::init();
 
     widescreen::install();
+    
+    cars_dialogue_ex::install();
   
     dialogue_list::install();
   
