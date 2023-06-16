@@ -23,7 +23,7 @@ constexpr std::string_view kDataDirName = "hi-octane";
 // This string needs to have a static lifetime as a pointer to it will be given to the game.
 static std::string data_dir_fmt = std::format("%s\\{}\\", kDataDirName);
 
-extern "C" __declspec(dllexport) const char *VERSION = "1.9.2.3";
+extern "C" __declspec(dllexport) const char *VERSION = "2.0.0-alpha";
 
 void init() {
     hooking::write_push(0x00619929, data_dir_fmt.c_str());
@@ -66,7 +66,9 @@ void init() {
   
     explore_music::install();
 
-    // HDRPatch::install();
+    playlist_events::install();
+
+    //HDRPatch::install();
   
     plugin_manager::load_plugins();
   

@@ -212,21 +212,16 @@ namespace hooking {
                 jit_area++; // popad
                 
                 // Attempt to build/relocate the code, and if successful, copy into the trampoline.
-                auto relocated = relocate_code(ptr, original_code_len, reinterpret_cast<uintptr_t>(jit_area));
-                if (relocated.has_value()) {
-                    std::memcpy(jit_area, relocated.value().data(), relocated.value().size());
-                    jit_area += relocated.value().size();
-                    write_jmp(jit_area, ptr + 5); jit_area += 5; // jmp ptr
-                    // Insert jmp from the source to the inline handler.
-                    const auto& [old_perm, success] = winapi::set_permission(ptr, original_code_len, winapi::Perm::ExecuteReadWrite);
-                    write_nop(ptr, original_code_len);
-                    // Ensure original function has the trampoline area nop'd out.
-                    write_jmp(ptr, jit_area - (9 + relocated.value().size() + 5));
-                    winapi::set_permission(ptr, original_code_len, old_perm);
-                }
-                else {
-                    throw std::exception();
-                }
+                auto relocated = relocate_code(ptr, original_code_len, reinterpret_cast<uintptr_t>(jit_area)).unwrap();
+                std::memcpy(jit_area, relocated.data(), relocated.size());
+                jit_area += relocated.size();
+                write_jmp(jit_area, ptr + 5); jit_area += 5; // jmp ptr
+                // Insert jmp from the source to the inline handler.
+                const auto& [old_perm, success] = winapi::set_permission(ptr, original_code_len, winapi::Perm::ExecuteReadWrite);
+                write_nop(ptr, original_code_len);
+                // Ensure original function has the trampoline area nop'd out.
+                write_jmp(ptr, jit_area - (9 + relocated.size() + 5));
+                winapi::set_permission(ptr, original_code_len, old_perm);
             }
         };
     };

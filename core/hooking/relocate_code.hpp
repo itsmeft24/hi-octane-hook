@@ -4,6 +4,9 @@
 #include <cstddef>
 #include <vector>
 #include <optional>
+#include <format>
+
+#include "core/err.hpp"
 
 #define ZYDIS_STATIC_BUILD
 #include <Zydis/Decoder.h>
@@ -11,8 +14,43 @@
 
 namespace hooking {
 	namespace impl {
-	
-		inline std::optional<std::vector<std::uint8_t>> relocate_code(std::uintptr_t source, std::size_t source_size, std::uintptr_t dest) {
+		enum class CodeRelocError {
+			// Failed to calculate an absolute address.
+			FailedAbsoluteAddressCalc,
+			// Failed to convert a ZydisDecodedInstruction to a ZydisEncoderRequest.
+			FailedDecodedInstrToEncoderRequest,
+			// Failed to encode an instruction.
+			FailedEncodeInstr
+		};
+	}
+};
+
+namespace std
+{
+	template<> struct formatter<hooking::impl::CodeRelocError> : public std::formatter<std::string>
+	{
+		template<typename FormatContext>
+		auto format(hooking::impl::CodeRelocError p, FormatContext& fc)
+		{
+			switch (p)
+			{
+			case hooking::impl::CodeRelocError::FailedAbsoluteAddressCalc:
+				return std::format_to(fc.out(), "FailedAbsoluteAddressCalc");
+			case hooking::impl::CodeRelocError::FailedDecodedInstrToEncoderRequest:
+				return std::format_to(fc.out(), "FailedDecodedInstrToEncoderRequest");
+			case hooking::impl::CodeRelocError::FailedEncodeInstr:
+				return std::format_to(fc.out(), "FailedEncodeInstr");
+			default:
+				return std::format_to(fc.out(), "");
+			}
+		}
+	};
+};
+
+namespace hooking {
+	namespace impl {
+
+		inline Result<std::vector<std::uint8_t>, CodeRelocError> relocate_code(std::uintptr_t source, std::size_t source_size, std::uintptr_t dest) {
 			ZydisDecoder decoder{};
 			ZydisDecoderInit(&decoder, ZYDIS_MACHINE_MODE_LONG_COMPAT_32, ZYDIS_STACK_WIDTH_32);
 			
@@ -33,7 +71,7 @@ namespace hooking {
 						if (elem.imm.is_relative) {
 							ZyanU64 absolute_address = 0;
 							if (!ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(&instruction, &elem, static_cast<ZyanU64>(source + source_offset), &absolute_address))) {
-								return std::nullopt;
+								return Err(CodeRelocError::FailedAbsoluteAddressCalc);
 							}
 							elem.imm.value.u = absolute_address;
 							elem.imm.is_relative = false;
@@ -43,7 +81,7 @@ namespace hooking {
 						if (elem.mem.base == ZYDIS_REGISTER_EIP) {
 							ZyanU64 absolute_address = 0;
 							if (!ZYAN_SUCCESS(ZydisCalcAbsoluteAddress(&instruction, &elem, static_cast<ZyanU64>(source + source_offset), &absolute_address))) {
-								return std::nullopt;
+								return Err(CodeRelocError::FailedAbsoluteAddressCalc);
 							}
 							elem.mem.base = ZYDIS_REGISTER_NONE;
 							elem.mem.disp.value = absolute_address;
@@ -58,13 +96,13 @@ namespace hooking {
 
 				// Convert the decoded instruction to an encoder request.
 				if (!ZYAN_SUCCESS(ZydisEncoderDecodedInstructionToEncoderRequest(&instruction, operands, instruction.operand_count_visible, &encoder_request))) {
-					return std::nullopt;
+					return Err(CodeRelocError::FailedDecodedInstrToEncoderRequest);
 				}
 
 				// Encode the instruction into the output vector.
 				ZyanUSize encoded_size = ZYDIS_MAX_INSTRUCTION_LENGTH;
 				if (!ZYAN_SUCCESS(ZydisEncoderEncodeInstructionAbsolute(&encoder_request, output.data() + dest_offset, &encoded_size, static_cast<ZyanU64>(dest + dest_offset)))) {
-					return std::nullopt;
+					return Err(CodeRelocError::FailedEncodeInstr);
 				}
 
 				// Shrink the vector to fit.
@@ -74,7 +112,7 @@ namespace hooking {
 				source_offset += instruction.length;
 				dest_offset += encoded_size;
 			}
-			return output;
+			return Ok(std::move(output));
 		}
 		
 		inline std::size_t get_instruction_len(std::uintptr_t ptr) {

@@ -24,12 +24,14 @@
     <ClCompile Include="patches\hdr.cpp" />
     <ClCompile Include="patches\large_vehicles.cpp" />
     <ClCompile Include="patches\loading_screen_name.cpp" />
+    <ClCompile Include="patches\playlist_events.cpp" />
     <ClCompile Include="patches\ui_sounds_fix.cpp" />
     <ClCompile Include="patches\widescreen.cpp" />
     <ClCompile Include="HiOctane.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\config.hpp" />
+    <ClInclude Include="core\err.hpp" />
     <ClInclude Include="core\fs.hpp" />
     <ClInclude Include="core\globals.hpp" />
     <ClInclude Include="core\logging.hpp" />
@@ -46,6 +48,7 @@
     <ClInclude Include="patches\hdr.hpp" />
     <ClInclude Include="patches\large_vehicles.hpp" />
     <ClInclude Include="patches\loading_screen_name.hpp" />
+    <ClInclude Include="patches\playlist_events.hpp" />
     <ClInclude Include="patches\ui_sounds_fix.hpp" />
     <ClInclude Include="patches\widescreen.hpp" />
     <ClInclude Include="patches\patches.hpp" />

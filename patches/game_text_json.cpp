@@ -103,7 +103,11 @@ DefineReplacementHook(GameTextCreate) {
         doc.Parse<rapidjson::kParseStopWhenDoneFlag>(jsonBuffer);
 
         if (_stricmp(name, "commonui") == 0) {
-            std::string formattedStr = "Hi-Octane Version: " + std::string(VERSION);
+#ifdef _DEBUG
+            std::string formattedStr = std::format("Hi-Octane Version: {}-DEBUG", VERSION);
+#else
+            std::string formattedStr = std::format("Hi-Octane Version: {}", VERSION);
+#endif // _DEBUG
             rapidjson::Value v(rapidjson::kObjectType);
             v.AddMember("TextID", "STR_HI_OCTANE_VER", doc.GetAllocator());
             v.AddMember("Value", rapidjson::Value(formattedStr.c_str(), doc.GetAllocator()), doc.GetAllocator());
