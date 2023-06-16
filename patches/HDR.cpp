@@ -209,42 +209,124 @@ namespace HDRPatch {
 		{
 			// Idk what this is
 			uintptr_t g_RenderTarget = RenderTarget();
-			SomethingIdk(0x006fd2b8, g_RenderTarget + 0x98, 4);
-
+			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
+			SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
+			
 			// Set shaders.
 			SetShaders(_this->DownsampleVert, _this->DownsamplePixel);
-
+			
 			// Set shader constants.
 			D3DDEVICE_CREATION_PARAMETERS cparams{};
 			RECT rect{};
 			d3d9()->GetCreationParameters(&cparams);
 			GetClientRect(cparams.hFocusWindow, &rect);
-
-			std::int32_t window_width = rect.left - rect.right;
-			std::int32_t window_height = rect.top - rect.bottom;
-
+			
+			std::int32_t window_width = rect.right - rect.left;
+			std::int32_t window_height = rect.bottom - rect.top;
+			
 			float OnePixelOffset[] = { 1.0 / window_width, 1.0 / window_height, 0, 0 };
 			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_OnePixelOffset, OnePixelOffset, 1);
-
+			
 			float MaxTexCoord[] = { 1.0, 1.0, 0, 0 };
 			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_MaxTexCoord, MaxTexCoord, 1);
-
+			
 			// Set texture slots and render.
-			uintptr_t this_00 = PrepareTextureSet(0x006fd2b8, 4);
-			for (int x = 0; x < 4; x++) {
+			uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
+			for (int x = 0; x < 15; x++) {
 				SetTextureSlot(this_00, x);
 			}
-
+			
 			X360FilterAlgorithm_RenderGeometry(&_this->base, 0);
 		}
 		// Thresholding
 		{
+			// Idk what this is
+			uintptr_t g_RenderTarget = RenderTarget();
+			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
+			// SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
+
+			// Set shaders.
+			SetShaders(_this->ThresholdVert, _this->ThresholdPixel);
+
+			// // Set texture slots and render.
+			// uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
+			// for (int x = 0; x < 4; x++) {
+			// 	SetTextureSlot(this_00, x);
+			// }
+
+			X360FilterAlgorithm_RenderGeometry(&_this->base, 0);
 		}
 		// Buffering
 		{
+			// Idk what this is
+			uintptr_t g_RenderTarget = RenderTarget();
+			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
+			// SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
+
+
+			float Speed[] = { _this->PositiveRate, _this->NegativeRate, 0, 0 };
+			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Speed, Speed, 1);
+
+
+			// Set shaders.
+			SetShaders(_this->BufferVert, _this->BufferPixel);
+
+			// // Set texture slots and render.
+			// uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
+			// for (int x = 0; x < 4; x++) {
+			// 	SetTextureSlot(this_00, x);
+			// }
+
+			X360FilterAlgorithm_RenderGeometry(&_this->base, 2);
 		}
 		// Blurring
 		{
+			// Idk what this is
+			uintptr_t g_RenderTarget = RenderTarget();
+			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
+			// SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
+
+			// Constants for Gaussian blur
+			const int kernelSize = 15;  // Size of the blur kernel
+			const float sigma = 4.0f;   // Standard deviation for Gaussian distribution
+
+			// Generate Gaussian kernel weights
+			float kernelWeights[16];
+			float sum = 0.0f;
+			for (int i = 0; i < kernelSize; ++i) {
+				float x = i - kernelSize / 2;
+				kernelWeights[i] = exp(-(x * x) / (2 * sigma * sigma));
+				sum += kernelWeights[i];
+			}
+			kernelWeights[kernelSize] = 0.0;
+
+			// Normalize kernel weights
+			for (int i = 0; i < kernelSize; ++i) {
+				kernelWeights[i] /= sum;
+			}
+			
+			// Set PS_HDR_BlurOffset
+			float blurOffsets[16];  // Assuming 2D texture coordinates
+			for (int i = 0; i < kernelSize; ++i) {
+				blurOffsets[i] = i - kernelSize / 2;
+			}
+			blurOffsets[kernelSize] = 0.0;
+
+			//d3d9()->GetEr
+
+			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_BlurOffset, blurOffsets, 4);
+			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_BlurKernel, kernelWeights, 4);
+
+			// Set shaders.
+			SetShaders(_this->BlurVert, _this->BlurPixel);
+
+			// // Set texture slots and render.
+			// uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
+			// for (int x = 0; x < 4; x++) {
+			// 	SetTextureSlot(this_00, x);
+			// }
+
+			X360FilterAlgorithm_RenderGeometry(&_this->base, 4);
 		}
 		// Final compositing
 		{

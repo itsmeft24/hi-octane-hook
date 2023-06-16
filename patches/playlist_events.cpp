@@ -9,9 +9,6 @@ const std::unordered_map<std::string, int> activityNameToPlaylistIdx = {
 	{"HubRace", 1},
 	{"StadiumRace", 2},
 	{"RustbucketRace", 3},
-	{"GuidoKartRace", 14},
-	{"PistonCupRace", 15},
-	{"TimeTrialRace", 16}
 };
 
 DefineInlineHook(HandleRaceTypes) {
