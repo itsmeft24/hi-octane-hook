@@ -27,7 +27,7 @@ DWORD* musicfix = (DWORD*)0x004978ee;
 DWORD* onlymusicexception = (DWORD*)0x004979e7;
 
 DefineInlineHook(SetExplorePlaylist) {
-    static void __cdecl callback(hooking::InlineContext ctx) {
+    static void __cdecl callback(hooking::InlineCtx& ctx) {
         Music* music = (*lpCarsGame)->carsAudioManager->music;
         Music_SetCurrentPlaylist(music, 13);
         music->vtbl->Shuffle(music, 1);

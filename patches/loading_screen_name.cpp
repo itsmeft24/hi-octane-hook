@@ -7,7 +7,7 @@
 #include "loading_screen_name.hpp"
 
 DefineInlineHook(FixLoadingScreenPath) {
-	static void callback(hooking::InlineContext ctx) {
+	static void callback(hooking::InlineCtx& ctx) {
 		uintptr_t lpCarsGame = *reinterpret_cast<uintptr_t*>(0x00718A74);
 		const char* loading_screen_name = reinterpret_cast<const char*>(lpCarsGame + 0x764);
 		std::string calculated_path = std::format("e\\ui\\tex\\{}", loading_screen_name);

@@ -97,7 +97,7 @@ namespace hooking {
         float floating_point;
     };
 
-    struct InlineContext {
+    struct InlineCtx {
 		Register eflags;
 		Register edi;
 		Register esi;
@@ -123,7 +123,7 @@ namespace hooking {
         }
     };
 
-    static_assert(sizeof(InlineContext) == 36);
+    static_assert(sizeof(InlineCtx) == 36);
 
     template<typename R, typename... A>
     using GenericFuncPtr = R(*)(A...);
@@ -189,7 +189,7 @@ namespace hooking {
         public:
 
             static inline void install_at_ptr(uintptr_t ptr) {
-                static_assert(std::is_same_v<void(__cdecl*)(InlineContext), CallbackFuncPtr<>>, "Callback function must be void and take an InlineContext!");
+                static_assert(std::is_same_v<void(__cdecl*)(InlineCtx&), CallbackFuncPtr<>>, "Callback function must be void and take an InlineCtx!");
 
                 // Calculate the minimum bytes needed to be backed up, and an upper-bound limit of how many bytes the relocated code could take. (Used for below allocation)
                 auto [original_code_len, padded_code_len] = find_suitable_backup_size(ptr);
@@ -197,15 +197,19 @@ namespace hooking {
                 if (original_code_len < 5) throw std::exception();
 				
                 // Allocate code for inline handler.
-                std::uint8_t* jit_area = winapi::allocate_code<std::uint8_t>(9 + padded_code_len + 5);
+                std::uint8_t* jit_area = winapi::allocate_code<std::uint8_t>(11 + padded_code_len + 5);
                 
                 // Build inline handler.
                 *jit_area = 0x60;
                 jit_area++; // pushad
                 *jit_area = 0x9C;
                 jit_area++; // pushfd
+                *jit_area = 0x54;
+                jit_area++; // push esp
                 write_call(jit_area, Derived::callback);
                 jit_area += 5; // call Derived::callback
+                *jit_area = 0x58;
+                jit_area++; // pop eax
                 *jit_area = 0x9D;
                 jit_area++; // popfd
                 *jit_area = 0x61;
@@ -220,7 +224,7 @@ namespace hooking {
                 const auto& [old_perm, success] = winapi::set_permission(ptr, original_code_len, winapi::Perm::ExecuteReadWrite);
                 write_nop(ptr, original_code_len);
                 // Ensure original function has the trampoline area nop'd out.
-                write_jmp(ptr, jit_area - (9 + relocated.size() + 5));
+                write_jmp(ptr, jit_area - (11 + relocated.size() + 5));
                 winapi::set_permission(ptr, original_code_len, old_perm);
             }
         };

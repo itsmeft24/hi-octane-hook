@@ -12,7 +12,7 @@ const std::unordered_map<std::string, int> activityNameToPlaylistIdx = {
 };
 
 DefineInlineHook(HandleRaceTypes) {
-	static void __cdecl callback(hooking::InlineContext ctx) {
+	static void __cdecl callback(hooking::InlineCtx& ctx) {
 		const std::string activity = *reinterpret_cast<char**>(ctx.esi.unsigned_integer + 0xc);
 		if (activityNameToPlaylistIdx.contains(activity)) {
 			ctx.eax.unsigned_integer = activityNameToPlaylistIdx.at(activity);

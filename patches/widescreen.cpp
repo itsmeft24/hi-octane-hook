@@ -21,14 +21,14 @@ widescreen::SDResolution g_BootResolution = widescreen::SDResolution::_800x600;
 
 // Undoes a compiler optimization by the game that always resulted in pScreenMode being compared against itself.
 DefineInlineHook(CMPPatch) {
-    static void __cdecl callback(hooking::InlineContext ctx) {
+    static void __cdecl callback(hooking::InlineCtx& ctx) {
         ctx.edi.unsigned_integer = 1;
     }
 };
 
 // Sets the boot resolution (held inside the CarsSettings class) to the user-selected one, instead of the default.
 DefineInlineHook(BootResolution) {
-    static void __cdecl callback(hooking::InlineContext ctx) {
+    static void __cdecl callback(hooking::InlineCtx& ctx) {
         *reinterpret_cast<std::int32_t*>(ctx.esi.unsigned_integer + 0x2c) = std::to_underlying(g_BootResolution);
     }
 };
