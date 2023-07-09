@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <shlobj.h>
 
+#include "core/bink_reexport.hpp"
 #include "core/config.hpp"
 #include "core/fs.hpp"
 #include "core/globals.hpp"
@@ -15,8 +16,6 @@
 #include "core/utils.hpp"
 
 DeclareFunction(void*, __cdecl, __fsopen, 0x0063FBFB, char*, char*, int); // VS2005 CRT function
-
-DeclareFunction(DWORD*, __stdcall, BinkOpen, GetProcAddress(GetModuleHandleA("binkw32.dll"), "_BinkOpen@8"), char*, DWORD);
 DeclareFunction(DWORD, __stdcall, BASS_SampleLoad, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_SampleLoad"), BOOL, char*, DWORD, DWORD, DWORD, DWORD);
 DeclareFunction(DWORD, __stdcall, BASS_StreamCreateFile, GetProcAddress(GetModuleHandleA("bass.dll"), "BASS_StreamCreateFile"),BOOL, char*, DWORD, DWORD, DWORD);
 
@@ -231,7 +230,11 @@ bool discover_files() {
 	}
 }
 
-DWORD* __stdcall BinkOpenHook(char* file, DWORD flags) {
+BINK* __stdcall BinkOpenHook(char* file, std::uint32_t flags) {
+
+	// apologies for this ugly hack
+	DeclareFunction(BINK*, __stdcall, BinkOpen, BINKOPEN, char*, std::uint32_t);
+
 	std::string base_filepath = file;
 	// Strip DataPC path and make it lowercase.
 	base_filepath = base_filepath.substr(g_DataDir.string().size() + 1);

@@ -11,6 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="core\bink_reexport.cpp" />
     <ClCompile Include="core\config.cpp" />
     <ClCompile Include="core\fs.cpp" />
     <ClCompile Include="core\logging.cpp" />
@@ -30,6 +31,7 @@
     <ClCompile Include="HiOctane.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="core\bink_reexport.hpp" />
     <ClInclude Include="core\config.hpp" />
     <ClInclude Include="core\err.hpp" />
     <ClInclude Include="core\fs.hpp" />
@@ -89,14 +91,14 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(ProjectDir)\bin</OutDir>
-    <TargetName>Cars-Hi-Octane</TargetName>
+    <TargetName>CarsGDF</TargetName>
     <IncludePath>dependencies\zydis\include;$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <LibraryPath>dependencies\zydis\lib\debug;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <TargetName>Cars-Hi-Octane</TargetName>
+    <TargetName>CarsGDF</TargetName>
     <OutDir>$(ProjectDir)\bin</OutDir>
     <IncludePath>dependencies\zydis\include;$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>

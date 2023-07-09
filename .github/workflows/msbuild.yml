@@ -37,7 +37,7 @@ jobs:
     
     - name: Prepare ZIP
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: tar -xf assets\precompiled.zip && mkdir Hi-Octane\C\Modules && copy bin\cars-hi-octane.dll Hi-Octane\C\Modules && copy bin\cars-hi-octane.lib Hi-Octane\C\Modules && copy bin\cars-hi-octane-launcher-cli.exe && tar -a -cf release.zip Hi-Octane\* Cars_Mater.exe cars-hi-octane-launcher-cli.exe
+      run: tar -xf assets\precompiled.zip && copy bin\CarsGDF.dll .\ && copy bin\CarsGDF.lib .\ && tar -a -cf release.zip Hi-Octane\* CarsGDF.dll CarsGDF.lib Cars_Mater.exe
     
     - name: Upload build artifact
       uses: actions/upload-artifact@v3

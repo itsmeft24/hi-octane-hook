@@ -7,6 +7,7 @@
 #include <vector>
 #include <format>
 
+#include "core/bink_reexport.hpp"
 #include "core/config.hpp"
 #include "core/fs.hpp"
 #include "core/globals.hpp"
@@ -99,6 +100,10 @@ DefineReplacementHook(WinMainHook) {
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID lpReserved) {
     if (reason == DLL_PROCESS_ATTACH) {
         WinMainHook::install_at_ptr(0x006196a0);
+        bink_reexport::load();
+    }
+    if (reason == DLL_PROCESS_DETACH) {
+        bink_reexport::unload();
     }
     return TRUE;
 }
