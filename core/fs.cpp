@@ -398,8 +398,25 @@ DefineReplacementHook(fcloseHook) {
 	}
 };
 
+/*
+Fixes an issue where the game will erroneously strip away large portions of a path, while trying to replace its file extension.
+*/
+DefineReplacementHook(FixExtensionReplacement) {
+	static void callback(char* buffer, char* extension) {
+		std::filesystem::path path(buffer);
+		path.replace_extension(extension);
+		std::string resolved = path.string();
+
+		// (Below code is *VERY* unsafe but pls i don't know how else to do this)
+		std::memcpy(buffer, resolved.c_str(), resolved.size());
+		buffer[resolved.size()] = 0;
+	}
+};
+
 void fs::init() {
 	discover_files();
+
+	FixExtensionReplacement::install_at_ptr(0x00409ec0);
 
 	fopenHook::install_at_ptr(0x0063FCBF);
 	fcloseHook::install_at_ptr(0x0063FD94);

@@ -30,19 +30,20 @@ std::vector<plugin_manager::Plugin> loaded_plugins;
 void plugin_manager::load_plugins() {
 
     std::filesystem::path c_modules = g_DataDir / "C\\Modules";
+    if (std::filesystem::is_directory(c_modules)) {
+        for (const auto& entry : std::filesystem::directory_iterator(c_modules)) {
+            if (entry.is_regular_file()) {
+                std::string base_name = entry.path().filename().string();
+                utils::make_lowercase(base_name);
 
-    for (const auto& entry : std::filesystem::directory_iterator(c_modules)) {
-        if (entry.is_regular_file()) {
-            std::string base_name = entry.path().filename().string();
-            utils::make_lowercase(base_name);
+                if (base_name == "cars-hi-octane.dll") {
+                    continue;
+                }
 
-            if (base_name == "cars-hi-octane.dll") {
-                continue;
-            }
-
-            if (entry.path().extension().string() == ".dll") {
-                loaded_plugins.emplace_back(base_name, LoadLibraryA(entry.path().string().c_str()));
-                logging::log("[PluginManager::LoadAllPlugins] Loading plugin: {}...", base_name);
+                if (entry.path().extension().string() == ".dll") {
+                    loaded_plugins.emplace_back(base_name, LoadLibraryA(entry.path().string().c_str()));
+                    logging::log("[PluginManager::LoadAllPlugins] Loading plugin: {}...", base_name);
+                }
             }
         }
     }
