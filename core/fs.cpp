@@ -130,7 +130,7 @@ HIOCTANE_API void __stdcall HiOctane_RegisterFileCallback(const char* filepath, 
 // and the size of the buffer (used for bounds checking) If the file does not
 // exist, 0 is returned. If the buffer is too small, the size of the file is
 // returned. Otherwise, the size of the file is returned.
-HIOCTANE_API int __stdcall HiOctane_LoadFile(const char* filepath, void* buffer, size_t allocated) {
+HIOCTANE_API unsigned int __stdcall HiOctane_LoadFile(const char* filepath, void* buffer, size_t allocated) {
 	auto p = fs::resolve_path(filepath);
 	if (!std::filesystem::exists(p)) {
 		return 0;
@@ -144,7 +144,7 @@ HIOCTANE_API int __stdcall HiOctane_LoadFile(const char* filepath, void* buffer,
 	std::ifstream f(p, std::ios::in | std::ios::binary);
 	f.read((char*)buffer, file_size);
 	f.close();
-	return file_size;
+	return static_cast<unsigned int>(file_size);
 }
 
 // Registers a deleted file, takes in a single argument being a file path
@@ -403,8 +403,11 @@ Fixes an issue where the game will erroneously strip away large portions of a pa
 */
 DefineReplacementHook(FixExtensionReplacement) {
 	static void callback(char* buffer, char* extension) {
-		std::filesystem::path path(buffer);
-		path.replace_extension(extension);
+		std::string suffix(extension);
+		auto start = suffix.find_first_of('.');
+
+		std::filesystem::path path(buffer + suffix.substr(0, start));
+		path.replace_extension(suffix.substr(start));
 		std::string resolved = path.string();
 
 		// (Below code is *VERY* unsafe but pls i don't know how else to do this)
