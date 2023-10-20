@@ -6,3 +6,6 @@
 /bin
 /Debug
 /Release
+/assets/shaders/compiled
+/commit_hash.h
+/commit_hash.txt

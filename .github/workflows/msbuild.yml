@@ -26,7 +26,7 @@ jobs:
     - name: Install packages and dependencies
       run: |
         bootstrap-vcpkg
-        vcpkg install zydis directxtex rapidjson detours --triplet x86-windows-static
+        vcpkg install curl libzip zydis directxtex rapidjson detours --triplet x86-windows-static
         vcpkg integrate install
       
     - name: Build
@@ -37,7 +37,15 @@ jobs:
     
     - name: Prepare ZIP
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: tar -xf assets\precompiled.zip && copy bin\CarsGDF.dll .\ && copy bin\CarsGDF.lib .\ && tar -a -cf release.zip Hi-Octane\* CarsGDF.dll CarsGDF.lib Cars_Mater.exe
+      run: |
+        tar -xf assets\precompiled.zip
+        copy bin\CarsGDF.dll .\
+        copy bin\CarsGDF.lib .\
+        cd .\assets\shaders\
+        call compileall.bat
+        cd ..\..\
+        robocopy .\assets\shaders\compiled .\Hi-Octane\C\Shaders\3
+        tar -a -cf release.zip Hi-Octane\* CarsGDF.dll CarsGDF.lib Cars_Mater.exe
     
     - name: Upload build artifact
       uses: actions/upload-artifact@v3

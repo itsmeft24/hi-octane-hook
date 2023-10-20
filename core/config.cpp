@@ -12,6 +12,7 @@
 bool config::g_ConsoleWindowEnabled = true;
 bool config::g_DebugTxtConfigEnabled = false;
 bool config::g_WidescreenEnabled = false;
+bool config::g_AutomaticUpdatesEnabled = true;
 
 std::optional<bool> read_bool(const std::string &str) {
     size_t equal = str.find('=');
@@ -55,6 +56,9 @@ void config::read() {
         }
         if (line.find("EnableDebugTxtConfig") != std::string::npos) {
             g_DebugTxtConfigEnabled = read_bool(line).value_or(false);
+        }
+        if (line.find("EnableAutomaticUpdates") != std::string::npos) {
+            g_AutomaticUpdatesEnabled = read_bool(line).value_or(true);
         }
     }
     conf_file.close();

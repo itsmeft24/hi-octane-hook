@@ -1,0 +1,154 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="HiOctane.cpp" />
+    <ClCompile Include="patches\cars_dialogue_ex.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\data_access_logging.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\debug_txt_support.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\dialogue_list.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\explore_music.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\game_text_json.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\hdr.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\large_vehicles.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\loading_screen_name.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\playlist_events.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\ui_sounds_fix.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\widescreen.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="core\bink_reexport.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\config.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\fs.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\logging.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="core\plugin_manager.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\misc.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="core\update.cpp">
+      <Filter>Core</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="patches\cars_dialogue_ex.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\data_access_logging.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\debug_txt_support.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\dialogue_list.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\explore_music.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\game_text_json.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\hdr.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\large_vehicles.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\loading_screen_name.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\playlist_events.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\ui_sounds_fix.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\widescreen.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="core\bink_reexport.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\config.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\err.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\fs.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\globals.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\logging.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\patches.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="core\utils.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\plugin_manager.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+    <ClInclude Include="core\hooking\relocate_code.hpp">
+      <Filter>Core\Hooking</Filter>
+    </ClInclude>
+    <ClInclude Include="core\hooking\framework.hpp">
+      <Filter>Core\Hooking</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\misc.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="core\update.hpp">
+      <Filter>Core</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="Patches">
+      <UniqueIdentifier>{a70a88b0-041c-473f-afab-6bf9423b5c43}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core">
+      <UniqueIdentifier>{a3186ca6-2b74-4f47-92be-5f6cd7ffc579}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Hooking">
+      <UniqueIdentifier>{223cb3d3-2f42-4d82-a698-030ee0f698e1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{6ab2a8fd-4236-4111-815b-65f098281127}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+</Project>

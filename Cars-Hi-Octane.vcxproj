@@ -16,6 +16,7 @@
     <ClCompile Include="core\fs.cpp" />
     <ClCompile Include="core\logging.cpp" />
     <ClCompile Include="core\plugin_manager.cpp" />
+    <ClCompile Include="core\update.cpp" />
     <ClCompile Include="patches\cars_dialogue_ex.cpp" />
     <ClCompile Include="patches\data_access_logging.cpp" />
     <ClCompile Include="patches\debug_txt_support.cpp" />
@@ -25,6 +26,7 @@
     <ClCompile Include="patches\hdr.cpp" />
     <ClCompile Include="patches\large_vehicles.cpp" />
     <ClCompile Include="patches\loading_screen_name.cpp" />
+    <ClCompile Include="patches\misc.cpp" />
     <ClCompile Include="patches\playlist_events.cpp" />
     <ClCompile Include="patches\ui_sounds_fix.cpp" />
     <ClCompile Include="patches\widescreen.cpp" />
@@ -38,6 +40,7 @@
     <ClInclude Include="core\globals.hpp" />
     <ClInclude Include="core\logging.hpp" />
     <ClInclude Include="core\plugin_manager.hpp" />
+    <ClInclude Include="core\update.hpp" />
     <ClInclude Include="core\utils.hpp" />
     <ClInclude Include="core\hooking\framework.hpp" />
     <ClInclude Include="core\hooking\relocate_code.hpp" />
@@ -50,6 +53,7 @@
     <ClInclude Include="patches\hdr.hpp" />
     <ClInclude Include="patches\large_vehicles.hpp" />
     <ClInclude Include="patches\loading_screen_name.hpp" />
+    <ClInclude Include="patches\misc.hpp" />
     <ClInclude Include="patches\playlist_events.hpp" />
     <ClInclude Include="patches\ui_sounds_fix.hpp" />
     <ClInclude Include="patches\widescreen.hpp" />
@@ -126,8 +130,16 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Zydis.lib;Zycore.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Crypt32.lib;Ws2_32.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>del commit_hash.txt
+del commit_hash.h
+git describe --always &gt;&gt; commit_hash.txt
+echo #define COMMIT_HASH \&gt;&gt; commit_hash.h
+echo|set /p dummyName="0x"&gt;&gt;commit_hash.h
+type commit_hash.txt &gt;&gt; commit_hash.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -146,8 +158,16 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Zydis.lib;Zycore.lib;detours.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>Crypt32.lib;Ws2_32.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
+    <PreBuildEvent>
+      <Command>del commit_hash.txt
+del commit_hash.h
+git describe --always &gt;&gt; commit_hash.txt
+echo #define COMMIT_HASH \&gt;&gt; commit_hash.h
+echo|set /p dummyName="0x"&gt;&gt;commit_hash.h
+type commit_hash.txt &gt;&gt; commit_hash.h</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
 </Project>

@@ -1,0 +1,1 @@
+for %%f in (.\source\*.hlsl) do call CompileShader.bat %%f

@@ -10,6 +10,7 @@
 
 #include "game_text_json.hpp"
 #include "widescreen.hpp"
+#include "commit_hash.h"
 
 DeclareFunction(int, __cdecl, StringHashValueFunction, 0x00547f90, char *);
 DeclareFunction(bool, __cdecl, StringHashCompareFunction, 0x00547fb0, char *, char *);
@@ -104,7 +105,7 @@ DefineReplacementHook(GameTextCreate) {
 
         if (_stricmp(name, "commonui") == 0) {
 #ifdef _DEBUG
-            std::string formattedStr = std::format("Hi-Octane Version: {}-DEBUG", VERSION);
+            std::string formattedStr = std::format("Hi-Octane Version: {}-{:x}-DEBUG", VERSION, COMMIT_HASH);
 #else
             std::string formattedStr = std::format("Hi-Octane Version: {}", VERSION);
 #endif // _DEBUG

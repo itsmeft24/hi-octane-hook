@@ -6,8 +6,6 @@
 #include <Windows.h>
 #include <detours/detours.h>
 
-#undef GetObject
-
 #include "relocate_code.hpp"
 
 #define DefineReplacementHook(name) \

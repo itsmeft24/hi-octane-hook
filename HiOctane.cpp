@@ -15,6 +15,7 @@
 #include "core/logging.hpp"
 #include "core/plugin_manager.hpp"
 #include "core/hooking/framework.hpp"
+#include "core/update.hpp"
 
 std::filesystem::path g_DataDir;
 std::filesystem::path g_InstallDir;
@@ -24,9 +25,9 @@ constexpr std::string_view kDataDirName = "hi-octane";
 // This string needs to have a static lifetime as a pointer to it will be given to the game.
 static std::string data_dir_fmt = std::format("%s\\{}\\", kDataDirName);
 
-extern "C" __declspec(dllexport) const char *VERSION = "2.0.0-alpha";
+extern "C" __declspec(dllexport) const char *VERSION = "2.0.0";
 
-void init() {
+bool init() {
     hooking::write_push(0x00619929, data_dir_fmt.c_str());
     // Set the games' DataPC path to our own.
 
@@ -40,7 +41,9 @@ void init() {
 
     // Get current directory and store it in a global variable. (Used for File IO
     // stuff.)
-  
+    
+    update::delete_temporary_files();
+
     config::read();
   
     logging::init();
@@ -71,11 +74,31 @@ void init() {
 
     playlist_events::install();
 
+    misc::install();
+
     //HDRPatch::install();
-  
+
+#ifndef _DEBUG
+    if (config::g_AutomaticUpdatesEnabled) {
+        if (update::check_for_updates()) {
+            if (update::download_latest_release()) {
+                return false;
+            }
+            else {
+                plugin_manager::load_plugins();
+                plugin_manager::start_plugins();
+                return true;
+            }
+        }
+        plugin_manager::load_plugins();
+        plugin_manager::start_plugins();
+        return true;
+    }
+#endif
+
     plugin_manager::load_plugins();
-  
     plugin_manager::start_plugins();
+    return true;
 }
 
 void deinit() {
@@ -90,10 +113,12 @@ void deinit() {
 // This enables us to call MN's std library functions on HiOctaneEntry.
 DefineReplacementHook(WinMainHook) {
     static int __stdcall callback(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
-        init();
-        int result = original(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
-        deinit();
-        return result;
+        if (init()) {
+            int result = original(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+            deinit();
+            return result;
+        }
+        return 0;
     }
 };
 
