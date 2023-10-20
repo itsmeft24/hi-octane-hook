@@ -30,7 +30,7 @@ bool update::check_for_updates()
             doc.Parse<rapidjson::kParseStopWhenDoneFlag>(read_buffer.data());
             std::string current_commit_hash = std::format("{:x}", COMMIT_HASH);
             std::string latest_commit_hash = doc.GetObject()["sha"].GetString();
-            if (latest_commit_hash.substr(current_commit_hash.size()) == current_commit_hash) {
+            if (latest_commit_hash.substr(7 - current_commit_hash.size(), current_commit_hash.size()) == current_commit_hash) {
                 logging::log("[hi-octane::init] No updates were found. You're all up-to-date!");
                 curl_easy_cleanup(curl);
                 return false;
