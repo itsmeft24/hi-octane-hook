@@ -42,6 +42,7 @@ jobs:
         copy bin\CarsGDF.dll .\
         copy bin\CarsGDF.lib .\
         cd .\assets\shaders\
+        mkdir compiled
         cmd /c compileall.bat
         cd ..\..\
         robocopy .\assets\shaders\compiled .\Hi-Octane\C\Shaders\3
