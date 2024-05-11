@@ -41,12 +41,20 @@ bool init() {
 
     // Get current directory and store it in a global variable. (Used for File IO
     // stuff.)
-    
+
+    std::srand(std::time(0));
+
+    // Set the random seed.
+
     update::delete_temporary_files();
 
+    logging::setup_log_file();
+
     config::read();
-  
-    logging::init();
+
+    if (config::g_ConsoleWindowEnabled) {
+        logging::create_console_window();
+    }
 
     logging::log("[hi-octane::init] Installing hooks...");
   
@@ -59,6 +67,8 @@ bool init() {
     dialogue_list::install();
   
     data_access_logging::install();
+
+    intro_videos::install();
   
     large_vehicles::install();
   
@@ -69,14 +79,12 @@ bool init() {
     debug_txt_support::install();
   
     ui_sounds_fix::install();
-  
-    explore_music::install();
 
     playlist_events::install();
 
     misc::install();
 
-    //HDRPatch::install();
+    // HDRPatch::install();
 
 #ifndef _DEBUG
     if (config::g_AutomaticUpdatesEnabled) {
@@ -106,7 +114,7 @@ void deinit() {
 
     plugin_manager::exit_plugins();
 
-    logging::deinit();
+    logging::cleanup();
 }
 
 // Initialization and de-initialization is now placed inside this thin WinMain wrapper.

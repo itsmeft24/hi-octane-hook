@@ -27,4 +27,7 @@ namespace utils {
 
         return size;
     }
+    template <typename T> inline void wrap_constructor(std::uintptr_t ptr) {
+        new (ptr) T();
+    }
 };

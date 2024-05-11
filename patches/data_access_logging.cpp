@@ -2,6 +2,7 @@
 #include "core/globals.hpp"
 #include "core/hooking/framework.hpp"
 #include "core/logging.hpp"
+#include "core/config.hpp"
 
 #include "data_access_logging.hpp"
 
@@ -31,7 +32,9 @@ DefineReplacementHook(LogDataAccessLoadResFile) {
 
 
 void data_access_logging::install() {
-    LogDataAccessFOpen::install_at_ptr(0x005D34F0);
-    LogDataAccessLoadResFile::install_at_ptr(0x005D2FC0);
-    logging::log("[data_access_logging::install] Successfully installed patch!");
+    if (config::g_DataAccessLoggingEnabled) {
+        LogDataAccessFOpen::install_at_ptr(0x005D34F0);
+        LogDataAccessLoadResFile::install_at_ptr(0x005D2FC0);
+        logging::log("[data_access_logging::install] Successfully installed patch!");
+    }
 }

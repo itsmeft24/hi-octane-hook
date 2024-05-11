@@ -4,7 +4,9 @@
 
 namespace logging {
 
-	bool init();
+	void setup_log_file();
+	
+	void create_console_window();
 
 	HIOCTANE_API void _API_Logging_Log(const char* format, ...);
 
@@ -14,5 +16,5 @@ namespace logging {
 		_API_Logging_Log(str.c_str());
 	}
 
-	void deinit();
+	void cleanup();
 };

@@ -17,11 +17,13 @@ namespace HDRPatch {
 	// the struct layout of the base class
 	struct X360FilterAlgorithm {
 		struct VTable {
-			X360FilterAlgorithm*(__thiscall* Deleter)(X360FilterAlgorithm*, unsigned long long);
+			X360FilterAlgorithm*(__thiscall* Deleter)(X360FilterAlgorithm*, unsigned char);
 			unsigned int(__thiscall* SendData)(X360FilterAlgorithm*);
 			unsigned int(__thiscall* ReadFromFile)(X360FilterAlgorithm*, uintptr_t);
 			void(__thiscall* Initialize)(X360FilterAlgorithm*, char*, uintptr_t);
 			void(__thiscall* Enable)(X360FilterAlgorithm*, unsigned int);
+			void(__thiscall* Unk)(X360FilterAlgorithm*);
+			void(__thiscall* UnkGetD3DDeviceIdk)(X360FilterAlgorithm*);
 		} *vtbl;
 		char padding[0x54];
 		unsigned int isEnabled;
@@ -57,7 +59,7 @@ namespace HDRPatch {
 		void* ThresholdPixel;
 	public:
 		static X360FilterHighDynamicRange* __fastcall Constructor(X360FilterHighDynamicRange* _this);
-		static X360FilterHighDynamicRange* __fastcall Deleter(X360FilterHighDynamicRange* _this, uintptr_t edx, unsigned long long);
+		static X360FilterHighDynamicRange* __fastcall Deleter(X360FilterHighDynamicRange* _this, uintptr_t edx, unsigned char);
 		static unsigned int __fastcall SendData(X360FilterHighDynamicRange* _this);
 		static void __fastcall Initialize(X360FilterHighDynamicRange* _this, uintptr_t edx, char*, uintptr_t parameterBlock);
 	};

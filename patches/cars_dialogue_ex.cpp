@@ -135,17 +135,8 @@ __declspec(naked) void CarsDialogue_UNK8_LEA_PATCH() {
 	}
 }
 
-class CarsDialogue;
-
-DefineReplacementHook(CarsDialogueCreate) {
-	static void __fastcall callback(CarsDialogue* _this, uintptr_t in_edx, char* param_1) {
-		original(_this, in_edx, param_1);
-		std::memset(reinterpret_cast<char*>(_this) + 0x114, 69, 0x1C * 80);
-	}
-};
-
 void cars_dialogue_ex::install() {
-	logging::log("[cars_dialogue_ex::install] Patching CarsDialogue class...\n");
+	logging::log("[cars_dialogue_ex::install] Patching CarsDialogue class...");
 
 	winapi::set_permission(0x00482B6F, 1, winapi::Perm::ExecuteReadWrite);
 	winapi::set_permission(0x00482CCD, 1, winapi::Perm::ExecuteReadWrite);
@@ -158,8 +149,6 @@ void cars_dialogue_ex::install() {
 	*(unsigned char*)(0x004C1FE3) = kMaxNumberOfCars;
 
 	hooking::write_push(0x004F32C8, 0xA40 + 0x1C * kMaxNumberOfCars); // patch class size
-
-	CarsDialogueCreate::install_at_ptr(0x004c1a20);
 
 	hooking::legacy::inline_replace(0x004C2965, &CarsDialogue_BumpWreckOutOfControl_LEA_PATCH, 0x11); // PlayBumpDialogue
 	hooking::legacy::inline_replace(0x004C2977, &CarsDialogue_BumpWreckOutOfControl_PART2_LEA_PATCH, 0x7); // PlayBumpDialogue
@@ -205,6 +194,5 @@ void cars_dialogue_ex::install() {
 	hooking::legacy::inline_replace(0x004E9D6B, &CarsDialogue_UNK7_LEA_PATCH, 6); // UNK13
 	hooking::legacy::inline_replace(0x0043E06C, &CarsDialogue_UNK8_LEA_PATCH, 6); // UNK14
 
-	logging::log("[cars_dialogue_ex::install] Succesfully moved "
-		"CarsCharacterDialogue array!\n");
+	logging::log("[cars_dialogue_ex::install] Succesfully moved CarsCharacterDialogue array!");
 }

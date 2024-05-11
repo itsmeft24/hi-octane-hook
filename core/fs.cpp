@@ -25,10 +25,6 @@ std::vector<std::string> MARK_AS_DELETED;
 
 std::vector<std::string> BlackListedModFiles = { "config.ini", "language.ini" };
 
-std::unordered_map<std::string, fs::CallbackInfo> InstalledCallbacks;
-
-std::unordered_map<void*, std::filesystem::path> FileBacking;
-
 std::filesystem::path fs::resolve_path(std::string path) {
 	utils::make_lowercase(path);
 	if (MAP.find(path) != MAP.end()) { // if we have a modfile for the file
@@ -75,57 +71,6 @@ std::string get_mod_for_file(const std::string& file) {
 	return str.substr(0, str.find("\\"));
 }
 
-std::filesystem::path generate_file_backing_path() {
-	std::string str("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz");
-
-	std::random_device rd;
-	std::mt19937 generator(rd());
-
-	std::shuffle(str.begin(), str.end(), generator);
-
-	if (!std::filesystem::exists(g_InstallDir / "LocalStorage\\FileBacking\\")) {
-		std::filesystem::create_directories(g_InstallDir / "LocalStorage\\FileBacking\\");
-	}
-
-	return g_InstallDir / "LocalStorage\\FileBacking" /
-		(str.substr(0, 16) + ".tmp"); // assumes 32 < number of characters in str
-}
-
-inline void* handle_callback(fs::CallbackInfo& info,
-	std::string& base_filepath, char* _Mode) {
-
-	void* data = malloc(info.max_file_size); // allocate buffer for callback
-
-	fs::CallbackContext clbkcontext{ base_filepath.c_str(), data, info.max_file_size, 0 };
-
-	logging::log("[fs::handle_callback] Executing file callback for: {}...", base_filepath);
-
-	fs::CarsFileCallback clbk = (fs::CarsFileCallback)InstalledCallbacks.at(base_filepath).callback; // execute callback function
-
-	if (clbk(&clbkcontext) != 0) {
-
-		auto filebackingpath = generate_file_backing_path(); // generate random string for filebacking
-
-		std::ofstream f(filebackingpath, std::ios::out | std::ios::binary); // create file and write modified data to it
-		f.write((char*)data, clbkcontext .file_size); // size SHOULD be modified by the callback function
-		free(data); // free allocated buffer (plugin SHOULD NOT hold on to this pointer)
-		f.close();
-
-		auto ret = __fsopen((char*)filebackingpath.c_str(), _Mode, 0x40); // return expected result
-
-		FileBacking.insert_or_assign( ret, filebackingpath); // keep track of file pointers used in callback handling
-
-		return ret;
-	}
-	return nullptr;
-}
-
-// Registers a file callback. Takes in three arguments: an asset file path
-// string, a maximum buffer size, and a callback function pointer.
-HIOCTANE_API void __stdcall HiOctane_RegisterFileCallback(const char* filepath, size_t max_size, fs::CarsFileCallback callbackfunc) {
-	InstalledCallbacks.insert_or_assign(filepath, fs::CallbackInfo{ max_size, callbackfunc });
-}
-
 // Takes in three arguments: an asset file path string, a destination buffer,
 // and the size of the buffer (used for bounds checking) If the file does not
 // exist, 0 is returned. If the buffer is too small, the size of the file is
@@ -159,8 +104,7 @@ bool discover_files() {
 	if (std::filesystem::is_directory(mods_dir)) {
 		for (const auto mod : std::filesystem::directory_iterator(mods_dir)) {
 			if (mod.is_directory() && mod.path().filename().string()[0] != '.') {
-				for (const auto& entry :
-					std::filesystem::recursive_directory_iterator(mod)) {
+				for (const auto& entry : std::filesystem::recursive_directory_iterator(mod)) {
 					if (entry.is_regular_file()) {
 						// do NOT load any modules stored in mod folders.
 						if (entry.path().extension().string() == ".dll") {
@@ -168,7 +112,7 @@ bool discover_files() {
 						}
 
 						auto fname = entry.path().filename().string();
-
+						
 						// Make sure the file isn't blacklisted.
 						if (std::find(BlackListedModFiles.begin(), BlackListedModFiles.end(), entry.path().filename().string()) != BlackListedModFiles.end()) {
 							continue;
@@ -334,28 +278,6 @@ DefineReplacementHook(fopenHook) {
 				base_filepath = base_filepath.substr(g_DataDir.string().size() + 1);
 				utils::make_lowercase(base_filepath);
 
-				// If the file is a UI texture AND we are running in widescreen, use UI\Tex_HD instead of UI\Tex
-				if (_strnicmp(_Filename + g_DataDir.string().size() + 2, "\\ui\\tex\\", 8) == 0 && config::g_WidescreenEnabled) {
-					std::string new_filepath = base_filepath.substr(0, 8) + "_hd" + base_filepath.substr(8);
-					if (std::filesystem::exists(g_DataDir / new_filepath) || MAP.find(new_filepath) != MAP.end() || InstalledCallbacks.find(new_filepath) != InstalledCallbacks.end()) {
-						memcpy(_Filename + g_DataDir.string().size() + 1, new_filepath.c_str(), new_filepath.size());
-						*(_Filename + g_DataDir.string().size() + 1 + new_filepath.size()) = 0;
-						base_filepath = new_filepath;
-					}
-				}
-
-				// If we have an installed callback for the file, handle it first.
-				// (Callbacks take priority over normal files no matter what)
-				if (InstalledCallbacks.find(base_filepath) != InstalledCallbacks.end()) {
-
-					// If the callback succeeded, return the expected result.
-					void* ret = handle_callback(InstalledCallbacks.at(base_filepath), base_filepath, _Mode);
-					if (ret != nullptr) {
-						return ret;
-					}
-					// If the callback failed, continue as normal.
-				}
-
 				if (MAP.find(base_filepath) != MAP.end()) { // if we have a modfile for the file
 
 					const auto& out_path = MAP.at(base_filepath);
@@ -382,22 +304,6 @@ DefineReplacementHook(fopenHook) {
 	}
 };
 
-DefineReplacementHook(fcloseHook) {
-	static int __cdecl callback(void* fp) {
-		if (FileBacking.find(fp) != FileBacking.end()) {
-
-			int ret = original(fp);
-
-			std::filesystem::remove(FileBacking.at(fp));
-
-			FileBacking.erase(fp);
-
-			return ret;
-		}
-		return original(fp);
-	}
-};
-
 /*
 Fixes an issue where the game will erroneously strip away large portions of a path, while trying to replace its file extension.
 */
@@ -416,13 +322,37 @@ DefineReplacementHook(FixExtensionReplacement) {
 	}
 };
 
+DefineReplacementHook(TRCEngineGetSaveDir) {
+	static void __fastcall callback(char* _this) {
+		std::filesystem::path dir = fs::save_dir();
+		if (!std::filesystem::is_directory(dir)) {
+			std::filesystem::create_directories(dir);
+		}
+		std::string str = dir.string();
+		std::memcpy(_this, str.data(), str.size());
+		_this[str.size()] = 0;
+	}
+};
+
 void fs::init() {
 	discover_files();
+
+	if (config::g_SaveRedirectionEnabled) {
+		std::filesystem::path dir = fs::save_dir();
+		if (dir.string().size() < 256) {
+			TRCEngineGetSaveDir::install_at_ptr(0x00425280);
+		}
+		else {
+			logging::log("[fs::init] Save redirection path: {} is too large, reverting to standard save data location!", dir.string());
+			config::g_SaveRedirectionEnabled = false;
+		}
+	}
+
+	std::memcpy(reinterpret_cast<char*>(0x006f6778), "Tex_HD\\", 7);
 
 	FixExtensionReplacement::install_at_ptr(0x00409ec0);
 
 	fopenHook::install_at_ptr(0x0063FCBF);
-	fcloseHook::install_at_ptr(0x0063FD94);
 
 	winapi::set_permission(0x006742E8, 4, winapi::Perm::ReadWrite);
 	*reinterpret_cast<void**>(0x006742E8) = BinkOpenHook;
@@ -438,7 +368,12 @@ void fs::init() {
 
 std::filesystem::path fs::save_dir()
 {
-	wchar_t documents[1024];
-	SHGetFolderPathW(0, CSIDL_MYDOCUMENTS, 0, 0, documents);
-	return std::wstring(documents) + L"\\THQ\\Cars2\\";
+	if (config::g_SaveRedirectionEnabled) {
+		return g_InstallDir / "LocalStorage\\SaveData\\";
+	}
+	else {
+		wchar_t documents[1024];
+		SHGetFolderPathW(0, CSIDL_MYDOCUMENTS, 0, 0, documents);
+		return std::wstring(documents) + L"\\THQ\\Cars2\\";
+	}
 }

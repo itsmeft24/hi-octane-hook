@@ -14,9 +14,6 @@
     <ClCompile Include="patches\dialogue_list.cpp">
       <Filter>Patches</Filter>
     </ClCompile>
-    <ClCompile Include="patches\explore_music.cpp">
-      <Filter>Patches</Filter>
-    </ClCompile>
     <ClCompile Include="patches\game_text_json.cpp">
       <Filter>Patches</Filter>
     </ClCompile>
@@ -59,6 +56,18 @@
     <ClCompile Include="core\update.cpp">
       <Filter>Core</Filter>
     </ClCompile>
+    <ClCompile Include="core\game\game_object.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\base_object.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\intro_videos.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="patches\cars_dialogue_ex.hpp">
@@ -71,9 +80,6 @@
       <Filter>Patches</Filter>
     </ClInclude>
     <ClInclude Include="patches\dialogue_list.hpp">
-      <Filter>Patches</Filter>
-    </ClInclude>
-    <ClInclude Include="patches\explore_music.hpp">
       <Filter>Patches</Filter>
     </ClInclude>
     <ClInclude Include="patches\game_text_json.hpp">
@@ -136,6 +142,33 @@
     <ClInclude Include="core\update.hpp">
       <Filter>Core</Filter>
     </ClInclude>
+    <ClInclude Include="core\game\game_object.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\base_object.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\bind.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\container_list.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\all.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\container_hash_table.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\intro_videos.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\container_linked_list.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Patches">
@@ -149,6 +182,9 @@
     </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{6ab2a8fd-4236-4111-815b-65f098281127}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Game">
+      <UniqueIdentifier>{3cbc94a6-27ff-4764-accc-bf67123ccc14}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

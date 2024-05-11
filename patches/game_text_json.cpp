@@ -1,19 +1,20 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <array>
 #include <rapidjson/document.h>
 
 #include "core/config.hpp"
+#include "core/game/bind.hpp"
 #include "core/fs.hpp"
 #include "core/hooking/framework.hpp"
 #include "core/logging.hpp"
+#include "core/game/container_hash_table.hpp"
 
 #include "game_text_json.hpp"
 #include "widescreen.hpp"
 #include "commit_hash.h"
-
-DeclareFunction(int, __cdecl, StringHashValueFunction, 0x00547f90, char *);
-DeclareFunction(bool, __cdecl, StringHashCompareFunction, 0x00547fb0, char *, char *);
+#include <codecvt>
 
 DeclareFunction(void, __thiscall, ContainerHashTable__charptrToint__CHTCreateFull, 0x0056da70, void *, int, int, void *, void *, void *, int);
 DeclareFunction(void, __thiscall, ContainerHashTable__charptrToint__Destructor, 0x0056d910, void *);
@@ -57,7 +58,7 @@ public:
             if (this->appensionInfo->appends != nullptr) {
                 delete[] this->appensionInfo->appends;
             }
-            if (this->appensionInfo->atPositions != (short *)0x0) {
+            if (this->appensionInfo->atPositions != nullptr) {
                 delete[] this->appensionInfo->atPositions;
             }
             delete this->appensionInfo;
@@ -75,7 +76,7 @@ struct GameText {
   char name[16];
   int numberOfStrings;
   char** textIdPointers;
-  void* CHTMap; // ContainerHashTable<char*, int>*
+  ContainerHashTable<char*, int>* CHTMap;
   StringInfo* stringInfos;
   int unused;
   char* textIDBuffer;
@@ -84,18 +85,41 @@ struct GameText {
 
 static_assert(sizeof(GameText) == 0x2C);
 
+DeclareFunction(short*, __cdecl, ConvertUTF16ToRSString, 0x00607fb0, void*, std::size_t*, size_t);
+DeclareFunction(void*, __cdecl, _malloc, 0x0063f5f1, std::size_t);
+
+inline std::u16string utf8_to_utf16(const std::string& str) {
+    return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(str.data());
+}
+
+inline std::vector<std::uint8_t> utf16_to_rsstring(const std::u16string& str) {
+    std::size_t utf16_size = str.length() * 2 + 2;
+
+    void* utf16_buffer = _malloc(utf16_size);
+    std::memset(utf16_buffer, 0, utf16_size);
+    *reinterpret_cast<unsigned short*>(utf16_buffer) = 0xFEFF;
+    std::memcpy(reinterpret_cast<std::uint8_t*>(utf16_buffer) + 2, str.data(), utf16_size - 2);
+    
+    void* output = ConvertUTF16ToRSString(utf16_buffer, &utf16_size, 0);
+    operator_delete(utf16_buffer);
+    std::vector<std::uint8_t> rsstring(utf16_size);
+    std::memcpy(rsstring.data(), output, utf16_size);
+    return rsstring;
+}
+
 DefineReplacementHook(GameTextCreate) {
     static GameText* __fastcall callback(GameText* this_ptr, void* in_EDX, char* name) {
 
-        logging::log("[GameText::CreateFromJSON] Reading {} strings from JSON...", name);
+        logging::log("[GameText::Create] Reading {} strings from JSON...", name);
 
         strcpy(this_ptr->name, name);
 
-        std::ifstream jsonFile(fs::resolve_path("c\\loc\\" + std::string(name) + ".json"), std::ios::in | std::ios::binary);
+        std::ifstream jsonFile(fs::resolve_path(std::format("{}\\loc\\{}.json", config::g_LangPrefix, name)), std::ios::in | std::ios::binary);
         jsonFile.seekg(0, std::ios::end);
         unsigned int jsonSize = jsonFile.tellg();
 
-        char* jsonBuffer = new char[jsonSize];
+        char* jsonBuffer = new char[jsonSize + 1];
+        jsonBuffer[jsonSize] = 0;
         jsonFile.seekg(0, std::ios::beg);
         jsonFile.read(jsonBuffer, jsonSize);
         jsonFile.close();
@@ -143,16 +167,23 @@ DefineReplacementHook(GameTextCreate) {
         size_t valueBufWritten = 0;
 
         this_ptr->textIDBuffer = (char*)calloc(1, jsonSize); // technically this is larger than we need but its fine
-        this_ptr->valueBuffer = (char*)calloc(1, jsonSize); // technically this is larger than we need but its fine
+        this_ptr->valueBuffer = (char*)calloc(1, jsonSize * 2); // technically this is larger than we need but its fine
 
         this_ptr->numberOfStrings = doc.GetArray().Size();
         this_ptr->textIdPointers = new char* [this_ptr->numberOfStrings];
         this_ptr->stringInfos = new StringInfo[this_ptr->numberOfStrings];
-
-        this_ptr->CHTMap = malloc(0x18);
+        this_ptr->CHTMap = reinterpret_cast<ContainerHashTable<char*, int>*>(malloc(0x18));
         memset(this_ptr->CHTMap, 0, 0x18);
 
         ContainerHashTable__charptrToint__CHTCreateFull(this_ptr->CHTMap, this_ptr->numberOfStrings, 100, StringHashValueFunction, StringHashCompareFunction, nullptr, 0);
+
+        std::vector<std::string> collectedTextIds{};
+
+        for (int x = 0; x < this_ptr->numberOfStrings; x++) {
+            const auto& elem = doc.GetArray()[x];
+            auto textid = elem.GetObject()["TextID"].GetString();
+            collectedTextIds.push_back(textid);
+        }
 
         for (int x = 0; x < this_ptr->numberOfStrings; x++) {
 
@@ -170,9 +201,10 @@ DefineReplacementHook(GameTextCreate) {
             currentInfo.flags = !currentInfo.isDynamic;
 
             auto value = elem.GetObject()["Value"].GetString();
-            strcpy(this_ptr->valueBuffer + valueBufWritten, value);
+            auto rs_value = utf16_to_rsstring(utf8_to_utf16(value));
+            std::memcpy(this_ptr->valueBuffer + valueBufWritten, rs_value.data(), rs_value.size());
             currentInfo.value = this_ptr->valueBuffer + valueBufWritten;
-            valueBufWritten += currentInfo.maxSize + 1;
+            valueBufWritten += rs_value.size() + 1;
 
             currentInfo.appensionInfo = nullptr;
             currentInfo.isAppendedToCount = 0;
@@ -193,7 +225,19 @@ DefineReplacementHook(GameTextCreate) {
                 valueBufWritten += strlen(copiedToEnd) + 1;
 
                 for (int appensionIndex = 0; appensionIndex < currentInfo.appensionInfo->appensionCount; appensionIndex++) {
-                    currentInfo.appensionInfo->appends[appensionIndex] = appends[appensionIndex].GetInt();
+                    if (appends[appensionIndex].IsString()) {
+                        auto it = std::find(collectedTextIds.begin(), collectedTextIds.end(), appends[appensionIndex].GetString());
+                        if (it != collectedTextIds.end()) {
+                            currentInfo.appensionInfo->appends[appensionIndex] = it - collectedTextIds.begin();
+                        }
+                        else {
+                            logging::log("[GameText::Create] TextID: {} References a nonexistent TextID: {} in \"Appends\".", textid, appends[appensionIndex].GetString());
+                            currentInfo.appensionInfo->appends[appensionIndex] = 0;
+                        }
+                    }
+                    else {
+                        currentInfo.appensionInfo->appends[appensionIndex] = appends[appensionIndex].GetInt();
+                    }
                     currentInfo.appensionInfo->atPositions[appensionIndex] = positions[appensionIndex].GetInt();
                 }
             }
@@ -205,7 +249,19 @@ DefineReplacementHook(GameTextCreate) {
                 currentInfo.isAppendedTo = new int[currentInfo.isAppendedToCount]();
 
                 for (int appendedToIndex = 0; appendedToIndex < currentInfo.isAppendedToCount; appendedToIndex++) {
-                    currentInfo.isAppendedTo[appendedToIndex] = appendedTo[appendedToIndex].GetInt();
+                    if (appendedTo[appendedToIndex].IsString()) {
+                        auto it = std::find(collectedTextIds.begin(), collectedTextIds.end(), appendedTo[appendedToIndex].GetString());
+                        if (it != collectedTextIds.end()) {
+                            currentInfo.isAppendedTo[appendedToIndex] = it - collectedTextIds.begin();
+                        }
+                        else {
+                            logging::log("[GameText::Create] TextID: {} References a nonexistent TextID: {} in \"IsAppendedTo\".", textid, appendedTo[appendedToIndex].GetString());
+                            currentInfo.isAppendedTo[appendedToIndex] = 0;
+                        }
+                    }
+                    else {
+                        currentInfo.isAppendedTo[appendedToIndex] = appendedTo[appendedToIndex].GetInt();
+                    }
                 }
             }
 

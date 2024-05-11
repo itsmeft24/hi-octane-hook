@@ -14,6 +14,9 @@
     <ClCompile Include="core\bink_reexport.cpp" />
     <ClCompile Include="core\config.cpp" />
     <ClCompile Include="core\fs.cpp" />
+    <ClCompile Include="core\game\base_object.cpp" />
+    <ClCompile Include="core\game\game_object.cpp" />
+    <ClCompile Include="core\game\ui.cpp" />
     <ClCompile Include="core\logging.cpp" />
     <ClCompile Include="core\plugin_manager.cpp" />
     <ClCompile Include="core\update.cpp" />
@@ -21,9 +24,9 @@
     <ClCompile Include="patches\data_access_logging.cpp" />
     <ClCompile Include="patches\debug_txt_support.cpp" />
     <ClCompile Include="patches\dialogue_list.cpp" />
-    <ClCompile Include="patches\explore_music.cpp" />
     <ClCompile Include="patches\game_text_json.cpp" />
     <ClCompile Include="patches\hdr.cpp" />
+    <ClCompile Include="patches\intro_videos.cpp" />
     <ClCompile Include="patches\large_vehicles.cpp" />
     <ClCompile Include="patches\loading_screen_name.cpp" />
     <ClCompile Include="patches\misc.cpp" />
@@ -37,6 +40,14 @@
     <ClInclude Include="core\config.hpp" />
     <ClInclude Include="core\err.hpp" />
     <ClInclude Include="core\fs.hpp" />
+    <ClInclude Include="core\game\base_object.hpp" />
+    <ClInclude Include="core\game\bind.hpp" />
+    <ClInclude Include="core\game\container_hash_table.hpp" />
+    <ClInclude Include="core\game\container_linked_list.hpp" />
+    <ClInclude Include="core\game\container_list.hpp" />
+    <ClInclude Include="core\game\game_object.hpp" />
+    <ClInclude Include="core\game\all.hpp" />
+    <ClInclude Include="core\game\ui.hpp" />
     <ClInclude Include="core\globals.hpp" />
     <ClInclude Include="core\logging.hpp" />
     <ClInclude Include="core\plugin_manager.hpp" />
@@ -48,9 +59,9 @@
     <ClInclude Include="patches\data_access_logging.hpp" />
     <ClInclude Include="patches\debug_txt_support.hpp" />
     <ClInclude Include="patches\dialogue_list.hpp" />
-    <ClInclude Include="patches\explore_music.hpp" />
     <ClInclude Include="patches\game_text_json.hpp" />
     <ClInclude Include="patches\hdr.hpp" />
+    <ClInclude Include="patches\intro_videos.hpp" />
     <ClInclude Include="patches\large_vehicles.hpp" />
     <ClInclude Include="patches\loading_screen_name.hpp" />
     <ClInclude Include="patches\misc.hpp" />
@@ -99,6 +110,7 @@
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IntDir>$(ProjectDir)\bin\intermediate\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
@@ -107,6 +119,7 @@
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
+    <IntDir>$(ProjectDir)\bin\intermediate\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Label="Vcpkg">
     <VcpkgEnableManifest>false</VcpkgEnableManifest>
@@ -126,6 +139,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,6 +166,7 @@ type commit_hash.txt &gt;&gt; commit_hash.h</Command>
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <AdditionalIncludeDirectories>.\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

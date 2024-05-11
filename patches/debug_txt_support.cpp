@@ -3,19 +3,19 @@
 #include "core/globals.hpp"
 #include "core/hooking/framework.hpp"
 #include "core/logging.hpp"
+#include "core/game/all.hpp"
 
 #include "debug_txt_support.hpp"
 
 struct ParameterBlock;
-struct CarsGame;
 
-DeclareFunction(void, __thiscall, CarsGame_LoadConfigFile, 0x00440360, CarsGame*, void *);
+DeclareFunction(void, __thiscall, CarsGame_LoadConfigFile, 0x00440360, X360Game*, void *);
 DeclareFunction(void, __thiscall, ParameterBlock_Ctor, 0x00587E60, ParameterBlock*);
 DeclareFunction(void, __thiscall, ParameterBlock_Dtor, 0x005c4440, ParameterBlock*);
 DeclareFunction(void, __thiscall, ParameterBlock_OpenFile, 0x005d87c0, ParameterBlock*, const char *, int, int, size_t *, size_t);
 
 DefineReplacementHook(CarsGameSetConfigArguments) {
-    static void __fastcall callback(CarsGame* this_ptr) {
+    static void __fastcall callback(X360Game* this_ptr) {
         // Call original function to set the config members to their default values.
         original(this_ptr);
 
@@ -36,8 +36,8 @@ DefineReplacementHook(CarsGameSetConfigArguments) {
 };
 
 void debug_txt_support::install() {
-  if (config::g_DebugTxtConfigEnabled) {
-      CarsGameSetConfigArguments::install_at_ptr(0x004416b0);
-      logging::log("[debug_txt_support::install] Successfully installed patch!");
-  }
+    if (config::g_DebugTxtConfigEnabled) {
+        CarsGameSetConfigArguments::install_at_ptr(0x004416b0);
+        logging::log("[debug_txt_support::install] Successfully installed patch!");
+    }
 }

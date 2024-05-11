@@ -8,6 +8,7 @@
 #include "hdr.hpp"
 #include "core/logging.hpp"
 #include "core/hooking/framework.hpp"
+#include <numbers>
 
 namespace HDRPatch {
 
@@ -183,7 +184,9 @@ namespace HDRPatch {
 		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::SendData)>(X360FilterHighDynamicRange::SendData),
 		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::ReadFromFile)>(0x00595e30),
 		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::Initialize)>(X360FilterHighDynamicRange::Initialize),
-		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::Enable)>(0x0040ceb0)
+		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::Enable)>(0x0040ceb0),
+		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::Unk)>(0x00443170),
+		 reinterpret_cast<decltype(X360FilterAlgorithm::VTable::UnkGetD3DDeviceIdk)>(0x00443170),
 	};
 
 	X360FilterHighDynamicRange* __fastcall X360FilterHighDynamicRange::Constructor(X360FilterHighDynamicRange* _this) {
@@ -192,7 +195,7 @@ namespace HDRPatch {
 		return _this;
 	}
 
-	X360FilterHighDynamicRange* __fastcall X360FilterHighDynamicRange::Deleter(X360FilterHighDynamicRange* _this, uintptr_t edx, unsigned long long param_2)
+	X360FilterHighDynamicRange* __fastcall X360FilterHighDynamicRange::Deleter(X360FilterHighDynamicRange* _this, uintptr_t edx, unsigned char param_2)
 	{
         // reset the vtable
 		_this->base.vtbl = reinterpret_cast<X360FilterAlgorithm::VTable*>(0x00675C40);
@@ -205,150 +208,111 @@ namespace HDRPatch {
 	}
 
 	unsigned int __fastcall X360FilterHighDynamicRange::SendData(X360FilterHighDynamicRange* _this) {
+
+		D3DDEVICE_CREATION_PARAMETERS cparams{};
+		RECT rect{};
+		d3d9()->GetCreationParameters(&cparams);
+		GetClientRect(cparams.hFocusWindow, &rect);
+
+		std::int32_t window_width = rect.right - rect.left;
+		std::int32_t window_height = rect.bottom - rect.top;
+
 		// Downsampling
-		{
-			// Idk what this is
-			uintptr_t g_RenderTarget = RenderTarget();
-			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
-			SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
+		// Idk what this is
+		uintptr_t g_RenderTarget = RenderTarget();
+		uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
+		SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
 			
-			// Set shaders.
-			SetShaders(_this->DownsampleVert, _this->DownsamplePixel);
+		// Set shaders.
+		SetShaders(_this->DownsampleVert, _this->DownsamplePixel);
 			
-			// Set shader constants.
-			D3DDEVICE_CREATION_PARAMETERS cparams{};
-			RECT rect{};
-			d3d9()->GetCreationParameters(&cparams);
-			GetClientRect(cparams.hFocusWindow, &rect);
+		// Set shader constants.
+		float OnePixelOffset[] = { 1.0 / window_width, 1.0 / window_height, 0, 0 };
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_OnePixelOffset, OnePixelOffset, 1);
 			
-			std::int32_t window_width = rect.right - rect.left;
-			std::int32_t window_height = rect.bottom - rect.top;
+		float MaxTexCoord[] = { 1.0, 1.0, 0, 0 };
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_MaxTexCoord, MaxTexCoord, 1);
 			
-			float OnePixelOffset[] = { 1.0 / window_width, 1.0 / window_height, 0, 0 };
-			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_OnePixelOffset, OnePixelOffset, 1);
-			
-			float MaxTexCoord[] = { 1.0, 1.0, 0, 0 };
-			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_MaxTexCoord, MaxTexCoord, 1);
-			
-			// Set texture slots and render.
-			uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
-			for (int x = 0; x < 15; x++) {
-				SetTextureSlot(this_00, x);
-			}
-			
-			X360FilterAlgorithm_RenderGeometry(&_this->base, 0);
-		}
-		// Thresholding
-		{
-			// Idk what this is
-			uintptr_t g_RenderTarget = RenderTarget();
-			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
-			// SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
-
-			// Set shaders.
-			SetShaders(_this->ThresholdVert, _this->ThresholdPixel);
-
-			// // Set texture slots and render.
-			// uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
-			// for (int x = 0; x < 4; x++) {
-			// 	SetTextureSlot(this_00, x);
-			// }
-
-			X360FilterAlgorithm_RenderGeometry(&_this->base, 0);
-		}
-		// Buffering
-		{
-			// Idk what this is
-			uintptr_t g_RenderTarget = RenderTarget();
-			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
-			// SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
-
-
-			float Speed[] = { _this->PositiveRate, _this->NegativeRate, 0, 0 };
-			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Speed, Speed, 1);
-
-
-			// Set shaders.
-			SetShaders(_this->BufferVert, _this->BufferPixel);
-
-			// // Set texture slots and render.
-			// uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
-			// for (int x = 0; x < 4; x++) {
-			// 	SetTextureSlot(this_00, x);
-			// }
-
-			X360FilterAlgorithm_RenderGeometry(&_this->base, 2);
-		}
-		// Blurring
-		{
-			// Idk what this is
-			uintptr_t g_RenderTarget = RenderTarget();
-			uintptr_t g_Unk = *reinterpret_cast<uintptr_t*>(0x006fd2b8);
-			// SomethingIdk(g_Unk, g_RenderTarget + 0x98, 4);
-
-			// Constants for Gaussian blur
-			const int kernelSize = 15;  // Size of the blur kernel
-			const float sigma = 4.0f;   // Standard deviation for Gaussian distribution
-
-			// Generate Gaussian kernel weights
-			float kernelWeights[16];
-			float sum = 0.0f;
-			for (int i = 0; i < kernelSize; ++i) {
-				float x = i - kernelSize / 2;
-				kernelWeights[i] = exp(-(x * x) / (2 * sigma * sigma));
-				sum += kernelWeights[i];
-			}
-			kernelWeights[kernelSize] = 0.0;
-
-			// Normalize kernel weights
-			for (int i = 0; i < kernelSize; ++i) {
-				kernelWeights[i] /= sum;
-			}
-			
-			// Set PS_HDR_BlurOffset
-			float blurOffsets[16];  // Assuming 2D texture coordinates
-			for (int i = 0; i < kernelSize; ++i) {
-				blurOffsets[i] = i - kernelSize / 2;
-			}
-			blurOffsets[kernelSize] = 0.0;
-
-			//d3d9()->GetEr
-
-			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_BlurOffset, blurOffsets, 4);
-			d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_BlurKernel, kernelWeights, 4);
-
-			// Set shaders.
-			SetShaders(_this->BlurVert, _this->BlurPixel);
-
-			// // Set texture slots and render.
-			// uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
-			// for (int x = 0; x < 4; x++) {
-			// 	SetTextureSlot(this_00, x);
-			// }
-
-			X360FilterAlgorithm_RenderGeometry(&_this->base, 4);
-		}
-		// Final compositing
-		{
+		// Set texture slots and render.
+		uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
+		for (int x = 0; x < 15; x++) {
+			SetTextureSlot(this_00, x);
 		}
 		/*
-		float Threshold[] = { _this->Threshold, 0, 0, 0 };
-		lpDirect3D9Device->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Threshold, Threshold, 1);
-		float Speed[] = { _this->PositiveRate, _this->NegativeRate, 0, 0 };
-		lpDirect3D9Device->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Speed, Speed, 1);
-		float FinalMix[] = { _this->FinalMixHDR, _this->FinalMixLDR, 0, 0 };
-		lpDirect3D9Device->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Mix, FinalMix, 1);
-
-		
-
-		
-		lpDirect3D9Device->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_BlurKernel, nullptr, 15);
-		FUN_0040de00(DAT_006fd2b8, g_RenderTarget + 0x98, 4);
-		SetShaders(_this->DownsampleVert, _this->DownsamplePixel);
-		this_00 = (void*)FUN_0040de30(DAT_006fd2b8, 4);
-
-		X360FilterAlgorithm::RenderGeometry(0);
+		for (std::size_t i = 0; i < 15; i++) {
+			X360FilterAlgorithm_RenderGeometry(&_this->base, i);
+		};
 		*/
+		//X360FilterAlgorithm_RenderGeometry(&_this->base, 1);
+
+		// Thresholding
+		SetShaders(_this->ThresholdVert, _this->ThresholdPixel);
+		// // Set texture slots and render.
+		// uintptr_t this_00 = PrepareTextureSet(g_Unk, 4);
+		// for (int x = 0; x < 4; x++) {
+		// 	SetTextureSlot(this_00, x);
+		// }
+		/*
+		for (std::size_t i = 0; i < 15; i++) {
+			X360FilterAlgorithm_RenderGeometry(&_this->base, i);
+		};
+		*/
+		X360FilterAlgorithm_RenderGeometry(&_this->base, 1);
+		/*
+		// Buffering
+		float Speed[] = { _this->PositiveRate, _this->NegativeRate, 0, 0 };
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Speed, Speed, 1);
+		SetShaders(_this->BufferVert, _this->BufferPixel);
+		X360FilterAlgorithm_RenderGeometry(&_this->base, 0);
+		*/
+		
+		// Blurring
+		// Constants for Gaussian blur
+		const int kernelSize = 15;  // Size of the blur kernel
+		float sigma = 10.f;   // Standard deviation for Gaussian distribution
+
+		float blurOffsets[16]{};
+		for (int i = 0; i < kernelSize; i++) {
+			blurOffsets[i] = (((float)i / (float)kernelSize) - 0.5) * 0.008;
+		}
+
+		// Generate Gaussian kernel weights
+		float kernelWeights[16]{};
+		float sum = 0.0f;
+		for (int i = 0; i < kernelSize; i++) {
+			// kernelWeights[i] = exp(-(x * x) / (2 * sigma * sigma));
+			float offset = (((float)i / (float)kernelSize) - 0.5);
+			kernelWeights[i] = exp(-(offset * offset) / (2 * sigma * sigma)) / sqrt(2.0 * std::numbers::pi * sigma * sigma);
+			sum += kernelWeights[i];
+		}
+
+		// Normalize kernel weights
+		for (int i = 0; i < kernelSize; i++) {
+			kernelWeights[i] /= sum;
+		}
+
+
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_BlurOffset, blurOffsets, 4);
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_BlurKernel, kernelWeights, 4);
+
+		// Set shaders
+		SetShaders(_this->BlurVert, _this->BlurPixel);
+		for (int pass = 0; pass < _this->NumBlurPasses * 8; pass++) {
+			X360FilterAlgorithm_RenderGeometry(&_this->base, 0);
+		}
+		
+		
+		// Final compositing
+		float UVOffset[] = { 1.0 / window_width, 1.0 / window_height, 1, 1 };
+		float Threshold[] = { _this->Threshold, 0, 0, 0 };
+		float FinalMix[] = { _this->FinalMixHDR, _this->FinalMixLDR, 0, 0 };
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_UVOffset, UVOffset, 1);
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Threshold, Threshold, 1);
+		d3d9()->SetPixelShaderConstantF(PixelShaderConstant::PS_HDR_Mix, FinalMix, 1);
+
+		//SetShaders(_this->FinalVert, _this->FinalPixel);
+		//X360FilterAlgorithm_RenderGeometry(&_this->base, 0);
+		
 		return 1;
 	}
 
