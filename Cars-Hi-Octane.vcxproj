@@ -16,7 +16,6 @@
     <ClCompile Include="core\fs.cpp" />
     <ClCompile Include="core\logging.cpp" />
     <ClCompile Include="core\plugin_manager.cpp" />
-    <ClCompile Include="core\update.cpp" />
     <ClCompile Include="patches\cars_dialogue_ex.cpp" />
     <ClCompile Include="patches\data_access_logging.cpp" />
     <ClCompile Include="patches\debug_txt_support.cpp" />
@@ -40,7 +39,6 @@
     <ClInclude Include="core\globals.hpp" />
     <ClInclude Include="core\logging.hpp" />
     <ClInclude Include="core\plugin_manager.hpp" />
-    <ClInclude Include="core\update.hpp" />
     <ClInclude Include="core\utils.hpp" />
     <ClInclude Include="core\hooking\framework.hpp" />
     <ClInclude Include="core\hooking\relocate_code.hpp" />

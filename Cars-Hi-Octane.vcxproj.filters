@@ -56,9 +56,6 @@
     <ClCompile Include="patches\misc.cpp">
       <Filter>Patches</Filter>
     </ClCompile>
-    <ClCompile Include="core\update.cpp">
-      <Filter>Core</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="patches\cars_dialogue_ex.hpp">
@@ -132,9 +129,6 @@
     </ClInclude>
     <ClInclude Include="patches\misc.hpp">
       <Filter>Patches</Filter>
-    </ClInclude>
-    <ClInclude Include="core\update.hpp">
-      <Filter>Core</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

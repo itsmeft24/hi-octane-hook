@@ -15,7 +15,6 @@
 #include "core/logging.hpp"
 #include "core/plugin_manager.hpp"
 #include "core/hooking/framework.hpp"
-#include "core/update.hpp"
 
 std::filesystem::path g_DataDir;
 std::filesystem::path g_InstallDir;
@@ -41,11 +40,13 @@ bool init() {
 
     // Get current directory and store it in a global variable. (Used for File IO
     // stuff.)
-    
-    update::delete_temporary_files();
 
     config::read();
-  
+
+    if (config::g_AutomaticUpdatesEnabled) {
+        logging::log("[hi-octane::init] WARNING: The Auto-Update system is deprecated!");
+    }
+
     logging::init();
 
     logging::log("[hi-octane::init] Installing hooks...");
@@ -75,26 +76,6 @@ bool init() {
     playlist_events::install();
 
     misc::install();
-
-    //HDRPatch::install();
-
-#ifndef _DEBUG
-    if (config::g_AutomaticUpdatesEnabled) {
-        if (update::check_for_updates()) {
-            if (update::download_latest_release()) {
-                return false;
-            }
-            else {
-                plugin_manager::load_plugins();
-                plugin_manager::start_plugins();
-                return true;
-            }
-        }
-        plugin_manager::load_plugins();
-        plugin_manager::start_plugins();
-        return true;
-    }
-#endif
 
     plugin_manager::load_plugins();
     plugin_manager::start_plugins();

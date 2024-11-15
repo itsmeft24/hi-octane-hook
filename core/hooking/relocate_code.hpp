@@ -29,8 +29,12 @@ namespace std
 {
 	template<> struct formatter<hooking::impl::CodeRelocError> : public std::formatter<std::string>
 	{
+		constexpr auto parse(std::format_parse_context& ctx) {
+			return ctx.begin();
+		}
+
 		template<typename FormatContext>
-		auto format(hooking::impl::CodeRelocError p, FormatContext& fc)
+		auto format(hooking::impl::CodeRelocError p, FormatContext& fc) const
 		{
 			switch (p)
 			{
