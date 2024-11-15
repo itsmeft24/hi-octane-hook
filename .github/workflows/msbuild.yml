@@ -49,7 +49,7 @@ jobs:
         tar -a -cf release.zip Hi-Octane\* CarsGDF.dll CarsGDF.lib Cars_Mater.exe
     
     - name: Upload build artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: cars-hi-octane
         path: release.zip
