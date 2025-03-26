@@ -1,11 +1,12 @@
 #pragma once
-
-#include <iostream>
+#include <string_view>
 #include <filesystem>
 
 extern std::filesystem::path g_InstallDir;
 
 extern std::filesystem::path g_DataDir;
+
+constexpr std::string_view kDataDirName = "hi-octane";
 
 extern "C" __declspec(dllexport) const char* VERSION;
 

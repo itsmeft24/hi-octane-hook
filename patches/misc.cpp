@@ -1,19 +1,23 @@
 #include "misc.hpp"
 
-#include "core/hooking/framework.hpp"
-
-struct BlockAllocator;
+#include "core/game/block_allocator.hpp"
+#include "core/game/cars_game.hpp"
+#include "core/game/serializable_interface.hpp"
+#include "core/logging.hpp"
+#include "sunset/sunset.hpp"
 
 struct SurfaceShader {
 	int next_idx;
 	BlockAllocator* block_allocator;
 };
+
 struct X360SurfaceShaderList {
 	void* vtable;
-	int unk;
-	int unk_buffer[0x1000];
+	int surface_shader_pass_count;
+	struct X360SurfaceShaderPass* surface_shader_passes[0x1000];
 	SurfaceShader surface_shaders[4];
 };
+
 static_assert(sizeof(X360SurfaceShaderList) == 16424);
 
 /* Fixes an issue in SurfaceShaderList::ActivateMaterial where the game will try to access SurfaceShaders outside the surfaceShaders array by adding bounds checks. */
@@ -32,7 +36,7 @@ DefineReplacementHook(FixShaderOOB) {
 		if ((iVar2 != 0) && (local_4 = 0, 0 < *(int*)(iVar2 + 0x18))) {
 			piVar5 = (int*)(iVar2 + 0x3c);
 			do {
-				iVar3 = _this->unk_buffer[*piVar5];
+				iVar3 = reinterpret_cast<int>(_this->surface_shader_passes[*piVar5]);
 				if (iVar3 != 0) {
 					// One here...
 					if (param_3 < 4) {
@@ -62,7 +66,6 @@ DefineReplacementHook(FixShaderOOB) {
 	}
 };
 
-
 /*
 Ensures every buffer allocated by the game is zero-initialized. #ifdef'd out of release builds.
 */
@@ -76,10 +79,38 @@ DefineReplacementHook(ZeroInitializeMalloc) {
 	}
 };
 
+/*
+Increases the size of the scratch buffer used to determine the required length of the serialized CarsRecordLibrary.
+*/
+DefineReplacementHook(FixCarsRecordLibrary) {
+	static int __fastcall callback(SerializableInterface* _this) {
+		std::vector<std::uint8_t> buffer(0x10000);
+		int size = _this->Serialize(buffer.data(), buffer.size());
+		return size;
+	}
+};
+
+/*
+Ensures that the streaming_package_index is valid, preventing crashes when jumping to join points.
+(Only occurs when the scene is streamed.)
+*/
+DefineReplacementHook(StreamingManager_BlockUntilAllSectionsAreReady) {
+	static void __fastcall callback(struct StreamingManager* _this, uintptr_t edx, int streaming_package_index) {
+		if (streaming_package_index != -1) {
+			original(_this, edx, streaming_package_index);
+		}
+	}
+};
 
 void misc::install() {
 #ifdef _DEBUG
 	ZeroInitializeMalloc::install_at_ptr(0x0063f5f1);
 #endif // _DEBUG
 	FixShaderOOB::install_at_ptr(0x00565d40);
+	// Prevents crashes when jumping to a join point.
+	StreamingManager_BlockUntilAllSectionsAreReady::install_at_ptr(0x005b66e0);
+	
+	FixCarsRecordLibrary::install_at_ptr(0x0048e580);
+
+	logging::log("[misc::install] Successfully installed patch!");
 }

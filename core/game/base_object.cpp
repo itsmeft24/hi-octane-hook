@@ -1,5 +1,10 @@
 #include "base_object.hpp"
 
+BaseObject::BaseObject()
+{
+	refCount = 1;
+}
+
 BaseObject::~BaseObject()
 {
 }

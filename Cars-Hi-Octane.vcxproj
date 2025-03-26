@@ -15,8 +15,32 @@
     <ClCompile Include="core\config.cpp" />
     <ClCompile Include="core\fs.cpp" />
     <ClCompile Include="core\game\base_object.cpp" />
+    <ClCompile Include="core\game\block_allocator.cpp" />
+    <ClCompile Include="core\game\cars2_activity_info.cpp" />
+    <ClCompile Include="core\game\cars2_event_database.cpp" />
+    <ClCompile Include="core\game\cars2_event_info.cpp" />
+    <ClCompile Include="core\game\cars2_event_set.cpp" />
+    <ClCompile Include="core\game\cars2_story_database.cpp" />
+    <ClCompile Include="core\game\cars2_story_event.cpp" />
+    <ClCompile Include="core\game\data_access.cpp" />
     <ClCompile Include="core\game\game_object.cpp" />
-    <ClCompile Include="core\game\ui.cpp" />
+    <ClCompile Include="core\game\gfx\emotion_engine.cpp" />
+    <ClCompile Include="core\game\gfx\x360_shader.cpp" />
+    <ClCompile Include="core\game\gfx\x360_video_card.cpp" />
+    <ClCompile Include="core\game\music.cpp" />
+    <ClCompile Include="core\game\parameter_block.cpp" />
+    <ClCompile Include="core\game\string_block_allocator.cpp" />
+    <ClCompile Include="core\game\string_table.cpp" />
+    <ClCompile Include="core\game\ui\cars_base_layer.cpp" />
+    <ClCompile Include="core\game\ui\cars_ui_menu_layer.cpp" />
+    <ClCompile Include="core\game\ui\cars_ui_menu_page.cpp" />
+    <ClCompile Include="core\game\ui\cars_ui_page.cpp" />
+    <ClCompile Include="core\game\ui\ui_component.cpp" />
+    <ClCompile Include="core\game\ui\ui_container.cpp" />
+    <ClCompile Include="core\game\ui\ui_layer.cpp" />
+    <ClCompile Include="core\game\ui\ui_layout.cpp" />
+    <ClCompile Include="core\game\ui\ui_page.cpp" />
+    <ClCompile Include="core\game\virtual_network.cpp" />
     <ClCompile Include="core\logging.cpp" />
     <ClCompile Include="core\plugin_manager.cpp" />
     <ClCompile Include="core\update.cpp" />
@@ -26,49 +50,94 @@
     <ClCompile Include="patches\dialogue_list.cpp" />
     <ClCompile Include="patches\game_text_json.cpp" />
     <ClCompile Include="patches\hdr.cpp" />
+    <ClCompile Include="patches\input.cpp" />
     <ClCompile Include="patches\intro_videos.cpp" />
     <ClCompile Include="patches\large_vehicles.cpp" />
     <ClCompile Include="patches\loading_screen_name.cpp" />
     <ClCompile Include="patches\misc.cpp" />
     <ClCompile Include="patches\playlist_events.cpp" />
+    <ClCompile Include="patches\save_file_expansion.cpp" />
     <ClCompile Include="patches\ui_sounds_fix.cpp" />
     <ClCompile Include="patches\widescreen.cpp" />
-    <ClCompile Include="HiOctane.cpp" />
+    <ClCompile Include="DllMain.cpp" />
+    <ClCompile Include="patches\windowed_fullscreen.cpp" />
+    <ClCompile Include="patches\win_main.cpp" />
+    <ClCompile Include="sunset\sunset.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="core\bink_reexport.hpp" />
     <ClInclude Include="core\config.hpp" />
-    <ClInclude Include="core\err.hpp" />
     <ClInclude Include="core\fs.hpp" />
     <ClInclude Include="core\game\base_object.hpp" />
     <ClInclude Include="core\game\bind.hpp" />
+    <ClInclude Include="core\game\block_allocator.hpp" />
+    <ClInclude Include="core\game\cars2_activity_info.hpp" />
+    <ClInclude Include="core\game\cars2_bumper_sticker.hpp" />
+    <ClInclude Include="core\game\cars2_event_database.hpp" />
+    <ClInclude Include="core\game\cars2_event_info.hpp" />
+    <ClInclude Include="core\game\cars2_event_set.hpp" />
+    <ClInclude Include="core\game\cars2_launcher.hpp" />
+    <ClInclude Include="core\game\cars2_story_database.hpp" />
+    <ClInclude Include="core\game\cars2_story_event.hpp" />
+    <ClInclude Include="core\game\cars2_story_manager.hpp" />
+    <ClInclude Include="core\game\cars_audio_manager.hpp" />
+    <ClInclude Include="core\game\cars_dialogue.hpp" />
+    <ClInclude Include="core\game\cars_game.hpp" />
     <ClInclude Include="core\game\container_hash_table.hpp" />
     <ClInclude Include="core\game\container_linked_list.hpp" />
     <ClInclude Include="core\game\container_list.hpp" />
+    <ClInclude Include="core\game\data_access.hpp" />
+    <ClInclude Include="core\game\game.hpp" />
     <ClInclude Include="core\game\game_object.hpp" />
-    <ClInclude Include="core\game\all.hpp" />
-    <ClInclude Include="core\game\ui.hpp" />
+    <ClInclude Include="core\game\gfx\emotion_engine.hpp" />
+    <ClInclude Include="core\game\gfx\x360_shader.hpp" />
+    <ClInclude Include="core\game\gfx\x360_video_card.hpp" />
+    <ClInclude Include="core\game\music.hpp" />
+    <ClInclude Include="core\game\parameter_block.hpp" />
+    <ClInclude Include="core\game\serializable_interface.hpp" />
+    <ClInclude Include="core\game\string_block_allocator.hpp" />
+    <ClInclude Include="core\game\string_table.hpp" />
+    <ClInclude Include="core\game\ui\cars_base_layer.hpp" />
+    <ClInclude Include="core\game\ui\cars_ui_menu_layer.hpp" />
+    <ClInclude Include="core\game\ui\cars_ui_menu_page.hpp" />
+    <ClInclude Include="core\game\ui\cars_ui_page.hpp" />
+    <ClInclude Include="core\game\ui\mouse_menu.hpp" />
+    <ClInclude Include="core\game\ui\ui_component.hpp" />
+    <ClInclude Include="core\game\ui\ui_container.hpp" />
+    <ClInclude Include="core\game\ui\ui_event.hpp" />
+    <ClInclude Include="core\game\ui\ui_layer.hpp" />
+    <ClInclude Include="core\game\ui\ui_layout.hpp" />
+    <ClInclude Include="core\game\ui\ui_linked_list.hpp" />
+    <ClInclude Include="core\game\ui\ui_page.hpp" />
+    <ClInclude Include="core\game\virtual_network.hpp" />
+    <ClInclude Include="core\game\x360_game.hpp" />
     <ClInclude Include="core\globals.hpp" />
     <ClInclude Include="core\logging.hpp" />
     <ClInclude Include="core\plugin_manager.hpp" />
     <ClInclude Include="core\update.hpp" />
     <ClInclude Include="core\utils.hpp" />
-    <ClInclude Include="core\hooking\framework.hpp" />
-    <ClInclude Include="core\hooking\relocate_code.hpp" />
     <ClInclude Include="patches\cars_dialogue_ex.hpp" />
     <ClInclude Include="patches\data_access_logging.hpp" />
     <ClInclude Include="patches\debug_txt_support.hpp" />
     <ClInclude Include="patches\dialogue_list.hpp" />
     <ClInclude Include="patches\game_text_json.hpp" />
     <ClInclude Include="patches\hdr.hpp" />
+    <ClInclude Include="patches\input.hpp" />
     <ClInclude Include="patches\intro_videos.hpp" />
     <ClInclude Include="patches\large_vehicles.hpp" />
     <ClInclude Include="patches\loading_screen_name.hpp" />
     <ClInclude Include="patches\misc.hpp" />
     <ClInclude Include="patches\playlist_events.hpp" />
+    <ClInclude Include="patches\save_file_expansion.hpp" />
     <ClInclude Include="patches\ui_sounds_fix.hpp" />
     <ClInclude Include="patches\widescreen.hpp" />
     <ClInclude Include="patches\patches.hpp" />
+    <ClInclude Include="patches\windowed_fullscreen.hpp" />
+    <ClInclude Include="patches\win_main.hpp" />
+    <ClInclude Include="sunset\backup_registers.hpp" />
+    <ClInclude Include="sunset\err.hpp" />
+    <ClInclude Include="sunset\relocate_code.hpp" />
+    <ClInclude Include="sunset\sunset.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -76,6 +145,7 @@
     <ProjectGuid>{4dbe5209-a7c6-474e-ab1b-e60b066915f0}</ProjectGuid>
     <RootNamespace>MaterNationalHook</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>HO-Hook-Legacy</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -105,7 +175,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(ProjectDir)\bin</OutDir>
+    <OutDir>$(HIGH_OCTANE_UPSTREAM)\</OutDir>
     <TargetName>CarsGDF</TargetName>
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
@@ -115,7 +185,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <TargetName>CarsGDF</TargetName>
-    <OutDir>$(ProjectDir)\bin</OutDir>
+    <OutDir>$(HIGH_OCTANE_UPSTREAM)\</OutDir>
     <IncludePath>$(IncludePath)</IncludePath>
     <ExternalIncludePath>$(ExternalIncludePath)</ExternalIncludePath>
     <LibraryPath>$(LibraryPath)</LibraryPath>
@@ -144,7 +214,7 @@
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Crypt32.lib;Ws2_32.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;Crypt32.lib;Ws2_32.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>del commit_hash.txt
@@ -173,7 +243,7 @@ type commit_hash.txt &gt;&gt; commit_hash.h</Command>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Crypt32.lib;Ws2_32.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>d3d9.lib;Crypt32.lib;Ws2_32.lib;shlwapi.lib;ntdll.lib;dbghelp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PreBuildEvent>
       <Command>del commit_hash.txt

@@ -1,28 +1,23 @@
+#include <array>
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <array>
 #include <rapidjson/document.h>
+#include <string>
 
 #include "core/config.hpp"
-#include "core/game/bind.hpp"
 #include "core/fs.hpp"
-#include "core/hooking/framework.hpp"
-#include "core/logging.hpp"
+#include "core/game/bind.hpp"
 #include "core/game/container_hash_table.hpp"
+#include "sunset/sunset.hpp"
+#include "core/logging.hpp"
 
+#include "commit_hash.h"
 #include "game_text_json.hpp"
 #include "widescreen.hpp"
-#include "commit_hash.h"
 #include <codecvt>
-
-DeclareFunction(void, __thiscall, ContainerHashTable__charptrToint__CHTCreateFull, 0x0056da70, void *, int, int, void *, void *, void *, int);
-DeclareFunction(void, __thiscall, ContainerHashTable__charptrToint__Destructor, 0x0056d910, void *);
-DeclareFunction(void, __thiscall, ContainerHashTable__charptrToint__CHTAdd, 0x005bb280, void *, char *, int, void *, int);
 
 struct AppensionInfo {
     unsigned char appensionCount;
-    char pad[3];
     int* appends; // Array of string indexes to add.
     short* atPositions; // Array of positions, for where each string should be added.
     char* copiedToEnd; // Copied at the end of the string.
@@ -33,14 +28,11 @@ static_assert(sizeof(AppensionInfo) == 0x10);
 class StringInfo {
 public:
     unsigned short maxSize;
-    char padding[2];
     char* value;
     int flags;
     bool isDynamic;
-    char padding2[3];
     AppensionInfo* appensionInfo;
     unsigned char isAppendedToCount; // Number of strings this string is added to.
-    char padding3[3];
     int* isAppendedTo; // Array of string indices this string is added to.
 
     StringInfo() {
@@ -76,7 +68,7 @@ struct GameText {
   char name[16];
   int numberOfStrings;
   char** textIdPointers;
-  ContainerHashTable<char*, int>* CHTMap;
+  ContainerHashTable<char*, int>* textIdToValueIdx;
   StringInfo* stringInfos;
   int unused;
   char* textIDBuffer;
@@ -86,7 +78,6 @@ struct GameText {
 static_assert(sizeof(GameText) == 0x2C);
 
 DeclareFunction(short*, __cdecl, ConvertUTF16ToRSString, 0x00607fb0, void*, std::size_t*, size_t);
-DeclareFunction(void*, __cdecl, _malloc, 0x0063f5f1, std::size_t);
 
 inline std::u16string utf8_to_utf16(const std::string& str) {
     return std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t>{}.from_bytes(str.data());
@@ -95,7 +86,7 @@ inline std::u16string utf8_to_utf16(const std::string& str) {
 inline std::vector<std::uint8_t> utf16_to_rsstring(const std::u16string& str) {
     std::size_t utf16_size = str.length() * 2 + 2;
 
-    void* utf16_buffer = _malloc(utf16_size);
+    void* utf16_buffer = operator_new(utf16_size);
     std::memset(utf16_buffer, 0, utf16_size);
     *reinterpret_cast<unsigned short*>(utf16_buffer) = 0xFEFF;
     std::memcpy(reinterpret_cast<std::uint8_t*>(utf16_buffer) + 2, str.data(), utf16_size - 2);
@@ -116,7 +107,7 @@ DefineReplacementHook(GameTextCreate) {
 
         std::ifstream jsonFile(fs::resolve_path(std::format("{}\\loc\\{}.json", config::g_LangPrefix, name)), std::ios::in | std::ios::binary);
         jsonFile.seekg(0, std::ios::end);
-        unsigned int jsonSize = jsonFile.tellg();
+        std::size_t jsonSize = jsonFile.tellg();
 
         char* jsonBuffer = new char[jsonSize + 1];
         jsonBuffer[jsonSize] = 0;
@@ -141,7 +132,7 @@ DefineReplacementHook(GameTextCreate) {
             doc.GetArray().PushBack(v, doc.GetAllocator());
             jsonSize += formattedStr.size() + 18;
         }
-        if (config::g_WidescreenEnabled && _stricmp(name, "pcfrontendui") == 0) {
+        if (*g_ScreenMode == 2 && _stricmp(name, "pcfrontendui") == 0) {
             for (int x = 0; x < (int)widescreen::SDResolution::Max; x++) {
                 const auto& sd = widescreen::resolve_sd((widescreen::SDResolution)x);
                 const auto& hd = widescreen::resolve_hd((widescreen::SDResolution)x);
@@ -172,10 +163,8 @@ DefineReplacementHook(GameTextCreate) {
         this_ptr->numberOfStrings = doc.GetArray().Size();
         this_ptr->textIdPointers = new char* [this_ptr->numberOfStrings];
         this_ptr->stringInfos = new StringInfo[this_ptr->numberOfStrings];
-        this_ptr->CHTMap = reinterpret_cast<ContainerHashTable<char*, int>*>(malloc(0x18));
-        memset(this_ptr->CHTMap, 0, 0x18);
-
-        ContainerHashTable__charptrToint__CHTCreateFull(this_ptr->CHTMap, this_ptr->numberOfStrings, 100, StringHashValueFunction, StringHashCompareFunction, nullptr, 0);
+        this_ptr->textIdToValueIdx = new ContainerHashTable<char*, int>();
+        this_ptr->textIdToValueIdx->CHTCreateFull(this_ptr->numberOfStrings, 100, StringHashValueFunction, StringHashCompareFunction);
 
         std::vector<std::string> collectedTextIds{};
 
@@ -265,7 +254,7 @@ DefineReplacementHook(GameTextCreate) {
                 }
             }
 
-            ContainerHashTable__charptrToint__CHTAdd(this_ptr->CHTMap, this_ptr->textIdPointers[x], x, nullptr, 0);
+            this_ptr->textIdToValueIdx->CHTAdd(this_ptr->textIdPointers[x], x);
         }
         return this_ptr;
     }
@@ -282,9 +271,8 @@ DefineReplacementHook(GameTextDtor) {
         if (this_ptr->textIdPointers != nullptr) {
             delete[] this_ptr->textIdPointers;
         }
-        if (this_ptr->CHTMap != nullptr) {
-            ContainerHashTable__charptrToint__Destructor(this_ptr->CHTMap);
-            free(this_ptr->CHTMap);
+        if (this_ptr->textIdToValueIdx != nullptr) {
+            delete this_ptr->textIdToValueIdx;
         }
         if (this_ptr->stringInfos != nullptr) {
             delete[] this_ptr->stringInfos;

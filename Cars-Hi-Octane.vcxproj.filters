@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="HiOctane.cpp" />
+    <ClCompile Include="DllMain.cpp" />
     <ClCompile Include="patches\cars_dialogue_ex.cpp">
       <Filter>Patches</Filter>
     </ClCompile>
@@ -65,8 +65,95 @@
     <ClCompile Include="patches\intro_videos.cpp">
       <Filter>Patches</Filter>
     </ClCompile>
-    <ClCompile Include="core\game\ui.cpp">
+    <ClCompile Include="core\game\virtual_network.cpp">
       <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\ui_component.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\ui_container.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\ui_layer.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\ui_layout.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\ui_page.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\parameter_block.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\string_block_allocator.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\block_allocator.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\cars_base_layer.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\cars_ui_menu_layer.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\cars_ui_menu_page.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\ui\cars_ui_page.cpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\data_access.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\cars2_activity_info.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\cars2_event_set.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\cars2_event_info.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\cars2_event_database.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\cars2_story_database.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\cars2_story_event.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\music.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\input.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\string_table.cpp">
+      <Filter>Core\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\gfx\x360_video_card.cpp">
+      <Filter>Core\Game\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\gfx\x360_shader.cpp">
+      <Filter>Core\Game\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="sunset\sunset.cpp">
+      <Filter>Sunset</Filter>
+    </ClCompile>
+    <ClCompile Include="core\game\gfx\emotion_engine.cpp">
+      <Filter>Core\Game\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\save_file_expansion.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\windowed_fullscreen.cpp">
+      <Filter>Patches</Filter>
+    </ClCompile>
+    <ClCompile Include="patches\win_main.cpp">
+      <Filter>Patches</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -109,9 +196,6 @@
     <ClInclude Include="core\config.hpp">
       <Filter>Core</Filter>
     </ClInclude>
-    <ClInclude Include="core\err.hpp">
-      <Filter>Core</Filter>
-    </ClInclude>
     <ClInclude Include="core\fs.hpp">
       <Filter>Core</Filter>
     </ClInclude>
@@ -129,12 +213,6 @@
     </ClInclude>
     <ClInclude Include="core\plugin_manager.hpp">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="core\hooking\relocate_code.hpp">
-      <Filter>Core\Hooking</Filter>
-    </ClInclude>
-    <ClInclude Include="core\hooking\framework.hpp">
-      <Filter>Core\Hooking</Filter>
     </ClInclude>
     <ClInclude Include="patches\misc.hpp">
       <Filter>Patches</Filter>
@@ -154,20 +232,149 @@
     <ClInclude Include="core\game\container_list.hpp">
       <Filter>Core\Game</Filter>
     </ClInclude>
-    <ClInclude Include="core\game\all.hpp">
-      <Filter>Core\Game</Filter>
-    </ClInclude>
     <ClInclude Include="core\game\container_hash_table.hpp">
       <Filter>Core\Game</Filter>
     </ClInclude>
     <ClInclude Include="patches\intro_videos.hpp">
       <Filter>Patches</Filter>
     </ClInclude>
-    <ClInclude Include="core\game\ui.hpp">
-      <Filter>Core\Game</Filter>
-    </ClInclude>
     <ClInclude Include="core\game\container_linked_list.hpp">
       <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\virtual_network.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\ui_component.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\ui_container.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\ui_event.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\ui_layer.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\ui_layout.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\ui_page.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\ui_linked_list.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\mouse_menu.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\parameter_block.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\serializable_interface.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\data_access.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\block_allocator.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\string_block_allocator.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\cars_base_layer.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\cars_ui_menu_layer.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\cars_ui_menu_page.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\ui\cars_ui_page.hpp">
+      <Filter>Core\Game\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_activity_info.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_event_info.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_event_set.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_event_database.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_story_manager.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_story_event.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_bumper_sticker.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_story_database.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars2_launcher.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\music.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\input.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\gfx\x360_shader.hpp">
+      <Filter>Core\Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\string_table.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\gfx\x360_video_card.hpp">
+      <Filter>Core\Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\game.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\x360_game.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars_game.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars_audio_manager.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="sunset\relocate_code.hpp">
+      <Filter>Sunset</Filter>
+    </ClInclude>
+    <ClInclude Include="sunset\sunset.hpp">
+      <Filter>Sunset</Filter>
+    </ClInclude>
+    <ClInclude Include="sunset\err.hpp">
+      <Filter>Sunset</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\gfx\emotion_engine.hpp">
+      <Filter>Core\Game\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\save_file_expansion.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\windowed_fullscreen.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="patches\win_main.hpp">
+      <Filter>Patches</Filter>
+    </ClInclude>
+    <ClInclude Include="core\game\cars_dialogue.hpp">
+      <Filter>Core\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="sunset\backup_registers.hpp">
+      <Filter>Sunset</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -177,14 +384,20 @@
     <Filter Include="Core">
       <UniqueIdentifier>{a3186ca6-2b74-4f47-92be-5f6cd7ffc579}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Core\Hooking">
-      <UniqueIdentifier>{223cb3d3-2f42-4d82-a698-030ee0f698e1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Shaders">
       <UniqueIdentifier>{6ab2a8fd-4236-4111-815b-65f098281127}</UniqueIdentifier>
     </Filter>
     <Filter Include="Core\Game">
       <UniqueIdentifier>{3cbc94a6-27ff-4764-accc-bf67123ccc14}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Game\UI">
+      <UniqueIdentifier>{f801c073-a5ea-42d1-9ded-160240d7b421}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Core\Game\Graphics">
+      <UniqueIdentifier>{3d2b7e48-d2f8-4d69-a110-2a66f9c18b15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Sunset">
+      <UniqueIdentifier>{25563d3a-61c4-4408-9d07-82a72ee6e44e}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

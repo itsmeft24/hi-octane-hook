@@ -2,9 +2,6 @@
 #include <Shlwapi.h>
 #include <Windows.h>
 #include <filesystem>
-#include <fstream>
-#include <iostream>
-#include <vector>
 #include <format>
 
 #include "core/bink_reexport.hpp"
@@ -14,23 +11,17 @@
 #include "patches/patches.hpp"
 #include "core/logging.hpp"
 #include "core/plugin_manager.hpp"
-#include "core/hooking/framework.hpp"
+#include "sunset/sunset.hpp"
 #include "core/update.hpp"
+#include "patches/win_main.hpp"
 
 std::filesystem::path g_DataDir;
 std::filesystem::path g_InstallDir;
 
-constexpr std::string_view kDataDirName = "hi-octane";
-
 // This string needs to have a static lifetime as a pointer to it will be given to the game.
-static std::string data_dir_fmt = std::format("%s\\{}\\", kDataDirName);
-
 extern "C" __declspec(dllexport) const char *VERSION = "2.0.0";
 
 bool init() {
-    hooking::write_push(0x00619929, data_dir_fmt.c_str());
-    // Set the games' DataPC path to our own.
-
     wchar_t CURR_DIR_BUF[260];
     GetModuleFileNameW(NULL, CURR_DIR_BUF, 260);
     PathRemoveFileSpecW(CURR_DIR_BUF);
@@ -84,6 +75,12 @@ bool init() {
 
     misc::install();
 
+    windowed_fullscreen::install();
+
+    save_file_expansion::install();
+
+    // input::install();
+
     // HDRPatch::install();
 
 #ifndef _DEBUG
@@ -122,7 +119,8 @@ void deinit() {
 DefineReplacementHook(WinMainHook) {
     static int __stdcall callback(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR lpCmdLine, int nCmdShow) {
         if (init()) {
-            int result = original(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+            int result = win_main(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
+            // int result = original(hInstance, hPrevInstance, lpCmdLine, nCmdShow);
             deinit();
             return result;
         }

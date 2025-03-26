@@ -1,5 +1,9 @@
 #pragma once
 #include <cstdint>
+#include "core/game/parameter_block.hpp"
+#include "core/game/gfx/x360_shader.hpp"
+#include "core/game/container_linked_list.hpp"
+
 namespace HDRPatch {
 
 #pragma pack(push, 1)
@@ -20,14 +24,20 @@ namespace HDRPatch {
 			X360FilterAlgorithm*(__thiscall* Deleter)(X360FilterAlgorithm*, unsigned char);
 			unsigned int(__thiscall* SendData)(X360FilterAlgorithm*);
 			unsigned int(__thiscall* ReadFromFile)(X360FilterAlgorithm*, uintptr_t);
-			void(__thiscall* Initialize)(X360FilterAlgorithm*, char*, uintptr_t);
+			void(__thiscall* Initialize)(X360FilterAlgorithm*, char*, ParameterBlock*);
 			void(__thiscall* Enable)(X360FilterAlgorithm*, unsigned int);
 			void(__thiscall* Unk)(X360FilterAlgorithm*);
 			void(__thiscall* UnkGetD3DDeviceIdk)(X360FilterAlgorithm*);
 		} *vtbl;
-		char padding[0x54];
-		unsigned int isEnabled;
-		char padding2[0x8];
+		int unused;
+		int render_target_width;
+		int render_target_height;
+		int render_target_format;
+		char name[64];
+		LinkedListNode<X360FilterAlgorithm*>* node;
+		int is_enabled;
+		int unk_geometry_entries_len;
+		void* unk_geometry_entries;
 	};
 	static_assert(sizeof(X360FilterAlgorithm) == 100);
 #pragma pack(pop)
@@ -43,25 +53,25 @@ namespace HDRPatch {
 		float FinalMixLDR;
 		float Scale;
 
-		void* BlurVert;
-		void* BlurPixel;
+		X360VertexShader* BlurVert;
+		X360PixelShader* BlurPixel;
 
-		void* BufferVert;
-		void* BufferPixel;
+		X360VertexShader* BufferVert;
+		X360PixelShader* BufferPixel;
 
-		void* DownsampleVert;
-		void* DownsamplePixel;
+		X360VertexShader* DownsampleVert;
+		X360PixelShader* DownsamplePixel;
 
-		void* FinalVert;
-		void* FinalPixel;
+		X360VertexShader* FinalVert;
+		X360PixelShader* FinalPixel;
 
-		void* ThresholdVert;
-		void* ThresholdPixel;
+		X360VertexShader* ThresholdVert;
+		X360PixelShader* ThresholdPixel;
 	public:
 		static X360FilterHighDynamicRange* __fastcall Constructor(X360FilterHighDynamicRange* _this);
 		static X360FilterHighDynamicRange* __fastcall Deleter(X360FilterHighDynamicRange* _this, uintptr_t edx, unsigned char);
 		static unsigned int __fastcall SendData(X360FilterHighDynamicRange* _this);
-		static void __fastcall Initialize(X360FilterHighDynamicRange* _this, uintptr_t edx, char*, uintptr_t parameterBlock);
+		static void __fastcall Initialize(X360FilterHighDynamicRange* _this, uintptr_t edx, char*, ParameterBlock* pBlock);
 	};
 	void install();
 };

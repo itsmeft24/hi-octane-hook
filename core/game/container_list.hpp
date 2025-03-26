@@ -1,6 +1,7 @@
 #pragma once
 #include <iostream>
 #include <cstdint>
+#include "bind.hpp"
 
 template <typename T>
 class ContainerList {
@@ -46,6 +47,7 @@ public:
 	ContainerList& operator=(const ContainerList&) = delete;
 
 	inline ContainerList() {
+		flags = 0;
 		memory = nullptr;
 		length = 0;
 		capacity_add = 0;
@@ -57,7 +59,7 @@ public:
 	inline ~ContainerList() {
 		if (this != nullptr) {
 			if (memory != nullptr) {
-				free(memory);
+				operator_delete(memory);
 			}
 		}
 	}
@@ -87,7 +89,7 @@ public:
 				return 0;
 			}
 			else {
-				memory = realloc(memory, sizeof(T) * new_capacity);
+				memory = _realloc(memory, sizeof(T) * new_capacity);
 				capacity = new_capacity;
 				return 1;
 			}
@@ -99,7 +101,7 @@ public:
 
 	inline std::size_t CLNonMacroCreate(int initial_capacity, int capacity_growth, int max_capacity) {
 		length = 0;
-		memory = malloc(initial_capacity * sizeof(T));
+		memory = operator_new(initial_capacity * sizeof(T));
 		capacity_add = capacity_growth;
 		capacity = initial_capacity;
 		max = max_capacity;
@@ -130,4 +132,6 @@ public:
 	Iterator<T> end() const {
 		return Iterator<T>(memory + length);
 	}
+
+	REPLACE_OPERATOR_NEW_DELETE
 };

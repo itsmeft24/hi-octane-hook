@@ -7,30 +7,30 @@
 #include "core/config.hpp"
 #include "core/fs.hpp"
 #include "core/logging.hpp"
-#include "core/hooking/framework.hpp"
+#include "sunset/sunset.hpp"
 #include "core/utils.hpp"
-
 #include "large_vehicles.hpp"
+#include "widescreen.hpp"
 
 DeclareFunction(void, __thiscall, CarsActivityUI_SetView, 0x004bd1f0, uintptr_t, int);
 
 int LastSetCameraAnimIndex = 0;
 
-BOOL __stdcall GetCameraAnimIndex(char* character) {
+int __stdcall GetCameraAnimIndex(char* character) {
     auto string = std::string(character);
     utils::make_lowercase(string);
     auto is_large_vehicle = std::find(config::g_LargeVehicles.begin(), config::g_LargeVehicles.end(), string) != config::g_LargeVehicles.end();
 
-    if (!is_large_vehicle && !config::g_WidescreenEnabled) {
+    if (!is_large_vehicle && *g_ScreenMode != 2) {
         return 0;
     }
-    else if (!is_large_vehicle && config::g_WidescreenEnabled) {
+    else if (!is_large_vehicle && *g_ScreenMode == 2) {
         return 2;
     }
-    else if (is_large_vehicle && !config::g_WidescreenEnabled) {
+    else if (is_large_vehicle && *g_ScreenMode != 2) {
         return 1;
     }
-    else { // is_large_vehicle && ConfigManager::IsWidescreenEnabled
+    else { // is_large_vehicle && *g_ScreenMode == 2
         return 3;
     }
 }
@@ -55,17 +55,17 @@ void __declspec(naked) HandleCharacter() {
 }
 
 DefineInlineHook(CSSEndLayer) {
-    static void __cdecl callback(hooking::InlineCtx & ctx) {
+    static void __cdecl callback(sunset::InlineCtx & ctx) {
         LastSetCameraAnimIndex = 0;
-        if (config::g_WidescreenEnabled) {
+        if (*g_ScreenMode == 2) {
             LastSetCameraAnimIndex = 2;
         }
     }
 };
 
 void large_vehicles::install() {
-    hooking::write_nop(0x0050FB1F, 0x3B);
-    hooking::write_jmp(0x0050FB1F, HandleCharacter);
+    sunset::inst::nop(reinterpret_cast<void*>(0x0050FB1F), 0x3B);
+    sunset::inst::jmp(reinterpret_cast<void*>(0x0050FB1F), HandleCharacter);
     CSSEndLayer::install_at_ptr(0x004fe65a);
     logging::log("[large_vehicles::install] Successfully installed patch!");
 };

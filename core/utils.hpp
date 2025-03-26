@@ -2,6 +2,7 @@
 #include <Windows.h>
 #include <algorithm>
 #include <iostream>
+#include <utility>
 
 namespace utils {
     const inline void make_lowercase(std::string& str) {
@@ -27,7 +28,28 @@ namespace utils {
 
         return size;
     }
-    template <typename T> inline void wrap_constructor(std::uintptr_t ptr) {
-        new (ptr) T();
+    inline std::pair<int, int> resolve_game_window_dimensions(int screen_width, int screen_height, bool widescreen) {
+        int window_width = screen_width;
+        int window_height = screen_height;
+
+        double screen_ratio = screen_width / screen_height;
+        if (widescreen) {
+            if (screen_ratio > 16.0 / 9.0) {
+                window_width = static_cast<int>(screen_height * 16.0 / 9.0);
+            }
+            else {
+                window_height = static_cast<int>(screen_width * 9.0 / 16.0);
+            }
+        }
+        else {
+            if (screen_ratio > 4.0 / 3.0) {
+                window_width = static_cast<int>(screen_height * 4.0 / 3.0);
+            }
+            else {
+                window_height = static_cast<int>(screen_width * 3.0 / 4.0);
+            }
+        }
+
+        return std::make_pair(window_width, window_height);
     }
 };

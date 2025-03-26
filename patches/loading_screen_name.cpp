@@ -4,20 +4,19 @@
 
 #include "core/config.hpp"
 #include "core/logging.hpp"
-#include "core/hooking/framework.hpp"
-#include "core/game/all.hpp"
+#include "sunset/sunset.hpp"
+#include "core/game/cars_game.hpp"
 #include "loading_screen_name.hpp"
+#include "widescreen.hpp"
 
 DefineInlineHook(FixLoadingScreenPath) {
-	static void callback(hooking::InlineCtx& ctx) {
-		const char* loading_screen_name = reinterpret_cast<const char*>(reinterpret_cast<uintptr_t>(*lpCarsGame) + 0x764);
-		
+	static void callback(sunset::InlineCtx& ctx) {
 		std::string calculated_path{};
-		if (config::g_WidescreenEnabled) {
-			calculated_path = std::format("{}\\ui\\tex_hd\\{}", config::g_LangPrefix, loading_screen_name);
+		if (*g_ScreenMode == 2) {
+			calculated_path = std::format("{}\\ui\\tex_hd\\{}", config::g_LangPrefix, (*lpCarsGame)->loading_screen_name);
 		}
 		else {
-			calculated_path = std::format("{}\\ui\\tex\\{}", config::g_LangPrefix, loading_screen_name);
+			calculated_path = std::format("{}\\ui\\tex\\{}", config::g_LangPrefix, (*lpCarsGame)->loading_screen_name);
 		}
 
 		if (calculated_path.size() < 0x104) {

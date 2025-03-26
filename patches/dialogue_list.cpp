@@ -7,7 +7,7 @@
 #include "core/globals.hpp"
 #include "core/fs.hpp"
 #include "core/config.hpp"
-#include "core/hooking/framework.hpp"
+#include "sunset/sunset.hpp"
 #include "core/logging.hpp"
 
 #include "dialogue_list.hpp"

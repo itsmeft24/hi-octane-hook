@@ -3,12 +3,12 @@
 #include <cstdint>
 #include <string>
 #include "bind.hpp"
+#include "block_allocator.hpp"
 
 typedef void (*HashEnumCallBack)(void* val, void* userData);
 typedef int (*HashValueFunction)(void* value);
 typedef int(*HashCompareFunction)(void* value1, void* value2);
 
-// Generates hash values based on the address referenced by key
 inline int PointerHashValueFunction(void* key) {
     std::string string = std::to_string(reinterpret_cast<uintptr_t>(key));
     int ii = 0;
@@ -18,7 +18,6 @@ inline int PointerHashValueFunction(void* key) {
     return ii;
 }
 
-// Generates hash values based on the string referenced by key
 inline int StringHashValueFunction(void* key) {
     int hashValue = 0, i = 0;
     auto str = reinterpret_cast<char*>(key);
@@ -30,36 +29,32 @@ inline int StringHashValueFunction(void* key) {
     return hashValue;
 }
 
-// Generates hash value as if the key was a single character
 inline int CharHashValueFunction(void* key) {
     return *reinterpret_cast<std::uint8_t*>(key);
 }
 
-// Compares the address referenced by value1 and value2
 inline int PointerHashCompareFunction(void* value1, void* value2) {
     return static_cast<int>(value1 == value2);
 }
 
-// Compares the strings referenced by value1 and value2
 inline int StringHashCompareFunction(void* value1, void* value2) {
     return (strcmp(reinterpret_cast<char*>(value1), reinterpret_cast<char*>(value2)) == 0) ? 1 : 0;
 }
 
 inline int CharHashCompareFunction(void* value1, void* value2) {
-    auto valuea = *reinterpret_cast<std::uint8_t*>(value1);
-    auto valueb = *reinterpret_cast<std::uint8_t*>(value2);
-    return valuea == valueb;
+    auto value_a = *reinterpret_cast<std::uint8_t*>(value1);
+    auto value_b = *reinterpret_cast<std::uint8_t*>(value2);
+    return value_a == value_b;
 }
 
 template <class TKey, class TVal>
 class ContainerHashTable {
 public:
-    struct Node
-    {
+    struct Node {
         TVal value;
         int hash; // hash value before modding to buckets size
         TKey key;
-        Node* next_node;
+        Node* next;
         int bucket_index;
     };
 
@@ -70,198 +65,181 @@ public:
     // it helps the hashing if the number of buckets is a prime number
     Node** buckets;
     int bucket_count; // how many buckets
-    void* unk;
-    struct BlockAllocator* alloc;
+    bool initialized;
+    BlockAllocator* block_allocator;
     HashValueFunction    hash_value_func; // The function used to compare keys
     HashCompareFunction  hash_compare_func; // The function used to hash keys
 
 public:
-    ContainerHashTable(int numBuckets);
-    ContainerHashTable(int numBuckets, HashValueFunction hashValueFunction, HashCompareFunction hashCompareFunction);
+    ContainerHashTable();
     ~ContainerHashTable();
     ContainerHashTable(const ContainerHashTable&) = delete;
     ContainerHashTable& operator=(const ContainerHashTable&) = delete;
-
-    // find the value for this key
+    void CHTCreateFull(int _bucket_count, int nodes_per_block, HashValueFunction _hash_value_func, HashCompareFunction _hash_compare_func);
     int Lookup(TKey key, TVal* value);
-
-    // change the value for this key
-    // DOESN'T check for duplicate entries
     int ChangeValue(TKey key, TVal value);
-
-    // add a key/value pair
-    // DOESN'T check for duplicate entries
-    void Add(TKey key, TVal value);
-
-    // remove a key/value pair
-    // DOESN'T check for duplicate entries
-    void Remove(TKey key, TKey* retKey = NULL, TVal* retVal = NULL);
-
-    // call function on all nodes
+    void CHTAdd(TKey key, TVal value);
+    void CHTRemove(TKey key, TKey* retKey = nullptr, TVal* retVal = nullptr);
     void EnumAllNodes(HashEnumCallBack hashEnumCallback, void* userData);
-
-    // remove all nodes in the hash table (i.e. return it to its start state)
     void RemoveAllNodes();
-
-    // recursively remove all nodes in node's list
     void RemoveNode(Node* node);
-
-    // return the value of the node after the given one
-    // (node==NULL to start the search)
+    
+    /*
     TVal GetNextValue(Node** node);
-
-    // return the value and key of the node after the given one
-    // (node==NULL to start the search)
     int GetNextValue(Node** node, TKey* key, TVal* value);
+    */
+    REPLACE_OPERATOR_NEW_DELETE;
 };
 
 template <class TKey, class TVal>
-ContainerHashTable<TKey, TVal>::ContainerHashTable(int numBuckets)
-{
-    bucket_count = numBuckets;
-    buckets = reinterpret_cast<Node**>(operator_new(sizeof(Node*) * bucket_count));
-
-    for (int i = 0; i < bucket_count; i++) {
-        buckets[i] = NULL;
-    }
-
-    hash_value_func = PointerHashValueFunction;
-    hash_compare_func = PointerHashCompareFunction;
+ContainerHashTable<TKey, TVal>::ContainerHashTable() {
+    buckets = nullptr;
+    bucket_count = 0;
+    initialized = false;
+    block_allocator = nullptr;
+    hash_value_func = nullptr;
+    hash_compare_func = nullptr;
 }
 
-template <class TKey, class TVal>
-ContainerHashTable<TKey, TVal>::ContainerHashTable(int numBuckets, HashValueFunction hashValueFunction, HashCompareFunction hashCompareFunction)
+template<class TKey, class TVal>
+inline void ContainerHashTable<TKey, TVal>::CHTCreateFull(int _bucket_count, int nodes_per_block, HashValueFunction _hash_value_func, HashCompareFunction _hash_compare_func)
 {
-    bucket_count = numBuckets;
+    bucket_count = _bucket_count;
+    initialized = true;
     buckets = reinterpret_cast<Node**>(operator_new(sizeof(Node*) * bucket_count));
 
     for (int i = 0; i < bucket_count; i++) {
-        buckets[i] = NULL;
+        buckets[i] = nullptr;
     }
 
-    hash_value_func = hashValueFunction;
-    hash_compare_func = hashCompareFunction;
+    hash_value_func = _hash_value_func;
+    hash_compare_func = _hash_compare_func;
+
+    block_allocator = new BlockAllocator(sizeof(Node), sizeof(Node) * nodes_per_block);
 }
 
 template <class TKey, class TVal>
 ContainerHashTable<TKey, TVal>::~ContainerHashTable()
 {
-    int bucket;
-    Node* curr, * last;
+    if (initialized) {
+        Node* curr, * last;
 
-    // iterate thru buckets
-    for (bucket = 0; bucket < bucket_count; bucket++) {
-        // delete all the nodes in this bucket
-        curr = buckets[bucket];
-        while (curr) {
-            last = curr;
-            curr = curr->Next;
-            operator_delete(last);
+        // iterate thru buckets
+        for (int bucket = 0; bucket < bucket_count; bucket++) {
+            // delete all the nodes in this bucket
+            curr = buckets[bucket];
+            while (curr) {
+                last = curr;
+                curr = curr->next;
+                // operator_delete(last);
+                block_allocator->FreeBlock(last);
+            }
         }
+
+        operator_delete(buckets);
     }
 
-    operator_delete(buckets);
+    if (block_allocator != nullptr) {
+        block_allocator->Release();
+    }
 }
 
-// find the value for this key
 template <class TKey, class TVal>
 int ContainerHashTable<TKey, TVal>::Lookup(TKey key, TVal* value)
 {
     int origHash = hash_value_func((void*)key);
-    int hv = ABS(origHash) % bucket_count;
+    int hv = std::abs(origHash) % bucket_count;
 
     Node* node = buckets[hv];
 
     while (node) {
-        // find a potential match?
-        if (node->OrigHash == origHash) {
-            if (hash_compare_func((void*)node->Key, (void*)key)) {
-                *value = node->Val;
+        if (node->hash == origHash) {
+            if (hash_compare_func((void*)node->key, (void*)key)) {
+                *value = node->value;
                 return 1;
             }
         }
-        node = node->Next;
+        node = node->next;
     }
     return 0;
 }
 
-// change the value for this key
 template <class TKey, class TVal>
 int ContainerHashTable<TKey, TVal>::ChangeValue(TKey key, TVal value)
 {
     int origHash = hash_value_func((void*)key);
-    int hv = ABS(origHash) % bucket_count;
+    int hv = std::abs(origHash) % bucket_count;
 
     Node* node = buckets[hv];
 
     while (node) {
         // find a potential match?
-        if (node->OrigHash == origHash) {
-            if (hash_compare_func((void*)node->Key, (void*)key)) {
-                node->Val = value;
+        if (node->hash == origHash) {
+            if (hash_compare_func((void*)node->key, (void*)key)) {
+                node->value = value;
                 return 1;
             }
         }
-        node = node->Next;
+        node = node->next;
     }
     return 0;
 }
 
-// add a key/value pair
-// DOESN'T check for duplicate entries
+// doesn't check for duplicate entries
 template <class TKey, class TVal>
-void ContainerHashTable<TKey, TVal>::Add(TKey key, TVal value)
+void ContainerHashTable<TKey, TVal>::CHTAdd(TKey key, TVal value)
 {
     int origHash = hash_value_func((void*)key);
-    int hv = ABS(origHash) % bucket_count;
+    int hv = std::abs(origHash) % bucket_count;
 
     // add this node to the head of the linked lists of nodes that is bucket[hv]
-    Node* node = reinterpret_cast<Node*>(operator_new(sizeof(Node)));
-    node->Next = buckets[hv];
+    // Node* node = reinterpret_cast<Node*>(operator_new(sizeof(Node)));
+    int allocated_new_block = 0;
+    Node* node = reinterpret_cast<Node*>(block_allocator->AllocBlock(&allocated_new_block));
+    node->next = buckets[hv];
     buckets[hv] = node;
-    node->Key = key;
-    node->Val = value;
-    node->OrigHash = origHash;
-    node->Bucket = hv;
+    node->key = key;
+    node->value = value;
+    node->hash = origHash;
+    node->bucket_index = hv;
 }
 
-// find the value for this key
 template <class TKey, class TVal>
-void ContainerHashTable<TKey, TVal>::Remove(TKey key, TKey* retKey /* = NULL */, TVal* retVal /* = NULL */)
+void ContainerHashTable<TKey, TVal>::CHTRemove(TKey key, TKey* retKey /* = nullptr */, TVal* retVal /* = nullptr */)
 {
     int origHash = hash_value_func((void*)key);
-    int hv = ABS(origHash) % bucket_count;
+    int hv = std::abs(origHash) % bucket_count;
 
     Node* node = buckets[hv];
     Node* prevNode = 0;
 
     while (node) {
         // find a potential match?
-        if (node->OrigHash == origHash) {
-            if (hash_compare_func((void*)node->Key, (void*)key)) {
+        if (node->hash == origHash) {
+            if (hash_compare_func((void*)node->key, (void*)key)) {
                 if (prevNode) {
-                    prevNode->Next = node->Next;
+                    prevNode->next = node->next;
                 }
                 else {
-                    buckets[hv] = node->Next;
+                    buckets[hv] = node->next;
                 }
                 if (retKey) {
-                    *retKey = node->Key;
+                    *retKey = node->key;
                 }
                 if (retVal) {
-                    *retVal = node->Val;
+                    *retVal = node->value;
                 }
 
-                operator_delete(node);
+                // operator_delete(node);
+                block_allocator->FreeBlock(node);
                 return;
             }
         }
         prevNode = node;
-        node = node->Next;
+        node = node->next;
     }
 }
 
-// call function on all nodes
 template <class TKey, class TVal>
 void ContainerHashTable<TKey, TVal>::EnumAllNodes(HashEnumCallBack hashEnumCallback, void* userData)
 {
@@ -269,17 +247,16 @@ void ContainerHashTable<TKey, TVal>::EnumAllNodes(HashEnumCallBack hashEnumCallb
     for (int b = 0; b < bucket_count; b++) {
         node = buckets[b];
         if (node) {
-            hashEnumCallback(&node->Val, userData);
-            node = node->Next;
+            hashEnumCallback(&node->value, userData);
+            node = node->next;
         }
         while (node) {
-            hashEnumCallback(&node->Val, userData);
-            node = node->Next;
+            hashEnumCallback(&node->value, userData);
+            node = node->next;
         }
     }
 }
 
-// remove all nodes in the hash table (i.e. return it to its start state)
 template <class TKey, class TVal>
 void ContainerHashTable<TKey, TVal>::RemoveAllNodes()
 {
@@ -287,81 +264,82 @@ void ContainerHashTable<TKey, TVal>::RemoveAllNodes()
     for (int b = 0; b < bucket_count; b++) {
         node = buckets[b];
         RemoveNode(node);
-        buckets[b] = NULL;
+        buckets[b] = nullptr;
     }
 }
 
-// recursivley remove all nodes in node's list
 template <class TKey, class TVal>
 void ContainerHashTable<TKey, TVal>::RemoveNode(Node* node)
 {
     if (node) {
-        RemoveNode(node->Next);
-        operator_delete(node);
+        RemoveNode(node->next);
+        // operator_delete(node);
+        block_allocator->FreeBlock(node);
     }
 }
 
+/*
 // return the value of the node after the given one
-// (node==NULL to start the search)
+// (node==nullptr to start the search)
 template <class TKey, class TVal>
 TVal ContainerHashTable<TKey, TVal>::GetNextValue(Node** node)
 {
     Node* curr;
     int bucket;
 
-    if (*node == NULL) {
+    if (*node == nullptr) {
         for (bucket = 0; bucket < bucket_count; bucket++) {
             curr = buckets[bucket];
             if (curr) {
                 (*node) = curr;
                 // return the value at this node
-                return curr->Val;
+                return curr->value;
             }
         }
     }
     else {
         // move to the next node
         curr = (*node);
-        int startBucket = curr->Bucket + 1;
-        curr = curr->Next;
+        int startBucket = curr->bucket_index + 1;
+        curr = curr->next;
 
-        if (curr == NULL) {
+        if (curr == nullptr) {
             for (bucket = startBucket; bucket < bucket_count; bucket++) {
                 curr = buckets[bucket];
                 if (curr) {
                     (*node) = curr;
                     // return the value at this node
-                    return curr->Val;
+                    return curr->value;
                 }
             }
         }
         else {
             (*node) = curr;
             // return the value at this node
-            return curr->Val;
+            return curr->value;
         }
     }
 
-    (*node) = NULL;
-    return ((TVal)NULL);
+    (*node) = nullptr;
+    return ((TVal)nullptr);
 }
 
 // return the value and key of the node after the given one
-// (node==NULL to start the search)template <class TKey, class TVal>
+// (node==nullptr to start the search)template <class TKey, class TVal>
 template <class TKey, class TVal>
 int ContainerHashTable<TKey, TVal>::GetNextValue(Node** node, TKey* key, TVal* value)
 {
     Node* curr;
     int bucket;
 
-    if (*node == NULL) {
+    if (*node == nullptr) {
         for (bucket = 0; bucket < bucket_count; bucket++) {
             curr = buckets[bucket];
             if (curr) {
                 (*node) = curr;
                 // return the value and key of this node
-                *key = curr->Key;
-                *value = curr->Val;
+                *key = curr->key;
+                *value = curr->value;
                 return 1;
             }
         }
@@ -369,17 +347,17 @@ int ContainerHashTable<TKey, TVal>::GetNextValue(Node** node, TKey* key, TVal* v
     else {
         // move to the next node
         curr = (*node);
-        int startBucket = curr->Bucket + 1;
-        curr = curr->Next;
+        int startBucket = curr->bucket_index + 1;
+        curr = curr->next;
 
-        if (curr == NULL) {
+        if (curr == nullptr) {
             for (bucket = startBucket; bucket < bucket_count; bucket++) {
                 curr = buckets[bucket];
                 if (curr) {
                     (*node) = curr;
                     // return the value and key of this node
-                    *key = curr->Key;
-                    *value = curr->Val;
+                    *key = curr->key;
+                    *value = curr->value;
                     return 1;
                 }
             }
@@ -387,12 +365,16 @@ int ContainerHashTable<TKey, TVal>::GetNextValue(Node** node, TKey* key, TVal* v
         else {
             (*node) = curr;
             // return the value and key of this node
-            *key = curr->Key;
-            *value = curr->Val;
+            *key = curr->key;
+            *value = curr->value;
             return 1;
         }
     }
 
-    (*node) = NULL;
+    (*node) = nullptr;
     return 0;
 }
+*/
+
+static_assert(sizeof(ContainerHashTable<const char*, int>::Node) == 20);
+static_assert(sizeof(ContainerHashTable<const char*, int>) == 24);

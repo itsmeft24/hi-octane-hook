@@ -1,6 +1,8 @@
 #pragma once
 #include <utility>
 
+inline auto g_ScreenMode = reinterpret_cast<std::uint32_t*>(0x006F72CC);
+
 namespace widescreen {
 
     enum class SDResolution : int {

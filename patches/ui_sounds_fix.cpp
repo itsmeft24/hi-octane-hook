@@ -2,7 +2,7 @@
 #include "ui_sounds_fix.hpp"
 
 #include "core/globals.hpp"
-#include "core/hooking/framework.hpp"
+#include "sunset/sunset.hpp"
 #include "core/logging.hpp"
 
 DeclareFunction(int, __thiscall, CarsUIManager_PlaySoundEvent, 0x005c9760, uintptr_t, int, int, int);

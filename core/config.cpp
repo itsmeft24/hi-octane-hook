@@ -18,6 +18,8 @@ bool config::g_AutomaticUpdatesEnabled = true;
 bool config::g_SaveRedirectionEnabled = false;
 bool config::g_ExploreMusicEnabled = false;
 bool config::g_DataAccessLoggingEnabled = true;
+bool config::g_ExpandedSaveFilesEnabled = false;
+bool config::g_WindowedFullscreenEnabled = false;
 char config::g_LangPrefix = 'E';
 std::unordered_map<std::string, std::string> config::g_RaceTypeToPlaylist = {};
 std::vector<std::string> config::g_DialogueList = {};
@@ -91,7 +93,7 @@ void config::read() {
     std::ifstream conf_file(g_InstallDir / "LocalStorage\\settings.json", std::ios::in);
     if (conf_file.is_open()) {
         conf_file.seekg(0, std::ios::end);
-        unsigned int json_size = conf_file.tellg();
+        std::size_t json_size = conf_file.tellg();
 
         char* json_buffer = new char[json_size + 1];
         json_buffer[json_size] = 0;
@@ -113,11 +115,13 @@ void config::read() {
         READ_BOOL_AND_LOG_ON_FAIL(enable_save_redirection, g_SaveRedirectionEnabled);
         READ_BOOL_AND_LOG_ON_FAIL(enable_explore_music, g_ExploreMusicEnabled);
         READ_BOOL_AND_LOG_ON_FAIL(enable_data_access_logging, g_DataAccessLoggingEnabled);
+        READ_BOOL_AND_LOG_ON_FAIL(enable_expanded_save_files, g_ExpandedSaveFilesEnabled);
+        READ_BOOL_AND_LOG_ON_FAIL(enable_windowed_fullscreen, g_WindowedFullscreenEnabled);
 
         if (root.HasMember("force_windowed_mode")) {
             if (root["force_windowed_mode"].IsBool()) {
                 if (root["force_windowed_mode"].GetBool()) {
-                    *reinterpret_cast<std::uint32_t*>(0x0071b224) = 1;
+                    *reinterpret_cast<bool*>(0x0071b224) = true;
                 }
             }
             else {

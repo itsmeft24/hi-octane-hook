@@ -1,17 +1,17 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <LocalDebuggerCommand>D:\CarsBootDirs\Before\Cars_Mater.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>$(HIGH_OCTANE_UPSTREAM)\Cars_Mater.exe</LocalDebuggerCommand>
     <LocalDebuggerCommandArguments>
     </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerWorkingDirectory>D:\CarsBootDirs\Before\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>$(HIGH_OCTANE_UPSTREAM)\</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <LocalDebuggerCommand>D:\CarsBootDirs\Before\Cars_Mater.exe</LocalDebuggerCommand>
+    <LocalDebuggerCommand>$(HIGH_OCTANE_UPSTREAM)\Cars_Mater.exe</LocalDebuggerCommand>
     <LocalDebuggerCommandArguments>
     </LocalDebuggerCommandArguments>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
-    <LocalDebuggerWorkingDirectory>D:\CarsBootDirs\Before\</LocalDebuggerWorkingDirectory>
+    <LocalDebuggerWorkingDirectory>$(HIGH_OCTANE_UPSTREAM)\</LocalDebuggerWorkingDirectory>
   </PropertyGroup>
 </Project>

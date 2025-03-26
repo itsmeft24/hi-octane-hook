@@ -5,10 +5,9 @@
 
 #include "core/globals.hpp"
 #include "core/logging.hpp"
-#include "core/config.hpp"
 
-FILE *log_file = nullptr;
-FILE *console_handle = nullptr;
+FILE* log_file = nullptr;
+FILE* console_handle = nullptr;
 
 void logging::setup_log_file() {
     std::filesystem::path logfilepath = g_InstallDir / "hi-octane.log";
@@ -18,7 +17,7 @@ void logging::setup_log_file() {
 void logging::create_console_window() {
     AllocConsole();
     freopen_s(&console_handle, "CONOUT$", "w", stdout);
-    SetConsoleTitleA("Cars: Hi-Octane Console");
+    SetConsoleTitleA("Cars: High-Octane Console");
 }
 
 void logging::cleanup() {

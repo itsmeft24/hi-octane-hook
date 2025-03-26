@@ -12,7 +12,7 @@
 #include "core/fs.hpp"
 #include "core/globals.hpp"
 #include "core/logging.hpp"
-#include "hooking/framework.hpp"
+#include "sunset/sunset.hpp"
 #include "core/utils.hpp"
 
 DeclareFunction(void*, __cdecl, __fsopen, 0x0063FBFB, char*, char*, int); // VS2005 CRT function
@@ -69,27 +69,6 @@ std::string get_mod_for_file(const std::string& file) {
 	utils::make_lowercase(str);
 	str = str.substr(str.find("\\mods\\") + 6);
 	return str.substr(0, str.find("\\"));
-}
-
-// Takes in three arguments: an asset file path string, a destination buffer,
-// and the size of the buffer (used for bounds checking) If the file does not
-// exist, 0 is returned. If the buffer is too small, the size of the file is
-// returned. Otherwise, the size of the file is returned.
-HIOCTANE_API unsigned int __stdcall HiOctane_LoadFile(const char* filepath, void* buffer, size_t allocated) {
-	auto p = fs::resolve_path(filepath);
-	if (!std::filesystem::exists(p)) {
-		return 0;
-	}
-
-	uintmax_t file_size = std::filesystem::file_size(p);
-	if (file_size > allocated) {
-		return 0;
-	}
-
-	std::ifstream f(p, std::ios::in | std::ios::binary);
-	f.read((char*)buffer, file_size);
-	f.close();
-	return static_cast<unsigned int>(file_size);
 }
 
 // Registers a deleted file, takes in a single argument being a file path
@@ -247,10 +226,10 @@ DWORD __stdcall BASS_SampleLoadHook(BOOL mem, char* file, DWORD offset, DWORD le
 	if (MAP.find(base_filepath) != MAP.end()) {
 		const auto& out_path = MAP.at(base_filepath);
 
-		logging::log("[fs::BASS::SampleLoad] Loading stream file: {} from mod: {}...", base_filepath, MAP.at(base_filepath).string());
+		logging::log("[fs::BASS::SampleLoad] Loading stream file: {} from mod: {}...", base_filepath, get_mod_for_file(base_filepath));
 
 		// Return expected result
-		return BASS_SampleLoad(mem, (char*)out_path.c_str(), offset, length, max, flags);
+		return BASS_SampleLoad(mem, (char*)out_path.string().c_str(), offset, length, max, flags);
 	}
 	else {
 		logging::log("[fs::BASS::SampleLoad] Loading stream file: {}...", base_filepath);
@@ -293,6 +272,8 @@ DefineReplacementHook(fopenHook) {
 				if (std::find(MARK_AS_DELETED.begin(), MARK_AS_DELETED.end(), base_filepath) != MARK_AS_DELETED.end()) {
 					return nullptr;
 				}
+
+				// logging::log("[fs::fopen] Loading file: {}...", base_filepath);
 			}
 			return __fsopen(_Filename, _Mode, 0x40); // return expected result
 		}
@@ -354,13 +335,13 @@ void fs::init() {
 
 	fopenHook::install_at_ptr(0x0063FCBF);
 
-	winapi::set_permission(0x006742E8, 4, winapi::Perm::ReadWrite);
+	sunset::utils::set_permission(reinterpret_cast<void*>(0x006742E8), 4, sunset::utils::Perm::ReadWrite);
 	*reinterpret_cast<void**>(0x006742E8) = BinkOpenHook;
 
-	winapi::set_permission(0x00674084, 4, winapi::Perm::ReadWrite);
+	sunset::utils::set_permission(reinterpret_cast<void*>(0x00674084), 4, sunset::utils::Perm::ReadWrite);
 	*reinterpret_cast<void**>(0x00674084) = BASS_SampleLoadHook;
 
-	winapi::set_permission(0x00674040, 4, winapi::Perm::ReadWrite);
+	sunset::utils::set_permission(reinterpret_cast<void*>(0x00674040), 4, sunset::utils::Perm::ReadWrite);
 	*reinterpret_cast<void**>(0x00674040) = BASS_StreamCreateFileHook;
 
 	logging::log("[fs::init] Filesystem successfully initialized!");

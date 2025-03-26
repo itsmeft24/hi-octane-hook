@@ -329,12 +329,12 @@ void GameObject::Kill()
 	this->flags.killMe = true;
 }
 
-void GameObject::DumpHierarchy(char*, DumpType, std::int32_t)
+__declspec(naked) void GameObject::DumpHierarchy(char*, DumpType, std::int32_t)
 {
 	UNIMPLEMENTED(0x00583e70);
 }
 
-GameObject::GameObject(bool startEnabled)
+GameObject::GameObject(bool startEnabled) : BaseObject()
 {
 	(*TotalGameObjects)++;
 	this->prev = nullptr;
